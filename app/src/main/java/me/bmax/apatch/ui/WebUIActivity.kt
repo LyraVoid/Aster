@@ -3,7 +3,9 @@ package me.bmax.apatch.ui
 import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
@@ -62,6 +64,27 @@ class WebUIActivity : ComponentActivity() {
     private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var themeCssSubscription: AutoCloseable? = null
+
+    override fun attachBaseContext(newBase: Context) {
+        val prefs = APApplication.sharedPreferences
+        if (prefs.getBoolean("night_mode_follow_sys", true)) {
+            super.attachBaseContext(newBase)
+            return
+        }
+
+        // WebView derives prefers-color-scheme from its Android theme, not the
+        // Compose palette or injected CSS. Apply the preference before either
+        // the Activity theme or WebView is created, preserving other uiMode bits.
+        val configuration = Configuration(newBase.resources.configuration)
+        val nightMode = if (prefs.getBoolean("night_mode_enabled", false)) {
+            Configuration.UI_MODE_NIGHT_YES
+        } else {
+            Configuration.UI_MODE_NIGHT_NO
+        }
+        configuration.uiMode =
+            (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or nightMode
+        super.attachBaseContext(newBase.createConfigurationContext(configuration))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
