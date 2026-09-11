@@ -268,6 +268,22 @@
     <string name="home_update_up_to_date">Manager is up to date</string>
     <string name="home_security_actions">Security actions</string>
     <string name="home_remove_android_patch">Remove AndroidPatch</string>
+    <string name="home_appearance">Home appearance</string>
+    <string name="home_wallpaper_enable">Show wallpaper</string>
+    <string name="home_wallpaper_enable_summary">Display an image only behind the top of Home. Root diagnostics stay unchanged.</string>
+    <string name="home_wallpaper_choose">Choose image</string>
+    <string name="home_wallpaper_change">Change image</string>
+    <string name="home_wallpaper_remove">Remove image</string>
+    <string name="home_wallpaper_empty">Choose an image to personalize Home. Root diagnostics stay unchanged.</string>
+    <string name="home_wallpaper_missing">The selected image is unavailable. Choose it again.</string>
+    <string name="home_wallpaper_error">The selected image could not be read. Choose another image.</string>
+    <string name="home_wallpaper_saved">A saved image is ready to use when wallpaper is enabled.</string>
+    <string name="home_wallpaper_loading">Applying image...</string>
+    <string name="home_wallpaper_scale">Scale</string>
+    <string name="home_wallpaper_horizontal">Horizontal position</string>
+    <string name="home_wallpaper_vertical">Vertical position</string>
+    <string name="home_wallpaper_import_failed">Could not import the selected image.</string>
+    <string name="home_wallpaper_change_failed">Could not update the Home wallpaper.</string>
 
     <string name="mode_select_page_title">Install</string>
     <string name="mode_select_page_patch_and_install">Patch and install</string>

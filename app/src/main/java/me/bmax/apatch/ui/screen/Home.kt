@@ -1,8 +1,12 @@
 package me.bmax.apatch.ui.screen
 
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,12 +27,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -36,6 +49,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.AboutScreenDestination
@@ -55,6 +71,13 @@ import me.bmax.apatch.ui.home.HomeSelinuxStatus
 import me.bmax.apatch.ui.home.HomeUiState
 import me.bmax.apatch.ui.home.HomeUpdateState
 import me.bmax.apatch.ui.home.HomeViewModel
+import me.bmax.apatch.ui.home.HomeWallpaperCrop
+import me.bmax.apatch.ui.home.HomeWallpaperEvent
+import me.bmax.apatch.ui.home.HomeWallpaperMaxZoom
+import me.bmax.apatch.ui.home.HomeWallpaperMinZoom
+import me.bmax.apatch.ui.home.HomeWallpaperPhase
+import me.bmax.apatch.ui.home.HomeWallpaperState
+import me.bmax.apatch.ui.home.HomeWallpaperViewModel
 import me.bmax.apatch.ui.home.androidVersion
 import me.bmax.apatch.ui.home.displayName
 import me.bmax.apatch.ui.viewmodel.PatchesViewModel
@@ -68,7 +91,9 @@ import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Slider
 import top.yukonga.miuix.kmp.basic.SmallTopAppBar
+import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -85,25 +110,31 @@ import top.yukonga.miuix.kmp.icon.extended.Layers
 import top.yukonga.miuix.kmp.icon.extended.Lock
 import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.icon.extended.Ok
+import top.yukonga.miuix.kmp.icon.extended.Photos
 import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.icon.extended.Reset
 import top.yukonga.miuix.kmp.icon.extended.Unlock
 import top.yukonga.miuix.kmp.icon.extended.Update
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.LocalContentColor
+import java.io.File
 
 @Destination<RootGraph>(start = true)
 @Composable
 fun HomeScreen(navigator: DestinationsNavigator) {
     val viewModel: HomeViewModel = viewModel()
+    val wallpaperViewModel: HomeWallpaperViewModel = viewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val wallpaperState by wallpaperViewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
     var showMore by rememberSaveable { mutableStateOf(false) }
     var showReboot by rememberSaveable { mutableStateOf(false) }
+    var showWallpaperSheet by rememberSaveable { mutableStateOf(false) }
     var showAdvancedDetails by rememberSaveable { mutableStateOf(false) }
     var showUninstallDialog by rememberSaveable { mutableStateOf(false) }
     var showUpdateDialog by rememberSaveable { mutableStateOf(false) }
@@ -111,6 +142,20 @@ fun HomeScreen(navigator: DestinationsNavigator) {
 
     val jailbreakFailedMessage = stringResource(R.string.settings_jailbreak_failed)
     val jailbreakTriggeredMessage = stringResource(R.string.jailbreak_triggered)
+    val wallpaperImportFailedMessage = stringResource(R.string.home_wallpaper_import_failed)
+    val wallpaperChangeFailedMessage = stringResource(R.string.home_wallpaper_change_failed)
+    val wallpaperPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+    ) { uri ->
+        if (uri != null) {
+            wallpaperViewModel.importImage(uri)
+        }
+    }
+    val launchWallpaperPicker = {
+        wallpaperPicker.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+        )
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -121,6 +166,16 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     Toast.LENGTH_SHORT,
                 ).show()
             }
+        }
+    }
+
+    LaunchedEffect(wallpaperViewModel) {
+        wallpaperViewModel.events.collect { event ->
+            val message = when (event) {
+                HomeWallpaperEvent.ImportFailed -> wallpaperImportFailedMessage
+                HomeWallpaperEvent.ChangeFailed -> wallpaperChangeFailedMessage
+            }
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -137,6 +192,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 showReboot = showReboot,
                 onShowMoreChange = { showMore = it },
                 onShowRebootChange = { showReboot = it },
+                onAppearance = { showWallpaperSheet = true },
                 onInstallClick = {
                     showMore = false
                     onInstallClick()
@@ -165,6 +221,16 @@ fun HomeScreen(navigator: DestinationsNavigator) {
         },
     ) { innerPadding ->
         Box(Modifier.fillMaxSize()) {
+            if (wallpaperState.enabled && wallpaperState.isReady) {
+                HomeWallpaperEnvironment(
+                    state = wallpaperState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.34f)
+                        .align(Alignment.TopCenter),
+                )
+            }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -228,6 +294,16 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 Spacer(Modifier.height(12.dp))
             }
 
+            HomeWallpaperSheet(
+                show = showWallpaperSheet,
+                state = wallpaperState,
+                onDismissRequest = { showWallpaperSheet = false },
+                onEnabledChange = wallpaperViewModel::setEnabled,
+                onChooseImage = launchWallpaperPicker,
+                onRemoveImage = wallpaperViewModel::removeImage,
+                onCropChange = wallpaperViewModel::saveCrop,
+            )
+
             if (showUninstallDialog) {
                 UninstallDialog(
                     show = true,
@@ -281,6 +357,7 @@ private fun HomeTopBar(
     showReboot: Boolean,
     onShowMoreChange: (Boolean) -> Unit,
     onShowRebootChange: (Boolean) -> Unit,
+    onAppearance: () -> Unit,
     onInstallClick: () -> Unit,
     onCheckUpdates: () -> Unit,
     onFeedback: () -> Unit,
@@ -291,6 +368,13 @@ private fun HomeTopBar(
     SmallTopAppBar(
         title = stringResource(R.string.app_name),
         actions = {
+            IconButton(onClick = onAppearance) {
+                Icon(
+                    imageVector = MiuixIcons.Photos,
+                    contentDescription = stringResource(R.string.home_appearance),
+                )
+            }
+
             Box {
                 IconButton(onClick = { onShowMoreChange(true) }) {
                     Icon(
@@ -435,6 +519,291 @@ private fun PopupMenuItem(
         )
         Spacer(Modifier.width(12.dp))
         Text(text = text, color = contentColor)
+    }
+}
+
+@Composable
+private fun HomeWallpaperEnvironment(
+    state: HomeWallpaperState,
+    modifier: Modifier = Modifier,
+) {
+    val background = MiuixTheme.colorScheme.background
+    Box(
+        modifier = modifier
+            .clipToBounds()
+            .background(background),
+    ) {
+        HomeWallpaperImage(
+            state = state,
+            modifier = Modifier.fillMaxSize(),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MiuixTheme.colorScheme.surface.copy(alpha = 0.08f))
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        0f to Color.Transparent,
+                        0.58f to Color.Transparent,
+                        0.82f to background.copy(alpha = 0.92f),
+                        1f to background,
+                    )
+                )
+        )
+    }
+}
+
+@Composable
+private fun HomeWallpaperImage(
+    state: HomeWallpaperState,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val path = state.imagePath ?: return
+    val request = remember(path, state.revision, context) {
+        ImageRequest.Builder(context)
+            .data(File(path))
+            .memoryCacheKey("home-wallpaper-${state.revision}")
+            .crossfade(true)
+            .build()
+    }
+
+    AsyncImage(
+        model = request,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        alignment = BiasAlignment(
+            horizontalBias = state.crop.biasX,
+            verticalBias = state.crop.biasY,
+        ),
+        modifier = modifier.graphicsLayer {
+            scaleX = state.crop.zoom
+            scaleY = state.crop.zoom
+        },
+    )
+}
+
+@Composable
+private fun HomeWallpaperSheet(
+    show: Boolean,
+    state: HomeWallpaperState,
+    onDismissRequest: () -> Unit,
+    onEnabledChange: (Boolean) -> Unit,
+    onChooseImage: () -> Unit,
+    onRemoveImage: () -> Unit,
+    onCropChange: (HomeWallpaperCrop) -> Unit,
+) {
+    val busy = state.phase == HomeWallpaperPhase.LOADING
+    var zoom by remember(show, state.imagePath, state.revision, state.crop) {
+        mutableFloatStateOf(state.crop.zoom)
+    }
+    var biasX by remember(show, state.imagePath, state.revision, state.crop) {
+        mutableFloatStateOf(state.crop.biasX)
+    }
+    var biasY by remember(show, state.imagePath, state.revision, state.crop) {
+        mutableFloatStateOf(state.crop.biasY)
+    }
+    val draftCrop = HomeWallpaperCrop(
+        zoom = zoom,
+        biasX = biasX,
+        biasY = biasY,
+    )
+
+    OverlayBottomSheet(
+        show = show,
+        title = stringResource(R.string.home_appearance),
+        onDismissRequest = onDismissRequest,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 520.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.home_wallpaper_enable),
+                        style = MiuixTheme.textStyles.body1,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = stringResource(R.string.home_wallpaper_enable_summary),
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                }
+                Spacer(Modifier.width(16.dp))
+                Switch(
+                    checked = state.enabled,
+                    onCheckedChange = onEnabledChange,
+                    enabled = !busy,
+                )
+            }
+
+            when {
+                busy -> {
+                    Text(
+                        text = stringResource(R.string.home_wallpaper_loading),
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                }
+
+                state.enabled && state.phase == HomeWallpaperPhase.MISSING -> {
+                    Text(
+                        text = stringResource(R.string.home_wallpaper_missing),
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                }
+
+                state.enabled && state.phase == HomeWallpaperPhase.ERROR -> {
+                    Text(
+                        text = stringResource(R.string.home_wallpaper_error),
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.error,
+                    )
+                }
+
+                state.isReady -> {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        insideMargin = PaddingValues(0.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(168.dp)
+                                .clipToBounds(),
+                        ) {
+                            HomeWallpaperImage(
+                                state = state.copy(crop = draftCrop),
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            0f to Color.Transparent,
+                                            0.72f to Color.Transparent,
+                                            1f to MiuixTheme.colorScheme.background,
+                                        )
+                                    )
+                            )
+                        }
+                    }
+
+                    WallpaperSlider(
+                        label = stringResource(R.string.home_wallpaper_scale),
+                        value = zoom,
+                        valueRange = HomeWallpaperMinZoom..HomeWallpaperMaxZoom,
+                        enabled = !busy,
+                        onValueChange = { zoom = it },
+                        onValueChangeFinished = { onCropChange(draftCrop) },
+                    )
+                    WallpaperSlider(
+                        label = stringResource(R.string.home_wallpaper_horizontal),
+                        value = biasX,
+                        valueRange = -1f..1f,
+                        enabled = !busy,
+                        onValueChange = { biasX = it },
+                        onValueChangeFinished = { onCropChange(draftCrop) },
+                    )
+                    WallpaperSlider(
+                        label = stringResource(R.string.home_wallpaper_vertical),
+                        value = biasY,
+                        valueRange = -1f..1f,
+                        enabled = !busy,
+                        onValueChange = { biasY = it },
+                        onValueChangeFinished = { onCropChange(draftCrop) },
+                    )
+                }
+
+                state.hasImage -> {
+                    Text(
+                        text = stringResource(R.string.home_wallpaper_saved),
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                }
+
+                else -> {
+                    Text(
+                        text = stringResource(R.string.home_wallpaper_empty),
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Button(
+                    onClick = onChooseImage,
+                    modifier = Modifier.weight(1f),
+                    enabled = !busy,
+                ) {
+                    Text(
+                        text = stringResource(
+                            if (state.hasImage) {
+                                R.string.home_wallpaper_change
+                            } else {
+                                R.string.home_wallpaper_choose
+                            }
+                        ),
+                        style = MiuixTheme.textStyles.button,
+                    )
+                }
+                if (state.hasImage) {
+                    TextButton(
+                        text = stringResource(R.string.home_wallpaper_remove),
+                        onClick = onRemoveImage,
+                        modifier = Modifier.weight(1f),
+                        enabled = !busy,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WallpaperSlider(
+    label: String,
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    enabled: Boolean,
+    onValueChange: (Float) -> Unit,
+    onValueChangeFinished: () -> Unit,
+) {
+    Column(Modifier.fillMaxWidth()) {
+        Text(
+            text = label,
+            style = MiuixTheme.textStyles.footnote1,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+        )
+        Spacer(Modifier.height(2.dp))
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = enabled,
+            valueRange = valueRange,
+            onValueChangeFinished = onValueChangeFinished,
+        )
     }
 }
 
