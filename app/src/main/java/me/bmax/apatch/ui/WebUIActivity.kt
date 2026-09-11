@@ -46,6 +46,7 @@ import me.bmax.apatch.ui.webui.MonetColorsProvider
 import me.bmax.apatch.ui.webui.SuFilePathHandler
 import me.bmax.apatch.ui.webui.WebViewInterface
 import me.bmax.apatch.ui.webui.WebUiThemeInjector
+import me.bmax.apatch.ui.webui.resolveWebUiUiMode
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.io.ByteArrayInputStream
@@ -67,23 +68,23 @@ class WebUIActivity : ComponentActivity() {
 
     override fun attachBaseContext(newBase: Context) {
         val prefs = APApplication.sharedPreferences
-        if (prefs.getBoolean("night_mode_follow_sys", true)) {
-            super.attachBaseContext(newBase)
-            return
-        }
+        val followSystem = prefs.getBoolean("night_mode_follow_sys", true)
 
         // WebView derives prefers-color-scheme from its Android theme, not the
         // Compose palette or injected CSS. Apply the preference before either
         // the Activity theme or WebView is created, preserving other uiMode bits.
         val configuration = Configuration(newBase.resources.configuration)
-        val nightMode = if (prefs.getBoolean("night_mode_enabled", false)) {
-            Configuration.UI_MODE_NIGHT_YES
+        configuration.uiMode = resolveWebUiUiMode(
+            currentUiMode = configuration.uiMode,
+            followSystem = followSystem,
+            nightModeEnabled = prefs.getBoolean("night_mode_enabled", false),
+        )
+
+        if (followSystem) {
+            super.attachBaseContext(newBase)
         } else {
-            Configuration.UI_MODE_NIGHT_NO
+            super.attachBaseContext(newBase.createConfigurationContext(configuration))
         }
-        configuration.uiMode =
-            (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or nightMode
-        super.attachBaseContext(newBase.createConfigurationContext(configuration))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
