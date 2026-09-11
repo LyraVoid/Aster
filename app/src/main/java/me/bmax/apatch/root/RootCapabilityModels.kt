@@ -60,10 +60,23 @@ enum class RootCheckError {
     UNEXPECTED,
 }
 
+enum class RootDetailState {
+    UNKNOWN,
+    AVAILABLE,
+    UNAVAILABLE,
+    ERROR,
+}
+
 data class RootCapabilityDetails(
     val suPath: String? = null,
+    val suPathState: RootDetailState = RootDetailState.UNKNOWN,
     val androidPatchVersion: Int? = null,
-)
+    val androidPatchVersionState: RootDetailState = RootDetailState.UNKNOWN,
+) {
+    val hasReadError: Boolean
+        get() = suPathState == RootDetailState.ERROR ||
+            androidPatchVersionState == RootDetailState.ERROR
+}
 
 data class RootCapabilitySnapshot(
     val phase: RootCheckPhase = RootCheckPhase.NOT_STARTED,
@@ -87,6 +100,7 @@ data class RootInitializationSnapshot(
     val rootProbeSucceeded: Boolean? = null,
     val startedAt: Long? = null,
     val completedAt: Long? = null,
+    val details: RootCapabilityDetails = RootCapabilityDetails(),
     val error: RootCheckError? = null,
 )
 

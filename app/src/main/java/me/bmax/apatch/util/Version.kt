@@ -17,6 +17,42 @@ import androidx.compose.runtime.mutableStateOf
 import java.io.File
 import android.system.Os
 
+internal sealed interface ApdVersionResult {
+    data class Available(val version: Int) : ApdVersionResult
+
+    data class Missing(val exitCode: Int) : ApdVersionResult
+
+    data class Error(val exitCode: Int) : ApdVersionResult
+}
+
+private val APD_MISSING_PATTERN = Regex(
+    pattern = "no such file|not found|does not exist",
+    option = RegexOption.IGNORE_CASE,
+)
+
+internal fun mapApdVersionResult(
+    exitCode: Int,
+    out: List<String>,
+    err: List<String>,
+): ApdVersionResult {
+    val output = out.joinToString("\n").trim()
+    val error = err.joinToString("\n").trim()
+    if (exitCode == 127 || APD_MISSING_PATTERN.containsMatchIn("$output\n$error")) {
+        return ApdVersionResult.Missing(exitCode)
+    }
+    if (exitCode != 0) {
+        return ApdVersionResult.Error(exitCode)
+    }
+
+    val version = Regex("\\d+").find(output)?.value?.toIntOrNull()
+        ?: return ApdVersionResult.Error(exitCode)
+    return if (version > 0) {
+        ApdVersionResult.Available(version)
+    } else {
+        ApdVersionResult.Error(exitCode)
+    }
+}
+
 
 /**
  * version string is like 0.9.0 or 0.9.0-dev
@@ -117,22 +153,31 @@ object Version {
         return installedKPatchVString().trim().toUInt(0x10)
     }
 
-    private fun installedApdVString(): String {
+    internal fun probeInstalledApdVersion(): ApdVersionResult {
         val resultShell = rootShellForResult("${APApplication.APD_PATH} -V")
-        installedApdVString = if (resultShell.isSuccess) {
-            val result = resultShell.out.toString()
-            Log.i("APatch", "[installedApdVString@Version] resultFromShell: $result")
-            Regex("\\d+").find(result)?.value ?: "0"
-        } else {
-            "0"
-        }
-        return installedApdVString
+        Log.i(
+            "APatch",
+            "[probeInstalledApdVersion] code=${resultShell.code}, out=${resultShell.out}, err=${resultShell.err}",
+        )
+        return mapApdVersionResult(
+            exitCode = resultShell.code,
+            out = resultShell.out,
+            err = resultShell.err,
+        )
     }
 
-    fun installedApdVUInt(): Int {
-        installedApdVInt = installedApdVString().toInt()
+    internal fun updateInstalledApdVersion(result: ApdVersionResult): Int {
+        installedApdVInt = when (result) {
+            is ApdVersionResult.Available -> result.version
+            is ApdVersionResult.Missing,
+            is ApdVersionResult.Error,
+            -> 0
+        }
+        installedApdVString = installedApdVInt.toString()
         return installedApdVInt
     }
+
+    fun installedApdVUInt(): Int = updateInstalledApdVersion(probeInstalledApdVersion())
 
 
     fun getManagerVersion(): Pair<String, Long> {

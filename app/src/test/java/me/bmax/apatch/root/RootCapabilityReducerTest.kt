@@ -119,4 +119,57 @@ class RootCapabilityReducerTest {
         assertEquals(60L, failed.lastGoodAt)
         assertTrue(failed.attention.contains(RootAttention.CHECK_FAILED))
     }
+
+    @Test
+    fun `detail read failure marks check failed without replacing last good`() {
+        val good = RootCapabilityReducer.applyProbe(
+            previous = RootCapabilitySnapshot(),
+            result = RootCapabilityProbeResult(
+                kernelPatch = RootLayerState.AVAILABLE,
+                androidPatch = RootLayerState.AVAILABLE,
+                rootAccess = RootAccessProbeState.AVAILABLE,
+            ),
+            sessionId = 8L,
+            checkedAt = 80L,
+        )
+        val failedDetails = RootCapabilityReducer.applyProbe(
+            previous = good,
+            result = RootCapabilityProbeResult(
+                kernelPatch = RootLayerState.AVAILABLE,
+                androidPatch = RootLayerState.AVAILABLE,
+                rootAccess = RootAccessProbeState.AVAILABLE,
+                details = RootCapabilityDetails(
+                    suPathState = RootDetailState.ERROR,
+                    androidPatchVersionState = RootDetailState.AVAILABLE,
+                ),
+            ),
+            sessionId = 9L,
+            checkedAt = 90L,
+        )
+
+        assertEquals(RootFreshness.STALE, failedDetails.freshness)
+        assertEquals(80L, failedDetails.lastGoodAt)
+        assertTrue(failedDetails.attention.contains(RootAttention.CHECK_FAILED))
+    }
+
+    @Test
+    fun `first detail read failure does not invent a good snapshot`() {
+        val failed = RootCapabilityReducer.applyProbe(
+            previous = RootCapabilitySnapshot(),
+            result = RootCapabilityProbeResult(
+                kernelPatch = RootLayerState.AVAILABLE,
+                androidPatch = RootLayerState.AVAILABLE,
+                rootAccess = RootAccessProbeState.AVAILABLE,
+                details = RootCapabilityDetails(
+                    androidPatchVersionState = RootDetailState.ERROR,
+                ),
+            ),
+            sessionId = 10L,
+            checkedAt = 100L,
+        )
+
+        assertEquals(RootFreshness.FAILED, failed.freshness)
+        assertEquals(null, failed.lastGoodAt)
+        assertTrue(failed.attention.contains(RootAttention.CHECK_FAILED))
+    }
 }

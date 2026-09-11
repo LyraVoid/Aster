@@ -13,12 +13,17 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.topjohnwu.superuser.CallbackList
 import me.bmax.apatch.ui.CrashHandleActivity
+import me.bmax.apatch.root.RootCapabilityDetails
 import me.bmax.apatch.root.RootCapabilityRepository
 import me.bmax.apatch.root.RootCheckError
 import me.bmax.apatch.root.RootCheckPhase
+import me.bmax.apatch.root.RootDetailRead
+import me.bmax.apatch.root.RootDetailState
 import me.bmax.apatch.root.RootInitializationSnapshot
+import me.bmax.apatch.root.toRootDetailRead
 import me.bmax.apatch.util.APatchCli
 import me.bmax.apatch.util.APatchKeyHelper
+import me.bmax.apatch.util.ApdVersionResult
 import me.bmax.apatch.util.Version
 import me.bmax.apatch.util.getRootShell
 import me.bmax.apatch.util.rootShellForResult
@@ -262,9 +267,21 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
                         }
                         Log.d(TAG, "kp state: " + _kpStateLiveData.value)
 
+                        val suPathRead = runCatching {
+                            Natives.suPathResult().toRootDetailRead()
+                        }.getOrElse {
+                            RootDetailRead<String>(state = RootDetailState.ERROR)
+                        }
+
                         // AndroidPatch version
                         val mgv = Version.getManagerVersion().second
-                        val installedApdVInt = Version.installedApdVUInt()
+                        val apdVersionResult = runCatching {
+                            Version.probeInstalledApdVersion()
+                        }.getOrElse {
+                            ApdVersionResult.Error(-1)
+                        }
+                        val apdVersionRead = apdVersionResult.toRootDetailRead()
+                        val installedApdVInt = Version.updateInstalledApdVersion(apdVersionResult)
                         Log.d(
                             TAG,
                             "manager version: $mgv, installed apd version: $installedApdVInt"
@@ -283,7 +300,10 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
                             val suPathFile = File(SU_PATH_FILE)
                             if (suPathFile.exists()) {
                                 val suPath = suPathFile.readLines()[0].trim()
-                                if (Natives.suPath() != suPath) {
+                                if (
+                                    suPathRead.state == RootDetailState.AVAILABLE &&
+                                    suPathRead.value != suPath
+                                ) {
                                     Log.d(TAG, "su path: $suPath")
                                     Natives.resetSuPath(suPath)
                                 }
@@ -296,6 +316,12 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
                             phase = RootCheckPhase.READY,
                             kernelPatchDetected = true,
                             rootProbeSucceeded = true,
+                            details = RootCapabilityDetails(
+                                suPath = suPathRead.value,
+                                suPathState = suPathRead.state,
+                                androidPatchVersion = apdVersionRead.value,
+                                androidPatchVersionState = apdVersionRead.state,
+                            ),
                         )
                     } catch (t: Throwable) {
                         Log.e(TAG, "Root capability initialization failed", t)
@@ -313,6 +339,7 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
             phase: RootCheckPhase,
             kernelPatchDetected: Boolean? = null,
             rootProbeSucceeded: Boolean? = null,
+            details: RootCapabilityDetails = RootCapabilityDetails(),
             error: RootCheckError? = null,
         ) {
             val current = _rootInitializationLiveData.value ?: return
@@ -327,6 +354,7 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
                 rootProbeSucceeded = rootProbeSucceeded,
                 startedAt = current.startedAt,
                 completedAt = SystemClock.elapsedRealtime(),
+                details = details,
                 error = error,
             ))
         }

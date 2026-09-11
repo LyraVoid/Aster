@@ -60,6 +60,7 @@ import com.ramcosta.composedestinations.generated.destinations.PatchesDestinatio
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import me.bmax.apatch.R
 import me.bmax.apatch.root.RootAccessProbeState
+import me.bmax.apatch.root.RootDetailState
 import me.bmax.apatch.root.RootLayerState
 import me.bmax.apatch.root.RootMode
 import me.bmax.apatch.ui.home.HomeConclusion
@@ -1112,6 +1113,7 @@ private fun AdvancedDetailsCard(
     onRemoveAndroidPatch: () -> Unit,
     onUninstallAll: () -> Unit,
 ) {
+    val details = state.capability.details
     Card(
         modifier = Modifier.fillMaxWidth(),
         insideMargin = PaddingValues(0.dp),
@@ -1166,13 +1168,28 @@ private fun AdvancedDetailsCard(
                 )
                 DetailRow(
                     label = stringResource(R.string.home_su_path),
-                    value = state.capability.details.suPath
-                        ?: stringResource(R.string.home_layer_unknown),
+                    value = when (details.suPathState) {
+                        RootDetailState.AVAILABLE -> details.suPath
+                            ?: stringResource(R.string.home_layer_unknown)
+
+                        RootDetailState.ERROR -> stringResource(R.string.home_layer_error)
+                        RootDetailState.UNAVAILABLE -> stringResource(R.string.home_layer_unavailable)
+                        RootDetailState.UNKNOWN -> stringResource(R.string.home_layer_unknown)
+                    },
                 )
-                state.capability.details.androidPatchVersion?.let { version ->
+                if (details.androidPatchVersionState != RootDetailState.UNKNOWN) {
                     DetailRow(
                         label = stringResource(R.string.home_apatch_version),
-                        value = version.toString(),
+                        value = when (details.androidPatchVersionState) {
+                            RootDetailState.AVAILABLE -> details.androidPatchVersion?.toString()
+                                ?: stringResource(R.string.home_layer_unknown)
+
+                            RootDetailState.ERROR -> stringResource(R.string.home_layer_error)
+                            RootDetailState.UNAVAILABLE ->
+                                stringResource(R.string.home_layer_unavailable)
+
+                            RootDetailState.UNKNOWN -> stringResource(R.string.home_layer_unknown)
+                        },
                     )
                 }
                 state.environment?.let { environment ->

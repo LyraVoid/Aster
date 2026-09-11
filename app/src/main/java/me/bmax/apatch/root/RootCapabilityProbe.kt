@@ -4,11 +4,48 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.Natives
+import me.bmax.apatch.util.ApdVersionResult
 import me.bmax.apatch.util.Version
 
 internal fun interface RootCapabilityProbe {
     suspend fun probe(): RootCapabilityProbeResult
 }
+
+internal data class RootDetailRead<T>(
+    val value: T? = null,
+    val state: RootDetailState = RootDetailState.UNKNOWN,
+)
+
+internal fun mapSuPathRead(rc: Long, path: String?): RootDetailRead<String> = when {
+    rc >= 0L && !path.isNullOrBlank() -> RootDetailRead(
+        value = path,
+        state = RootDetailState.AVAILABLE,
+    )
+
+    rc >= 0L -> RootDetailRead(state = RootDetailState.UNAVAILABLE)
+    else -> RootDetailRead(state = RootDetailState.ERROR)
+}
+
+internal fun Natives.SuPathResult.toRootDetailRead(): RootDetailRead<String> =
+    mapSuPathRead(rc = rc, path = path)
+
+internal fun mapApdVersionRead(result: ApdVersionResult): RootDetailRead<Int> = when (result) {
+    is ApdVersionResult.Available -> RootDetailRead(
+        value = result.version,
+        state = RootDetailState.AVAILABLE,
+    )
+
+    is ApdVersionResult.Missing -> RootDetailRead(
+        state = RootDetailState.UNAVAILABLE,
+    )
+
+    is ApdVersionResult.Error -> RootDetailRead(
+        state = RootDetailState.ERROR,
+    )
+}
+
+internal fun ApdVersionResult.toRootDetailRead(): RootDetailRead<Int> =
+    mapApdVersionRead(this)
 
 internal object AndroidRootCapabilityProbe : RootCapabilityProbe {
     override suspend fun probe(): RootCapabilityProbeResult = withContext(Dispatchers.IO) {
@@ -51,13 +88,34 @@ internal object AndroidRootCapabilityProbe : RootCapabilityProbe {
             )
         }
 
+        val kernelPatchState = APApplication.kpStateLiveData.value
+        val androidPatchState = APApplication.apStateLiveData.value
+        val suPathRead = runCatching {
+            Natives.suPathResult().toRootDetailRead()
+        }.getOrElse {
+            RootDetailRead<String>(state = RootDetailState.ERROR)
+        }
+        val androidPatchVersionRead = if (
+            androidPatchState == APApplication.State.ANDROIDPATCH_NOT_INSTALLED
+        ) {
+            RootDetailRead<Int>(state = RootDetailState.UNAVAILABLE)
+        } else {
+            runCatching {
+                Version.probeInstalledApdVersion().toRootDetailRead()
+            }.getOrElse {
+                RootDetailRead<Int>(state = RootDetailState.ERROR)
+            }
+        }
+
         RootCapabilityProjection.fromCoreState(
             kernelPatchDetected = true,
             rootProbeSucceeded = true,
-            kernelPatchState = APApplication.kpStateLiveData.value,
-            androidPatchState = APApplication.apStateLiveData.value,
-            suPath = runCatching { Natives.suPath().takeIf(String::isNotBlank) }.getOrNull(),
-            androidPatchVersion = runCatching { Version.installedApdVUInt() }.getOrNull(),
+            kernelPatchState = kernelPatchState,
+            androidPatchState = androidPatchState,
+            suPath = suPathRead.value,
+            suPathState = suPathRead.state,
+            androidPatchVersion = androidPatchVersionRead.value,
+            androidPatchVersionState = androidPatchVersionRead.state,
         )
     }
 }
@@ -75,6 +133,10 @@ internal object RootCapabilityProjection {
             rootProbeSucceeded = rootProbeSucceeded,
             kernelPatchState = kernelPatchState,
             androidPatchState = androidPatchState,
+            suPath = initialization.details.suPath,
+            suPathState = initialization.details.suPathState,
+            androidPatchVersion = initialization.details.androidPatchVersion,
+            androidPatchVersionState = initialization.details.androidPatchVersionState,
             error = initialization.error,
         )
     }
@@ -85,7 +147,17 @@ internal object RootCapabilityProjection {
         kernelPatchState: APApplication.State?,
         androidPatchState: APApplication.State?,
         suPath: String? = null,
+        suPathState: RootDetailState = if (suPath != null) {
+            RootDetailState.AVAILABLE
+        } else {
+            RootDetailState.UNKNOWN
+        },
         androidPatchVersion: Int? = null,
+        androidPatchVersionState: RootDetailState = if (androidPatchVersion != null) {
+            RootDetailState.AVAILABLE
+        } else {
+            RootDetailState.UNKNOWN
+        },
         error: RootCheckError? = null,
     ): RootCapabilityProbeResult {
         if (!kernelPatchDetected) {
@@ -112,7 +184,9 @@ internal object RootCapabilityProjection {
             rootAccess = RootAccessProbeState.AVAILABLE,
             details = RootCapabilityDetails(
                 suPath = suPath,
+                suPathState = suPathState,
                 androidPatchVersion = androidPatchVersion,
+                androidPatchVersionState = androidPatchVersionState,
             ),
             error = error,
         )

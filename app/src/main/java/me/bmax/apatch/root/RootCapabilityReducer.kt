@@ -21,9 +21,14 @@ internal object RootCapabilityReducer {
         checkedAt: Long,
     ): RootCapabilitySnapshot {
         val mode = result.modeOverride ?: deriveMode(result)
+        val isReliable = result.isReliable()
         return RootCapabilitySnapshot(
             phase = RootCheckPhase.READY,
-            freshness = RootFreshness.FRESH,
+            freshness = when {
+                isReliable -> RootFreshness.FRESH
+                previous.lastGoodAt != null -> RootFreshness.STALE
+                else -> RootFreshness.FAILED
+            },
             sessionId = sessionId,
             kernelPatch = result.kernelPatch,
             androidPatch = result.androidPatch,
@@ -32,7 +37,7 @@ internal object RootCapabilityReducer {
             attention = deriveAttention(result, mode),
             details = result.details,
             checkedAt = checkedAt,
-            lastGoodAt = checkedAt,
+            lastGoodAt = if (isReliable) checkedAt else previous.lastGoodAt,
             error = result.error,
         )
     }
@@ -68,6 +73,9 @@ internal object RootCapabilityReducer {
         if (result.error != null || result.rootAccess == RootAccessProbeState.ERROR) {
             add(RootAttention.CHECK_FAILED)
         }
+        if (result.details.hasReadError) {
+            add(RootAttention.CHECK_FAILED)
+        }
         if (mode == RootMode.NONE) {
             add(RootAttention.NEED_INSTALL)
         }
@@ -88,6 +96,11 @@ internal object RootCapabilityReducer {
         }
     }
 }
+
+private fun RootCapabilityProbeResult.isReliable(): Boolean =
+    error == null &&
+        rootAccess != RootAccessProbeState.ERROR &&
+        !details.hasReadError
 
 internal fun RootLayerState.isUsable(): Boolean = when (this) {
     RootLayerState.AVAILABLE,

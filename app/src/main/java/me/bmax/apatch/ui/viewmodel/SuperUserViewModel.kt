@@ -30,6 +30,7 @@ import kotlinx.parcelize.Parcelize
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.IAPRootService
 import me.bmax.apatch.Natives
+import me.bmax.apatch.R
 import me.bmax.apatch.apApp
 import me.bmax.apatch.root.RootCapabilityRepository
 import me.bmax.apatch.root.isUsable
@@ -247,7 +248,13 @@ class SuperUserViewModel : ViewModel() {
                 withContext(Dispatchers.Main) {
                     stopRootService()
                 }
-                val uids = Natives.suUids().toList()
+                val uidResult = Natives.suUidsResult()
+                if (!uidResult.isSuccess) {
+                    Log.e(TAG, "Failed to read authorized UIDs: rc=${uidResult.rc}")
+                    _errorMessage.value = apApp.getString(R.string.su_error_read_uids)
+                    return@withContext
+                }
+                val uids = uidResult.uids.toList()
                 Log.d(TAG, "all allows: $uids")
 
                 var configs: HashMap<Int, PkgConfig.Config> = HashMap()
