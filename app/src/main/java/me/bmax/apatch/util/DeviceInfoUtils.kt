@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.bmax.apatch.R
 
-private fun querySELinuxStatus(): Pair<Boolean, String> {
+internal fun querySELinuxStatus(): Pair<Boolean, String> {
     Shell.Builder.create().build("sh").use { shell ->
         val list = ArrayList<String>()
         val result = shell.newJob().add("getenforce").to(list, list).exec()

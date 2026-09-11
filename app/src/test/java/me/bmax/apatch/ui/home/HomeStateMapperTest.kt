@@ -1,0 +1,172 @@
+package me.bmax.apatch.ui.home
+
+import me.bmax.apatch.root.RootAccessProbeState
+import me.bmax.apatch.root.RootAttention
+import me.bmax.apatch.root.RootCapabilitySnapshot
+import me.bmax.apatch.root.RootCheckPhase
+import me.bmax.apatch.root.RootLayerState
+import me.bmax.apatch.root.RootMode
+import me.bmax.apatch.util.LatestVersionInfo
+import org.junit.Assert.assertEquals
+import org.junit.Test
+
+class HomeStateMapperTest {
+    @Test
+    fun `checking never resolves to not installed`() {
+        val state = HomeStateMapper.map(
+            capability = RootCapabilitySnapshot(
+                phase = RootCheckPhase.CHECKING,
+                kernelPatch = RootLayerState.UNKNOWN,
+            ),
+            environment = null,
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+        )
+
+        assertEquals(HomeConclusion.CHECKING, state.conclusion)
+        assertEquals(HomePrimaryAction.NONE, state.primaryAction)
+        assertEquals(HomeDeviceDensity.DIAGNOSTIC, state.deviceDensity)
+    }
+
+    @Test
+    fun `full apatch is quiet and uses compact device identity`() {
+        val state = HomeStateMapper.map(
+            capability = readyCapability(
+                kernelPatch = RootLayerState.AVAILABLE,
+                androidPatch = RootLayerState.AVAILABLE,
+                mode = RootMode.FULL_APATCH,
+            ),
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.UpToDate,
+        )
+
+        assertEquals(HomeConclusion.FULL_APATCH, state.conclusion)
+        assertEquals(HomePrimaryAction.NONE, state.primaryAction)
+        assertEquals(HomeDeviceDensity.COMPACT, state.deviceDensity)
+    }
+
+    @Test
+    fun `need reboot wins over update`() {
+        val capability = readyCapability(
+            kernelPatch = RootLayerState.NEED_REBOOT,
+            androidPatch = RootLayerState.NEED_UPDATE,
+            mode = RootMode.FULL_APATCH,
+        ).copy(
+            attention = setOf(RootAttention.NEED_REBOOT, RootAttention.NEED_UPDATE),
+        )
+
+        val state = HomeStateMapper.map(
+            capability = capability,
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+        )
+
+        assertEquals(HomeConclusion.NEED_REBOOT, state.conclusion)
+        assertEquals(HomePrimaryAction.REBOOT, state.primaryAction)
+        assertEquals(HomeDeviceDensity.DIAGNOSTIC, state.deviceDensity)
+    }
+
+    @Test
+    fun `kernel patch only offers apatch installation`() {
+        val state = HomeStateMapper.map(
+            capability = readyCapability(
+                kernelPatch = RootLayerState.AVAILABLE,
+                androidPatch = RootLayerState.UNAVAILABLE,
+                mode = RootMode.KERNEL_PATCH_ONLY,
+            ).copy(attention = setOf(RootAttention.NEED_APATCH_INSTALL)),
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+        )
+
+        assertEquals(HomeConclusion.KERNEL_PATCH_ONLY, state.conclusion)
+        assertEquals(HomePrimaryAction.INSTALL_APATCH, state.primaryAction)
+    }
+
+    @Test
+    fun `root access error offers retry before install`() {
+        val state = HomeStateMapper.map(
+            capability = readyCapability(
+                kernelPatch = RootLayerState.AVAILABLE,
+                androidPatch = RootLayerState.UNKNOWN,
+                mode = RootMode.KERNEL_PATCH_ONLY,
+            ).copy(
+                rootAccess = RootAccessProbeState.ERROR,
+                attention = setOf(RootAttention.CHECK_FAILED, RootAttention.NEED_INSTALL),
+            ),
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+        )
+
+        assertEquals(HomeConclusion.CHECK_FAILED, state.conclusion)
+        assertEquals(HomePrimaryAction.RETRY_CHECK, state.primaryAction)
+    }
+
+    @Test
+    fun `update mapping distinguishes failure from up to date`() {
+        assertEquals(
+            HomeUpdateState.Failed,
+            HomeStateMapper.resolveUpdateState(
+                enabled = true,
+                currentVersionCode = 100L,
+                latest = LatestVersionInfo(),
+            ),
+        )
+        assertEquals(
+            HomeUpdateState.UpToDate,
+            HomeStateMapper.resolveUpdateState(
+                enabled = true,
+                currentVersionCode = 100L,
+                latest = LatestVersionInfo(versionCode = 100, downloadUrl = "https://example.com"),
+            ),
+        )
+        assertEquals(
+            HomeUpdateState.Available(
+                versionCode = 101,
+                downloadUrl = "https://example.com",
+                changelog = "changes",
+            ),
+            HomeStateMapper.resolveUpdateState(
+                enabled = true,
+                currentVersionCode = 100L,
+                latest = LatestVersionInfo(
+                    versionCode = 101,
+                    downloadUrl = "https://example.com",
+                    changelog = "changes",
+                ),
+            ),
+        )
+    }
+
+    private fun readyCapability(
+        kernelPatch: RootLayerState,
+        androidPatch: RootLayerState,
+        mode: RootMode,
+    ): RootCapabilitySnapshot = RootCapabilitySnapshot(
+        phase = RootCheckPhase.READY,
+        kernelPatch = kernelPatch,
+        androidPatch = androidPatch,
+        rootAccess = RootAccessProbeState.AVAILABLE,
+        mode = mode,
+    )
+
+    private fun environment(): HomeDeviceEnvironment = HomeDeviceEnvironment(
+        manufacturer = "Google",
+        brand = "google",
+        model = "Pixel",
+        androidRelease = "16",
+        androidApi = 36,
+        isPreview = false,
+        kernelRelease = "6.1.0",
+        fingerprint = "fingerprint",
+        primaryAbi = "arm64-v8a",
+        kmi = "android14-6.1",
+        selinuxStatus = HomeSelinuxStatus.ENFORCING,
+        jailbreakActive = false,
+        managerVersionName = "1.0.0",
+        managerVersionCode = 100L,
+    )
+}
