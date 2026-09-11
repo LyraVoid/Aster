@@ -8,17 +8,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.generated.NavGraphs
 import com.ramcosta.composedestinations.rememberNavHostEngine
-import me.bmax.apatch.APApplication
+import me.bmax.apatch.root.RootCapabilityRepository
+import me.bmax.apatch.root.RootCheckPhase
+import me.bmax.apatch.root.isUsable
 import me.bmax.apatch.ui.shell.AsterAppShell
 import me.bmax.apatch.ui.shell.AsterNavigationCapabilities
 import me.bmax.apatch.ui.shell.AsterNavigationTransitions
@@ -48,16 +50,12 @@ class MainActivity : AppCompatActivity() {
                 val primaryRoutes = remember {
                     PrimaryDestination.entries.map { it.direction.route }.toSet()
                 }
-                val kpState by APApplication.kpStateLiveData.observeAsState(
-                    APApplication.State.UNKNOWN_STATE
-                )
-                val apState by APApplication.apStateLiveData.observeAsState(
-                    APApplication.State.UNKNOWN_STATE
-                )
+                val rootCapability by RootCapabilityRepository.snapshot.collectAsStateWithLifecycle()
                 val capabilities = AsterNavigationCapabilities(
-                    kernelPatchChecked = kpState != APApplication.State.UNKNOWN_STATE,
-                    kernelPatchReady = kpState != APApplication.State.UNKNOWN_STATE,
-                    androidPatchReady = apState == APApplication.State.ANDROIDPATCH_INSTALLED,
+                    kernelPatchChecked = rootCapability.phase == RootCheckPhase.READY ||
+                        rootCapability.phase == RootCheckPhase.FAILED,
+                    kernelPatchReady = rootCapability.kernelPatch.isUsable(),
+                    androidPatchReady = rootCapability.androidPatch.isUsable(),
                 )
 
                 val defaultTransitions = remember(primaryRoutes) {

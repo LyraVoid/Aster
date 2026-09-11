@@ -385,5 +385,7 @@ dependencies {
     implementation(libs.miuix.icons)
     implementation(libs.miuix.preference)
 
+    testImplementation(libs.junit)
+
     compileOnly(libs.cxx)
 }

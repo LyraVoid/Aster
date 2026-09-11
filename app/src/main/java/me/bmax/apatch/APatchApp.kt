@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
+import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
 import androidx.core.content.edit
@@ -12,6 +13,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.topjohnwu.superuser.CallbackList
 import me.bmax.apatch.ui.CrashHandleActivity
+import me.bmax.apatch.root.RootCapabilityRepository
+import me.bmax.apatch.root.RootCheckError
+import me.bmax.apatch.root.RootCheckPhase
+import me.bmax.apatch.root.RootInitializationSnapshot
 import me.bmax.apatch.util.APatchCli
 import me.bmax.apatch.util.APatchKeyHelper
 import me.bmax.apatch.util.Version
@@ -21,6 +26,7 @@ import okhttp3.Cache
 import okhttp3.OkHttpClient
 import java.io.File
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 import kotlin.system.exitProcess
 
@@ -93,6 +99,11 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
 
         private val _apStateLiveData = MutableLiveData(State.UNKNOWN_STATE)
         val apStateLiveData: LiveData<State> = _apStateLiveData
+
+        private val rootInitializationSession = AtomicLong(0L)
+        private val _rootInitializationLiveData = MutableLiveData(RootInitializationSnapshot())
+        val rootInitializationLiveData: LiveData<RootInitializationSnapshot> =
+            _rootInitializationLiveData
 
         @Suppress("DEPRECATION")
         fun uninstallApatch() {
@@ -181,68 +192,144 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
         var superKey: String = ""
             set(value) {
                 field = value
-                val ready = Natives.nativeReady(value)
+                val sessionId = rootInitializationSession.incrementAndGet()
+                _rootInitializationLiveData.value = RootInitializationSnapshot(
+                    phase = RootCheckPhase.CHECKING,
+                    sessionId = sessionId,
+                    startedAt = SystemClock.elapsedRealtime(),
+                )
+
+                val ready = runCatching {
+                    Natives.nativeReady(value)
+                }.getOrElse {
+                    _kpStateLiveData.value = State.UNKNOWN_STATE
+                    _apStateLiveData.value = State.UNKNOWN_STATE
+                    completeRootInitialization(
+                        sessionId = sessionId,
+                        phase = RootCheckPhase.FAILED,
+                        error = RootCheckError.NATIVE_CHECK_FAILED,
+                    )
+                    return
+                }
                 _kpStateLiveData.value =
                     if (ready) State.KERNELPATCH_INSTALLED else State.UNKNOWN_STATE
                 _apStateLiveData.value =
                     if (ready) State.ANDROIDPATCH_NOT_INSTALLED else State.UNKNOWN_STATE
                 Log.d(TAG, "state: " + _kpStateLiveData.value)
-                if (!ready) return
+                if (!ready) {
+                    completeRootInitialization(
+                        sessionId = sessionId,
+                        phase = RootCheckPhase.READY,
+                        kernelPatchDetected = false,
+                        rootProbeSucceeded = false,
+                    )
+                    return
+                }
 
                 thread {
-                    val rc = Natives.su(0, null)
-                    if (!rc) {
-                        Log.e(TAG, "Native.su failed")
-                        return@thread
-                    }
+                    try {
+                        val rc = Natives.su(0, null)
+                        if (!rc) {
+                            Log.e(TAG, "Native.su failed")
+                            completeRootInitialization(
+                                sessionId = sessionId,
+                                phase = RootCheckPhase.READY,
+                                kernelPatchDetected = true,
+                                rootProbeSucceeded = false,
+                                error = RootCheckError.ROOT_PROBE_FAILED,
+                            )
+                            return@thread
+                        }
 
-                    // KernelPatch version
-                    //val buildV = Version.buildKPVUInt()
-                    //val installedV = Version.installedKPVUInt()
-                    //use build time to check update
-                    val buildV = Version.getKpImg()
-                    val installedV = Version.installedKPTime()
+                        // KernelPatch version
+                        //val buildV = Version.buildKPVUInt()
+                        //val installedV = Version.installedKPVUInt()
+                        //use build time to check update
+                        val buildV = Version.getKpImg()
+                        val installedV = Version.installedKPTime()
 
 
-                    Log.d(TAG, "kp installed version: ${installedV}, build version: $buildV")
+                        Log.d(TAG, "kp installed version: ${installedV}, build version: $buildV")
 
-                    // use != instead of > to enable downgrade,
-                    if (buildV != installedV) {
-                        _kpStateLiveData.postValue(State.KERNELPATCH_NEED_UPDATE)
-                    }
-                    Log.d(TAG, "kp state: " + _kpStateLiveData.value)
+                        // use != instead of > to enable downgrade,
+                        if (buildV != installedV) {
+                            _kpStateLiveData.postValue(State.KERNELPATCH_NEED_UPDATE)
+                        }
+                        Log.d(TAG, "kp state: " + _kpStateLiveData.value)
 
-                    if (File(NEED_REBOOT_FILE).exists()) {
-                        _kpStateLiveData.postValue(State.KERNELPATCH_NEED_REBOOT)
-                    }
-                    Log.d(TAG, "kp state: " + _kpStateLiveData.value)
+                        if (File(NEED_REBOOT_FILE).exists()) {
+                            _kpStateLiveData.postValue(State.KERNELPATCH_NEED_REBOOT)
+                        }
+                        Log.d(TAG, "kp state: " + _kpStateLiveData.value)
 
-                    // AndroidPatch version
-                    val mgv = Version.getManagerVersion().second
-                    val installedApdVInt = Version.installedApdVUInt()
-                    Log.d(TAG, "manager version: $mgv, installed apd version: $installedApdVInt")
+                        // AndroidPatch version
+                        val mgv = Version.getManagerVersion().second
+                        val installedApdVInt = Version.installedApdVUInt()
+                        Log.d(
+                            TAG,
+                            "manager version: $mgv, installed apd version: $installedApdVInt"
+                        )
 
-                    if (Version.installedApdVInt > 0) {
-                        _apStateLiveData.postValue(State.ANDROIDPATCH_INSTALLED)
-                    }
+                        if (Version.installedApdVInt > 0) {
+                            _apStateLiveData.postValue(State.ANDROIDPATCH_INSTALLED)
+                        }
 
-                    if (Version.installedApdVInt > 0 && mgv.toInt() != Version.installedApdVInt) {
-                        _apStateLiveData.postValue(State.ANDROIDPATCH_NEED_UPDATE)
-                        // su path
-                        val suPathFile = File(SU_PATH_FILE)
-                        if (suPathFile.exists()) {
-                            val suPath = suPathFile.readLines()[0].trim()
-                            if (Natives.suPath() != suPath) {
-                                Log.d(TAG, "su path: $suPath")
-                                Natives.resetSuPath(suPath)
+                        if (
+                            Version.installedApdVInt > 0 &&
+                            mgv.toInt() != Version.installedApdVInt
+                        ) {
+                            _apStateLiveData.postValue(State.ANDROIDPATCH_NEED_UPDATE)
+                            // su path
+                            val suPathFile = File(SU_PATH_FILE)
+                            if (suPathFile.exists()) {
+                                val suPath = suPathFile.readLines()[0].trim()
+                                if (Natives.suPath() != suPath) {
+                                    Log.d(TAG, "su path: $suPath")
+                                    Natives.resetSuPath(suPath)
+                                }
                             }
                         }
-                    }
-                    Log.d(TAG, "ap state: " + _apStateLiveData.value)
+                        Log.d(TAG, "ap state: " + _apStateLiveData.value)
 
-                    return@thread
+                        completeRootInitialization(
+                            sessionId = sessionId,
+                            phase = RootCheckPhase.READY,
+                            kernelPatchDetected = true,
+                            rootProbeSucceeded = true,
+                        )
+                    } catch (t: Throwable) {
+                        Log.e(TAG, "Root capability initialization failed", t)
+                        completeRootInitialization(
+                            sessionId = sessionId,
+                            phase = RootCheckPhase.FAILED,
+                            error = RootCheckError.UNEXPECTED,
+                        )
+                    }
                 }
             }
+
+        private fun completeRootInitialization(
+            sessionId: Long,
+            phase: RootCheckPhase,
+            kernelPatchDetected: Boolean? = null,
+            rootProbeSucceeded: Boolean? = null,
+            error: RootCheckError? = null,
+        ) {
+            val current = _rootInitializationLiveData.value ?: return
+            val currentSession = current.sessionId
+            if (currentSession != sessionId) {
+                return
+            }
+            _rootInitializationLiveData.postValue(RootInitializationSnapshot(
+                phase = phase,
+                sessionId = sessionId,
+                kernelPatchDetected = kernelPatchDetected,
+                rootProbeSucceeded = rootProbeSucceeded,
+                startedAt = current.startedAt,
+                completedAt = SystemClock.elapsedRealtime(),
+                error = error,
+            ))
+        }
 
         /**
          * Resolve the SuperKey used to authenticate against the running kernel.
@@ -303,6 +390,7 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
         // TODO: 1. make me root by kernel
         // TODO: 2. remove all usage of superkey
         sharedPreferences = getSharedPreferences(SP_NAME, Context.MODE_PRIVATE)
+        RootCapabilityRepository.start()
         superKey = resolveSuperKey()
 
         okhttpClient =
