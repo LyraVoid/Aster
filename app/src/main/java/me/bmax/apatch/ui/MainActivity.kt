@@ -63,9 +63,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 LaunchedEffect(Unit) {
-                    if (SuperUserViewModel.apps.isEmpty()) {
-                        SuperUserViewModel().fetchAppList()
-                    }
+                    SuperUserViewModel().ensureAppListLoaded()
                 }
 
                 AsterAppShell(

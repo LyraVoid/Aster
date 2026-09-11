@@ -121,9 +121,7 @@ class WebUIActivity : ComponentActivity() {
         }
 
         lifecycleScope.launch {
-            if (SuperUserViewModel.apps.isEmpty()) {
-                SuperUserViewModel().fetchAppList()
-            }
+            SuperUserViewModel().ensureAppListLoaded()
             setupWebView()
         }
 

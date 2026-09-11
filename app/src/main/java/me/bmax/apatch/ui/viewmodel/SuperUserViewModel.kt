@@ -54,6 +54,7 @@ class SuperUserViewModel : ViewModel() {
         private const val TAG = "SuperUserViewModel"
         private const val PREF_SORT_BY = "su_sort_by"
         private val appsLock = Any()
+        private val appListLoadGate = AppListLoadGate()
         var apps by mutableStateOf<List<AppInfo>>(emptyList())
 
         fun getAppIconDrawable(context: Context, packageName: String): Drawable? {
@@ -229,7 +230,18 @@ class SuperUserViewModel : ViewModel() {
         RootServices.stop(intent)
     }
 
+    suspend fun ensureAppListLoaded() {
+        appListLoadGate.ensureLoaded(
+            hasData = { apps.isNotEmpty() },
+            load = ::fetchAppListLocked,
+        )
+    }
+
     suspend fun fetchAppList() {
+        appListLoadGate.reload(::fetchAppListLocked)
+    }
+
+    private suspend fun fetchAppListLocked() {
         if (apps.isEmpty()) {
             _isLoading.value = true
         }

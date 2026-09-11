@@ -93,9 +93,7 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
     val layoutDirection = LocalLayoutDirection.current
 
     LaunchedEffect(Unit) {
-        if (viewModel.appList.isEmpty()) {
-            viewModel.fetchAppList()
-        }
+        viewModel.ensureAppListLoaded()
     }
 
     Scaffold(
