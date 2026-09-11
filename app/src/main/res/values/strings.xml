@@ -169,6 +169,22 @@
     <string name="su_show_system_apps">Show system apps</string>
     <string name="su_hide_system_apps">Hide system apps</string>
     <string name="su_refresh">Refresh</string>
+    <string name="su_sort">Sort</string>
+    <string name="su_sort_name">Sort by name</string>
+    <string name="su_sort_package">Sort by package name</string>
+    <string name="su_sort_install_time">Sort by install time</string>
+    <string name="su_summary_granted">Authorized: %1$d</string>
+    <string name="su_more_actions">More actions</string>
+    <string name="su_no_apps">No applications found</string>
+    <string name="su_no_search_results">No matching applications</string>
+    <string name="su_kernel_patch_required_title">KernelPatch required</string>
+    <string name="su_kernel_patch_required_desc">Superuser access management requires an active KernelPatch installation.</string>
+    <string name="su_back_to_home">Go to Home diagnosis</string>
+    <string name="su_clear_search">Clear search</string>
+    <string name="refresh_pulling">Pull down to refresh</string>
+    <string name="refresh_release">Release to refresh</string>
+    <string name="refresh_refreshing">Refreshing</string>
+    <string name="refresh_complete">Refreshed</string>
 
     <string name="apm">APModule</string>
     <string name="apm_not_installed">AndroidPatch not installed</string>

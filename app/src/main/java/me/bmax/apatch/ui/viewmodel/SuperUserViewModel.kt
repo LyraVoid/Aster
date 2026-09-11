@@ -14,16 +14,30 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.IAPRootService
 import me.bmax.apatch.Natives
 import me.bmax.apatch.apApp
+import me.bmax.apatch.root.RootCapabilityRepository
+import me.bmax.apatch.root.isUsable
 import me.bmax.apatch.services.RootServices
+import me.bmax.apatch.ui.superuser.SuperUserItem
+import me.bmax.apatch.ui.superuser.SuperUserSort
+import me.bmax.apatch.ui.superuser.SuperUserStateMapper
+import me.bmax.apatch.ui.superuser.SuperUserUiState
 import me.bmax.apatch.util.APatchCli
 import me.bmax.apatch.util.HanziToPinyin
 import me.bmax.apatch.util.PkgConfig
@@ -37,6 +51,7 @@ import kotlin.coroutines.suspendCoroutine
 class SuperUserViewModel : ViewModel() {
     companion object {
         private const val TAG = "SuperUserViewModel"
+        private const val PREF_SORT_BY = "su_sort_by"
         private val appsLock = Any()
         var apps by mutableStateOf<List<AppInfo>>(emptyList())
 
@@ -60,10 +75,30 @@ class SuperUserViewModel : ViewModel() {
             get() = packageInfo.applicationInfo!!.uid
     }
 
-    var search by mutableStateOf("")
-    var showSystemApps by mutableStateOf(false)
-    var isRefreshing by mutableStateOf(false)
-        private set
+    private val _search = MutableStateFlow("")
+    private val _showSystemApps = MutableStateFlow(false)
+    private val _sortBy = MutableStateFlow(loadSortPreference())
+    private val _isRefreshing = MutableStateFlow(false)
+    private val _isLoading = MutableStateFlow(false)
+    private val _errorMessage = MutableStateFlow<String?>(null)
+
+    var search: String
+        get() = _search.value
+        set(value) {
+            _search.value = value
+        }
+
+    var showSystemApps: Boolean
+        get() = _showSystemApps.value
+        set(value) {
+            _showSystemApps.value = value
+        }
+
+    var isRefreshing: Boolean
+        get() = _isRefreshing.value
+        private set(value) {
+            _isRefreshing.value = value
+        }
 
     private val collator = Collator.getInstance(Locale.getDefault())
 
@@ -78,17 +113,92 @@ class SuperUserViewModel : ViewModel() {
         apps.sortedWith(comparator)
     }
 
-    val appList by derivedStateOf {
-        val query = search.lowercase()
-        sortedList.filter {
-            it.label.lowercase().contains(query) || it.packageName.lowercase()
-                .contains(query) || it.pinyin.contains(query)
-        }.filter {
-            it.uid == 2000 // Always show shell
-                    || showSystemApps || it.packageInfo.applicationInfo!!.flags.and(ApplicationInfo.FLAG_SYSTEM) == 0
-        }.filter {
-            it.packageName != apApp.packageName
+    val appList: List<AppInfo>
+        get() {
+            val query = _search.value.lowercase()
+            return sortedList.filter {
+                it.label.lowercase().contains(query) || it.packageName.lowercase()
+                    .contains(query) || it.pinyin.contains(query)
+            }.filter {
+                it.uid == 2000 // Always show shell
+                        || _showSystemApps.value || it.packageInfo.applicationInfo!!.flags.and(ApplicationInfo.FLAG_SYSTEM) == 0
+            }.filter {
+                it.packageName != apApp.packageName
+            }
         }
+
+    private val appsFlow = snapshotFlow { apps }
+    private val filterFlow = combine(_search, _showSystemApps, _sortBy) { query, showSystem, sort ->
+        Triple(query, showSystem, sort)
+    }
+    private val statusFlow = combine(_isRefreshing, _isLoading, _errorMessage) { refreshing, loading, error ->
+        Triple(refreshing, loading, error)
+    }
+
+    val uiState: StateFlow<SuperUserUiState> = combine(
+        appsFlow,
+        filterFlow,
+        statusFlow,
+        RootCapabilityRepository.snapshot,
+    ) { currentApps, (currentSearch, currentShowSystem, currentSort), (currentRefreshing, currentLoading, currentError), currentCapability ->
+        val mappedItems = currentApps.map { SuperUserStateMapper.fromAppInfo(it) }
+        val filteredItems = SuperUserStateMapper.filterAndSort(
+            items = mappedItems,
+            searchQuery = currentSearch,
+            showSystemApps = currentShowSystem,
+            sortBy = currentSort,
+            managerPackageName = apApp.packageName,
+            collator = collator,
+        )
+        SuperUserUiState(
+            isLoading = currentLoading,
+            isRefreshing = currentRefreshing,
+            isKernelPatchReady = currentCapability.kernelPatch.isUsable(),
+            searchQuery = currentSearch,
+            showSystemApps = currentShowSystem,
+            sortBy = currentSort,
+            items = filteredItems,
+            totalAppCount = mappedItems.size,
+            allowedUidCount = SuperUserStateMapper.countAllowedUids(mappedItems),
+            errorMessage = currentError,
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = SuperUserUiState(
+            isLoading = apps.isEmpty(),
+            isRefreshing = false,
+            isKernelPatchReady = RootCapabilityRepository.snapshot.value.kernelPatch.isUsable(),
+            searchQuery = "",
+            showSystemApps = false,
+            sortBy = loadSortPreference(),
+            items = emptyList(),
+            totalAppCount = 0,
+            allowedUidCount = 0,
+            errorMessage = null,
+        ),
+    )
+
+    private fun loadSortPreference(): SuperUserSort {
+        val name = APApplication.sharedPreferences.getString(PREF_SORT_BY, SuperUserSort.DEFAULT.name)
+        return SuperUserSort.fromString(name)
+    }
+
+    private fun persistSortPreference(sort: SuperUserSort) {
+        APApplication.sharedPreferences.edit().putString(PREF_SORT_BY, sort.name).apply()
+    }
+
+    fun updateSearch(query: String) {
+        _search.value = query
+    }
+
+    fun toggleSystemApps() {
+        _showSystemApps.value = !_showSystemApps.value
+    }
+
+    fun updateSort(sortBy: SuperUserSort) {
+        _sortBy.value = sortBy
+        persistSortPreference(sortBy)
     }
 
     private suspend inline fun connectRootService(
@@ -119,7 +229,11 @@ class SuperUserViewModel : ViewModel() {
     }
 
     suspend fun fetchAppList() {
-        isRefreshing = true
+        if (apps.isEmpty()) {
+            _isLoading.value = true
+        }
+        _isRefreshing.value = true
+        _errorMessage.value = null
 
         try {
             val result = connectRootService {
@@ -177,8 +291,16 @@ class SuperUserViewModel : ViewModel() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to fetch app list", e)
+            _errorMessage.value = e.localizedMessage ?: "Failed to fetch application list"
         } finally {
             isRefreshing = false
+            _isLoading.value = false
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            fetchAppList()
         }
     }
 
@@ -216,6 +338,13 @@ class SuperUserViewModel : ViewModel() {
         updateAppConfig(app, newConfig)
     }
 
+    fun setRootGranted(item: SuperUserItem, granted: Boolean) {
+        val target = item.rawAppInfo ?: synchronized(appsLock) {
+            apps.find { it.uid == item.uid }
+        } ?: return
+        setRootGranted(target, granted)
+    }
+
     fun setExcluded(app: AppInfo, excluded: Boolean) {
         val config = app.config
         val newConfig = if (excluded) {
@@ -233,5 +362,12 @@ class SuperUserViewModel : ViewModel() {
         PkgConfig.changeConfig(newConfig)
         Natives.setUidExclude(app.uid, newConfig.exclude)
         updateAppConfig(app, newConfig)
+    }
+
+    fun setExcluded(item: SuperUserItem, excluded: Boolean) {
+        val target = item.rawAppInfo ?: synchronized(appsLock) {
+            apps.find { it.uid == item.uid }
+        } ?: return
+        setExcluded(target, excluded)
     }
 }
