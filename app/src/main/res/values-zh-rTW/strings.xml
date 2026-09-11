@@ -116,6 +116,10 @@
     <string name="apm_not_installed">AndroidPatch 尚未安裝</string>
     <string name="system_default">系統預設</string>
     <string name="settings_app_language">語言</string>
+    <string name="settings_section_root">Root 與相容性</string>
+    <string name="settings_section_appearance">外觀</string>
+    <string name="settings_section_general">一般</string>
+    <string name="settings_section_diagnostics">診斷</string>
     <string name="patch">修補</string>
     <string name="settings_global_namespace_mode_summary">所有 Root 工作階段將會全域掛載命名空間</string>
     <string name="settings_global_namespace_mode">全域命名空間模式</string>

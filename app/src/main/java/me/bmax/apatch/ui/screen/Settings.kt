@@ -7,58 +7,13 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BugReport
-import androidx.compose.material.icons.filled.ColorLens
-import androidx.compose.material.icons.filled.Commit
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.DeveloperMode
-import androidx.compose.material.icons.filled.Engineering
-import androidx.compose.material.icons.automirrored.filled.FeaturedPlayList
-import androidx.compose.material.icons.filled.FormatColorFill
-import androidx.compose.material.icons.filled.InvertColors
-import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Translate
-import androidx.compose.material.icons.filled.Update
-import androidx.compose.material3.AlertDialogDefaults
-import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -66,17 +21,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.content.FileProvider
 import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
@@ -89,8 +37,8 @@ import me.bmax.apatch.APApplication
 import me.bmax.apatch.BuildConfig
 import me.bmax.apatch.Natives
 import me.bmax.apatch.R
-import me.bmax.apatch.ui.component.SwitchItem
 import me.bmax.apatch.ui.component.rememberLoadingDialog
+import me.bmax.apatch.ui.settings.resolveSettingsFeatureAvailability
 import me.bmax.apatch.ui.theme.refreshTheme
 import me.bmax.apatch.util.getBugreportFile
 import me.bmax.apatch.util.getKernelVersionCode
@@ -99,736 +47,484 @@ import me.bmax.apatch.util.isGlobalNamespaceEnabled
 import me.bmax.apatch.util.outputStream
 import me.bmax.apatch.util.rootShellForResult
 import me.bmax.apatch.util.setGlobalNamespaceEnabled
-import me.bmax.apatch.util.ui.APDialogBlurBehindUtils
 import me.bmax.apatch.util.ui.LocalSnackbarHost
-import me.bmax.apatch.util.ui.NavigationBarsSpacer
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Edit
+import top.yukonga.miuix.kmp.icon.extended.Layers
+import top.yukonga.miuix.kmp.icon.extended.Lock
+import top.yukonga.miuix.kmp.icon.extended.Report
+import top.yukonga.miuix.kmp.icon.extended.Settings
+import top.yukonga.miuix.kmp.icon.extended.Theme
+import top.yukonga.miuix.kmp.icon.extended.Translate
+import top.yukonga.miuix.kmp.icon.extended.Update
+import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.SwitchPreference
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+private data class KernelRuntimeInfo(
+    val versionCode: Int?,
+    val isGki: Boolean,
+)
+
 @Destination<RootGraph>
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 fun SettingScreen() {
     val state by APApplication.apStateLiveData.observeAsState(APApplication.State.UNKNOWN_STATE)
     val kPatchReady = state != APApplication.State.UNKNOWN_STATE
     val aPatchReady =
-        (state == APApplication.State.ANDROIDPATCH_INSTALLING || state == APApplication.State.ANDROIDPATCH_INSTALLED || state == APApplication.State.ANDROIDPATCH_NEED_UPDATE)
-    var isGlobalNamespaceEnabled by rememberSaveable {
-        mutableStateOf(false)
-    }
+        state == APApplication.State.ANDROIDPATCH_INSTALLING ||
+            state == APApplication.State.ANDROIDPATCH_INSTALLED ||
+            state == APApplication.State.ANDROIDPATCH_NEED_UPDATE
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val prefs = APApplication.sharedPreferences
+    val snackBarHost = LocalSnackbarHost.current
+    val loadingDialog = rememberLoadingDialog()
+
+    var globalNamespaceEnabled by remember { mutableStateOf(false) }
     var namespaceLoaded by remember { mutableStateOf(false) }
-    // The check shells out as root; run it once off the main thread instead of
-    // synchronously in composition on every recomposition. The switch stays
-    // disabled until the real value lands so a fast tap can't act on the
-    // placeholder and get overwritten by the late result.
-    LaunchedEffect(kPatchReady && aPatchReady) {
+    var kernelRuntime by remember { mutableStateOf<KernelRuntimeInfo?>(null) }
+
+    var sucompatEnabled by rememberSaveable {
+        mutableStateOf(prefs.getBoolean("sucompat_enabled", false))
+    }
+    var selinuxHideEnabled by rememberSaveable {
+        mutableStateOf(prefs.getBoolean("selinux_hide_enabled", false))
+    }
+    var webDebuggingEnabled by rememberSaveable {
+        mutableStateOf(prefs.getBoolean("enable_web_debugging", false))
+    }
+    var checkUpdate by rememberSaveable {
+        mutableStateOf(prefs.getBoolean("check_update", true))
+    }
+    var nightFollowSystem by rememberSaveable {
+        mutableStateOf(prefs.getBoolean("night_mode_follow_sys", true))
+    }
+    var nightThemeEnabled by rememberSaveable {
+        mutableStateOf(prefs.getBoolean("night_mode_enabled", false))
+    }
+    var useSystemDynamicColor by rememberSaveable {
+        mutableStateOf(prefs.getBoolean("use_system_color_theme", true))
+    }
+    var customColor by rememberSaveable {
+        mutableStateOf(prefs.getString("custom_color", "blue") ?: "blue")
+    }
+
+    var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
+    var showResetSuPathDialog by rememberSaveable { mutableStateOf(false) }
+    var showThemeChooseDialog by rememberSaveable { mutableStateOf(false) }
+    var showLogBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var showSelinuxHideWarning by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(kPatchReady, aPatchReady) {
+        namespaceLoaded = false
         if (kPatchReady && aPatchReady) {
-            isGlobalNamespaceEnabled = withContext(Dispatchers.IO) { isGlobalNamespaceEnabled() }
+            globalNamespaceEnabled = withContext(Dispatchers.IO) {
+                isGlobalNamespaceEnabled()
+            }
             namespaceLoaded = true
         }
     }
 
-    val snackBarHost = LocalSnackbarHost.current
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.settings)) },
-            )
-        },
-        snackbarHost = { SnackbarHost(snackBarHost) }
-    ) { paddingValues ->
-
-        val loadingDialog = rememberLoadingDialog()
-
-        val showLanguageDialog = rememberSaveable { mutableStateOf(false) }
-        LanguageDialog(showLanguageDialog)
-
-        val showResetSuPathDialog = remember { mutableStateOf(false) }
-        if (showResetSuPathDialog.value) {
-            ResetSUPathDialog(showResetSuPathDialog)
+    LaunchedEffect(kPatchReady, aPatchReady) {
+        kernelRuntime = if (kPatchReady && aPatchReady) {
+            withContext(Dispatchers.IO) {
+                KernelRuntimeInfo(
+                    versionCode = getKernelVersionCode(),
+                    isGki = isGkiKernel(),
+                )
+            }
+        } else {
+            null
         }
+    }
 
-        val showThemeChooseDialog = remember { mutableStateOf(false) }
-        if (showThemeChooseDialog.value) {
-            ThemeChooseDialog(showThemeChooseDialog)
+    val dynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val availability = resolveSettingsFeatureAvailability(
+        kPatchReady = kPatchReady,
+        aPatchReady = aPatchReady,
+        dynamicColorSupported = dynamicColorSupported,
+        nightFollowSystem = nightFollowSystem,
+        useSystemDynamicColor = useSystemDynamicColor,
+    )
+    val languageSummary = AppCompatDelegate.getApplicationLocales()[0]?.displayLanguage
+        ?.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
         }
+        ?: stringResource(R.string.system_default)
 
-        var showLogBottomSheet by remember { mutableStateOf(false) }
-        val saveLog = stringResource(R.string.save_log)
+    val logSavedMessage = stringResource(R.string.log_saved)
+    val saveLog = stringResource(R.string.save_log)
+    val exportBugreportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/gzip"),
+    ) { uri: Uri? ->
+        if (uri == null) return@rememberLauncherForActivityResult
 
-        val scope = rememberCoroutineScope()
-        val context = LocalContext.current
-        val logSavedMessage = stringResource(R.string.log_saved)
-        val exportBugreportLauncher = rememberLauncherForActivityResult(
-            ActivityResultContracts.CreateDocument("application/gzip")
-        ) { uri: Uri? ->
-            if (uri != null) {
-                scope.launch(Dispatchers.IO) {
-                    loadingDialog.show()
+        scope.launch {
+            loadingDialog.show()
+            try {
+                withContext(Dispatchers.IO) {
                     uri.outputStream().use { output ->
                         getBugreportFile(context).inputStream().use {
                             it.copyTo(output)
                         }
                     }
-                    loadingDialog.hide()
-                    snackBarHost.showSnackbar(message = logSavedMessage)
                 }
+                snackBarHost.showSnackbar(message = logSavedMessage)
+            } finally {
+                loadingDialog.hide()
             }
         }
+    }
 
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
+    fun applySelinuxHide(enabled: Boolean) {
+        scope.launch {
+            val success = withContext(Dispatchers.IO) {
+                val command = if (enabled) {
+                    "touch ${APApplication.SELINUX_HIDE_FILE}"
+                } else {
+                    "rm -f ${APApplication.SELINUX_HIDE_FILE}"
+                }
+                val result = rootShellForResult(command)
+                Log.d("SelinuxHideToggle", "$command result: ${result.code}")
+                result.isSuccess
+            }
+            if (success) {
+                prefs.edit { putBoolean("selinux_hide_enabled", enabled) }
+                selinuxHideEnabled = enabled
+            }
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(title = stringResource(R.string.settings))
+        },
+        snackbarHost = { SnackbarHost(snackBarHost) },
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                top = innerPadding.calculateTopPadding() + 4.dp,
+                bottom = innerPadding.calculateBottomPadding() + 32.dp,
+            ),
         ) {
-
-            val context = LocalContext.current
-            val scope = rememberCoroutineScope()
-            val prefs = APApplication.sharedPreferences
-
-            // Global mount
-            if (kPatchReady && aPatchReady) {
-                SwitchItem(
-                    icon = Icons.Filled.Engineering,
-                    title = stringResource(id = R.string.settings_global_namespace_mode),
-                    summary = stringResource(id = R.string.settings_global_namespace_mode_summary),
-                    checked = isGlobalNamespaceEnabled,
-                    enabled = namespaceLoaded,
-                    onCheckedChange = {
-                        setGlobalNamespaceEnabled(
-                            if (isGlobalNamespaceEnabled) {
-                                "0"
-                            } else {
-                                "1"
-                            }
-                        )
-                        isGlobalNamespaceEnabled = it
-                    })
-            }
-
-            // Legacy sucompat (path_probe) support
-            if (kPatchReady && aPatchReady) {
-                var sucompatEnabled by rememberSaveable {
-                    mutableStateOf(
-                        prefs.getBoolean("sucompat_enabled", false)
-                    )
-                }
-                SwitchItem(
-                    icon = Icons.AutoMirrored.Filled.FeaturedPlayList,
-                    title = stringResource(id = R.string.settings_sucompat),
-                    summary = stringResource(id = R.string.settings_sucompat_summary),
-                    checked = sucompatEnabled,
-                    onCheckedChange = { enabled ->
-                        scope.launch(Dispatchers.IO) {
-                            val result = if (enabled) {
-                                // Enable: create marker file and register hooks via supercall
-                                rootShellForResult("touch ${APApplication.SUCOMPAT_FILE}")
-                                Natives.controlFeature("sucompat_extra", true)
-                            } else {
-                                // Disable: remove marker file and unregister hooks via supercall
-                                rootShellForResult("rm -f ${APApplication.SUCOMPAT_FILE}")
-                                Natives.controlFeature("sucompat_extra", false)
-                            }
-                            Log.d("SucompatToggle", "sucompat_extra ${if (enabled) "enable" else "disable"} result: $result")
-                            if (result == 0L) {
-                                prefs.edit { putBoolean("sucompat_enabled", enabled) }
-                                sucompatEnabled = enabled
-                            }
-                        }
-                    })
-            }
-
-            // Hide SELinux modification (test)
-            if (kPatchReady && aPatchReady) {
-                val kernelVersion = remember { getKernelVersionCode() }
-                val kernelSupported = (kernelVersion ?: 0) >= 419
-                val isGki = remember { isGkiKernel() }
-                var selinuxHideEnabled by rememberSaveable {
-                    mutableStateOf(prefs.getBoolean("selinux_hide_enabled", false))
-                }
-                val showSelinuxHideWarning = remember { mutableStateOf(false) }
-
-                fun applySelinuxHide(enabled: Boolean) {
-                    scope.launch(Dispatchers.IO) {
-                        val command = if (enabled) {
-                            "touch ${APApplication.SELINUX_HIDE_FILE}"
-                        } else {
-                            "rm -f ${APApplication.SELINUX_HIDE_FILE}"
-                        }
-                        val result = rootShellForResult(command)
-                        Log.d("SelinuxHideToggle", "$command result: ${result.code}")
-                        if (result.isSuccess) {
-                            prefs.edit { putBoolean("selinux_hide_enabled", enabled) }
-                            selinuxHideEnabled = enabled
-                        }
-                    }
-                }
-
-                SwitchItem(
-                    icon = Icons.Filled.Security,
-                    title = stringResource(id = R.string.settings_selinux_hide),
-                    summary = stringResource(id = R.string.settings_selinux_hide_summary),
-                    checked = selinuxHideEnabled,
-                    enabled = kernelSupported,
-                    onCheckedChange = { enabled ->
-                        if (enabled) {
-                            // Only tested on 5.10+, and non-GKI carries a bigger risk, so warn first.
-                            val below510 = (kernelVersion ?: 0) < 510
-                            if (below510 || !isGki) {
-                                showSelinuxHideWarning.value = true
-                            } else {
-                                applySelinuxHide(true)
-                            }
-                        } else {
-                            applySelinuxHide(false)
-                        }
-                    }
-                )
-
-                if (showSelinuxHideWarning.value) {
-                    SelinuxHideWarningDialog(
-                        showDialog = showSelinuxHideWarning,
-                        kernelVersion = kernelVersion,
-                        isGki = isGki,
-                        onConfirm = { applySelinuxHide(true) },
-                    )
-                }
-            }
-
-            // WebView Debug
-            if (aPatchReady) {
-                var enableWebDebugging by rememberSaveable {
-                    mutableStateOf(
-                        prefs.getBoolean("enable_web_debugging", false)
-                    )
-                }
-                SwitchItem(
-                    icon = Icons.Filled.DeveloperMode,
-                    title = stringResource(id = R.string.enable_web_debugging),
-                    summary = stringResource(id = R.string.enable_web_debugging_summary),
-                    checked = enableWebDebugging
-                ) {
-                    APApplication.sharedPreferences.edit {
-                        putBoolean("enable_web_debugging", it)
-                    }
-                    enableWebDebugging = it
-                }
-            }
-
-            // Check Update
-            var checkUpdate by rememberSaveable {
-                mutableStateOf(
-                    prefs.getBoolean("check_update", true)
-                )
-            }
-
-            SwitchItem(
-                icon = Icons.Filled.Update,
-                title = stringResource(id = R.string.settings_check_update),
-                summary = stringResource(id = R.string.settings_check_update_summary),
-                checked = checkUpdate
+            if (
+                availability.globalNamespace ||
+                availability.sucompat ||
+                availability.selinuxHide ||
+                availability.webViewDebugging ||
+                availability.resetSuPath
             ) {
-                prefs.edit { putBoolean("check_update", it) }
-                checkUpdate = it
-            }
+                item(key = "root") {
+                    SettingsSectionCard(
+                        title = stringResource(R.string.settings_section_root),
+                    ) {
+                        if (availability.globalNamespace) {
+                            SwitchPreference(
+                                checked = globalNamespaceEnabled,
+                                onCheckedChange = { enabled ->
+                                    scope.launch {
+                                        withContext(Dispatchers.IO) {
+                                            setGlobalNamespaceEnabled(
+                                                if (enabled) "1" else "0",
+                                            )
+                                        }
+                                        globalNamespaceEnabled = enabled
+                                    }
+                                },
+                                title = stringResource(R.string.settings_global_namespace_mode),
+                                summary = stringResource(R.string.settings_global_namespace_mode_summary),
+                                startAction = {
+                                    SettingsIcon(MiuixIcons.Settings)
+                                },
+                                enabled = namespaceLoaded,
+                            )
+                        }
 
-            // Night Mode Follow System
-            var nightFollowSystem by rememberSaveable {
-                mutableStateOf(
-                    prefs.getBoolean("night_mode_follow_sys", true)
-                )
-            }
-            SwitchItem(
-                icon = Icons.Filled.InvertColors,
-                title = stringResource(id = R.string.settings_night_mode_follow_sys),
-                summary = stringResource(id = R.string.settings_night_mode_follow_sys_summary),
-                checked = nightFollowSystem
-            ) {
-                prefs.edit { putBoolean("night_mode_follow_sys", it) }
-                nightFollowSystem = it
-                refreshTheme.value = true
-            }
-
-            // Custom Night Theme Switch
-            if (!nightFollowSystem) {
-                var nightThemeEnabled by rememberSaveable {
-                    mutableStateOf(
-                        prefs.getBoolean("night_mode_enabled", false)
-                    )
-                }
-                SwitchItem(
-                    icon = Icons.Filled.DarkMode,
-                    title = stringResource(id = R.string.settings_night_theme_enabled),
-                    checked = nightThemeEnabled
-                ) {
-                    prefs.edit { putBoolean("night_mode_enabled", it) }
-                    nightThemeEnabled = it
-                    refreshTheme.value = true
-                }
-            }
-
-            // System dynamic color theme
-            val isDynamicColorSupport = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-            if (isDynamicColorSupport) {
-                var useSystemDynamicColor by rememberSaveable {
-                    mutableStateOf(
-                        prefs.getBoolean("use_system_color_theme", true)
-                    )
-                }
-                SwitchItem(
-                    icon = Icons.Filled.ColorLens,
-                    title = stringResource(id = R.string.settings_use_system_color_theme),
-                    summary = stringResource(id = R.string.settings_use_system_color_theme_summary),
-                    checked = useSystemDynamicColor
-                ) {
-                    prefs.edit { putBoolean("use_system_color_theme", it) }
-                    useSystemDynamicColor = it
-                    refreshTheme.value = true
-                }
-
-                if (!useSystemDynamicColor) {
-                    ListItem(headlineContent = {
-                        Text(text = stringResource(id = R.string.settings_custom_color_theme))
-                    }, modifier = Modifier.clickable {
-                        showThemeChooseDialog.value = true
-                    }, supportingContent = {
-                        val colorMode = prefs.getString("custom_color", "blue")
-                        Text(
-                            text = stringResource(colorNameToString(colorMode.toString())),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    }, leadingContent = { Icon(Icons.Filled.FormatColorFill, null) })
-
-                }
-            } else {
-                ListItem(headlineContent = {
-                    Text(text = stringResource(id = R.string.settings_custom_color_theme))
-                }, modifier = Modifier.clickable {
-                    showThemeChooseDialog.value = true
-                }, supportingContent = {
-                    val colorMode = prefs.getString("custom_color", "blue")
-                    Text(
-                        text = stringResource(colorNameToString(colorMode.toString())),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }, leadingContent = { Icon(Icons.Filled.FormatColorFill, null) })
-            }
-
-            // su path
-            if (kPatchReady) {
-                ListItem(
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.Commit, stringResource(id = R.string.setting_reset_su_path)
-                        )
-                    },
-                    supportingContent = {},
-                    headlineContent = { Text(stringResource(id = R.string.setting_reset_su_path)) },
-                    modifier = Modifier.clickable {
-                        showResetSuPathDialog.value = true
-                    })
-            }
-
-            // language
-            ListItem(headlineContent = {
-                Text(text = stringResource(id = R.string.settings_app_language))
-            }, modifier = Modifier.clickable {
-                showLanguageDialog.value = true
-            }, supportingContent = {
-                Text(text = AppCompatDelegate.getApplicationLocales()[0]?.displayLanguage?.replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(
-                        Locale.getDefault()
-                    ) else it.toString()
-                } ?: stringResource(id = R.string.system_default),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outline)
-            }, leadingContent = { Icon(Icons.Filled.Translate, null) })
-
-            // log
-            ListItem(
-                leadingContent = {
-                    Icon(
-                        Icons.Filled.BugReport, stringResource(id = R.string.send_log)
-                    )
-                },
-                headlineContent = { Text(stringResource(id = R.string.send_log)) },
-                modifier = Modifier.clickable {
-                    showLogBottomSheet = true
-                })
-            if (showLogBottomSheet) {
-                ModalBottomSheet(
-                    onDismissRequest = { showLogBottomSheet = false },
-                    contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-                    content = {
-                        Row(
-                            modifier = Modifier
-                                .padding(10.dp)
-                                .align(Alignment.CenterHorizontally)
-
-                        ) {
-                            Box {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                        .clickable {
-                                            scope.launch {
-                                                val formatter =
-                                                    DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm")
-                                                val current = LocalDateTime.now().format(formatter)
-                                                exportBugreportLauncher.launch("APatch_bugreport_${current}.tar.gz")
-                                                showLogBottomSheet = false
+                        if (availability.sucompat) {
+                            SwitchPreference(
+                                checked = sucompatEnabled,
+                                onCheckedChange = { enabled ->
+                                    scope.launch {
+                                        val result = withContext(Dispatchers.IO) {
+                                            if (enabled) {
+                                                rootShellForResult(
+                                                    "touch ${APApplication.SUCOMPAT_FILE}",
+                                                )
+                                                Natives.controlFeature("sucompat_extra", true)
+                                            } else {
+                                                rootShellForResult(
+                                                    "rm -f ${APApplication.SUCOMPAT_FILE}",
+                                                )
+                                                Natives.controlFeature("sucompat_extra", false)
                                             }
                                         }
-                                ) {
-                                    Icon(
-                                        Icons.Filled.Save,
-                                        contentDescription = null,
-                                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                                    )
-                                    Text(
-                                        text = stringResource(id = R.string.save_log),
-                                        modifier = Modifier.padding(top = 16.dp),
-                                        textAlign = TextAlign.Center
-
-                                    )
-                                }
-
-                            }
-                            Box {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                        .clickable {
-                                            scope.launch {
-                                                val bugreport = loadingDialog.withLoading {
-                                                    withContext(Dispatchers.IO) {
-                                                        getBugreportFile(context)
-                                                    }
-                                                }
-
-                                                val uri: Uri = FileProvider.getUriForFile(
-                                                    context,
-                                                    "${BuildConfig.APPLICATION_ID}.fileprovider",
-                                                    bugreport
-                                                )
-
-                                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                                    putExtra(Intent.EXTRA_STREAM, uri)
-                                                    setDataAndType(uri, "application/gzip")
-                                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                                }
-
-                                                context.startActivity(
-                                                    Intent.createChooser(
-                                                        shareIntent,
-                                                        saveLog
-                                                    )
-                                                )
-                                                showLogBottomSheet = false
-                                            }
-                                        }) {
-                                    Icon(
-                                        Icons.Filled.Share,
-                                        contentDescription = null,
-                                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                                    )
-                                    Text(
-                                        text = stringResource(id = R.string.send_log),
-                                        modifier = Modifier.padding(top = 16.dp),
-                                        textAlign = TextAlign.Center
-
-                                    )
-                                }
-
-                            }
-                        }
-                        NavigationBarsSpacer()
-                    })
-            }
-
-
-        }
-
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ThemeChooseDialog(showDialog: MutableState<Boolean>) {
-    val prefs = APApplication.sharedPreferences
-
-    BasicAlertDialog(
-        onDismissRequest = { showDialog.value = false }, properties = DialogProperties(
-            decorFitsSystemWindows = true,
-            usePlatformDefaultWidth = false,
-        )
-    ) {
-        Surface(
-            modifier = Modifier
-                .width(310.dp)
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(30.dp),
-            tonalElevation = AlertDialogDefaults.TonalElevation,
-            color = AlertDialogDefaults.containerColor,
-        ) {
-            LazyColumn {
-                items(colorsList()) {
-                    ListItem(
-                        headlineContent = { Text(text = stringResource(it.nameId)) },
-                        modifier = Modifier.clickable {
-                            showDialog.value = false
-                            prefs.edit { putString("custom_color", it.name) }
-                            refreshTheme.value = true
-                        })
-                }
-
-            }
-
-            val dialogWindowProvider = LocalView.current.parent as DialogWindowProvider
-            APDialogBlurBehindUtils.setupWindowBlurListener(dialogWindowProvider.window)
-        }
-    }
-
-}
-
-private data class APColor(
-    val name: String, @param:StringRes val nameId: Int
-)
-
-private fun colorsList(): List<APColor> {
-    return listOf(
-        APColor("amber", R.string.amber_theme),
-        APColor("blue_grey", R.string.blue_grey_theme),
-        APColor("blue", R.string.blue_theme),
-        APColor("brown", R.string.brown_theme),
-        APColor("cyan", R.string.cyan_theme),
-        APColor("deep_orange", R.string.deep_orange_theme),
-        APColor("deep_purple", R.string.deep_purple_theme),
-        APColor("green", R.string.green_theme),
-        APColor("indigo", R.string.indigo_theme),
-        APColor("light_blue", R.string.light_blue_theme),
-        APColor("light_green", R.string.light_green_theme),
-        APColor("lime", R.string.lime_theme),
-        APColor("orange", R.string.orange_theme),
-        APColor("pink", R.string.pink_theme),
-        APColor("purple", R.string.purple_theme),
-        APColor("red", R.string.red_theme),
-        APColor("sakura", R.string.sakura_theme),
-        APColor("teal", R.string.teal_theme),
-        APColor("yellow", R.string.yellow_theme),
-    )
-}
-
-@Composable
-private fun colorNameToString(colorName: String): Int {
-    return colorsList().find { it.name == colorName }?.nameId ?: R.string.blue_theme
-}
-
-val suPathChecked: (path: String) -> Boolean = {
-    it.startsWith("/") && it.trim().length > 1
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ResetSUPathDialog(showDialog: MutableState<Boolean>) {
-    val context = LocalContext.current
-    var suPath by remember { mutableStateOf(Natives.suPath()) }
-    BasicAlertDialog(
-        onDismissRequest = { showDialog.value = false }, properties = DialogProperties(
-            decorFitsSystemWindows = true,
-            usePlatformDefaultWidth = false,
-        )
-    ) {
-        Surface(
-            modifier = Modifier
-                .width(310.dp)
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(30.dp),
-            tonalElevation = AlertDialogDefaults.TonalElevation,
-            color = AlertDialogDefaults.containerColor,
-        ) {
-            Column(modifier = Modifier.padding(PaddingValues(all = 24.dp))) {
-                Box(
-                    Modifier
-                        .padding(PaddingValues(bottom = 16.dp))
-                        .align(Alignment.Start)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.setting_reset_su_path),
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                }
-                Box(
-                    Modifier
-                        .weight(weight = 1f, fill = false)
-                        .padding(PaddingValues(bottom = 12.dp))
-                        .align(Alignment.Start)
-                ) {
-                    OutlinedTextField(
-                        value = suPath,
-                        onValueChange = {
-                            suPath = it
-                        },
-                        label = { Text(stringResource(id = R.string.setting_reset_su_new_path)) },
-                        visualTransformation = VisualTransformation.None,
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = { showDialog.value = false }) {
-
-                        Text(stringResource(id = android.R.string.cancel))
-                    }
-
-                    Button(enabled = suPathChecked(suPath), onClick = {
-                        showDialog.value = false
-                        val success = Natives.resetSuPath(suPath)
-                        Toast.makeText(
-                            context,
-                            if (success) R.string.success else R.string.failure,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        rootShellForResult("echo $suPath > ${APApplication.SU_PATH_FILE}")
-                    }) {
-                        Text(stringResource(id = android.R.string.ok))
-                    }
-                }
-            }
-            val dialogWindowProvider = LocalView.current.parent as DialogWindowProvider
-            APDialogBlurBehindUtils.setupWindowBlurListener(dialogWindowProvider.window)
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SelinuxHideWarningDialog(
-    showDialog: MutableState<Boolean>,
-    kernelVersion: Int?,
-    isGki: Boolean,
-    onConfirm: () -> Unit,
-) {
-    BasicAlertDialog(
-        onDismissRequest = { showDialog.value = false }, properties = DialogProperties(
-            decorFitsSystemWindows = true,
-            usePlatformDefaultWidth = false,
-        )
-    ) {
-        Surface(
-            modifier = Modifier
-                .width(310.dp)
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(30.dp),
-            tonalElevation = AlertDialogDefaults.TonalElevation,
-            color = AlertDialogDefaults.containerColor,
-        ) {
-            Column(modifier = Modifier.padding(PaddingValues(all = 24.dp))) {
-                Box(
-                    Modifier
-                        .padding(PaddingValues(bottom = 16.dp))
-                        .align(Alignment.Start)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.settings_selinux_hide_warning_title),
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                }
-                if ((kernelVersion ?: 0) < 510) {
-                    Box(
-                        Modifier
-                            .padding(PaddingValues(bottom = 8.dp))
-                            .align(Alignment.Start)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.settings_selinux_hide_warning_below_5_10),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-                if (!isGki) {
-                    Box(
-                        Modifier
-                            .padding(PaddingValues(bottom = 16.dp))
-                            .align(Alignment.Start)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.settings_selinux_hide_warning_non_gki),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = { showDialog.value = false }) {
-                        Text(stringResource(id = android.R.string.cancel))
-                    }
-
-                    Button(onClick = {
-                        showDialog.value = false
-                        onConfirm()
-                    }) {
-                        Text(stringResource(id = android.R.string.ok))
-                    }
-                }
-            }
-            val dialogWindowProvider = LocalView.current.parent as DialogWindowProvider
-            APDialogBlurBehindUtils.setupWindowBlurListener(dialogWindowProvider.window)
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LanguageDialog(showLanguageDialog: MutableState<Boolean>) {
-
-    val languages = stringArrayResource(id = R.array.languages)
-    val languagesValues = stringArrayResource(id = R.array.languages_values)
-
-    if (showLanguageDialog.value) {
-        BasicAlertDialog(
-            onDismissRequest = { showLanguageDialog.value = false }
-        ) {
-            Surface(
-                modifier = Modifier
-                    .width(150.dp)
-                    .wrapContentHeight(),
-                shape = RoundedCornerShape(28.dp),
-                tonalElevation = AlertDialogDefaults.TonalElevation,
-                color = AlertDialogDefaults.containerColor,
-            ) {
-                LazyColumn {
-                    itemsIndexed(languages) { index, item ->
-                        ListItem(
-                            headlineContent = { Text(item) },
-                            modifier = Modifier.clickable {
-                                showLanguageDialog.value = false
-                                if (index == 0) {
-                                    AppCompatDelegate.setApplicationLocales(
-                                        LocaleListCompat.getEmptyLocaleList()
-                                    )
-                                } else {
-                                    AppCompatDelegate.setApplicationLocales(
-                                        LocaleListCompat.forLanguageTags(
-                                            languagesValues[index]
+                                        Log.d(
+                                            "SucompatToggle",
+                                            "sucompat_extra ${if (enabled) "enable" else "disable"} result: $result",
                                         )
-                                    )
+                                        if (result == 0L) {
+                                            prefs.edit { putBoolean("sucompat_enabled", enabled) }
+                                            sucompatEnabled = enabled
+                                        }
+                                    }
+                                },
+                                title = stringResource(R.string.settings_sucompat),
+                                summary = stringResource(R.string.settings_sucompat_summary),
+                                startAction = {
+                                    SettingsIcon(MiuixIcons.Layers)
+                                },
+                            )
+                        }
+
+                        if (availability.selinuxHide) {
+                            val kernelVersion = kernelRuntime?.versionCode
+                            val isGki = kernelRuntime?.isGki ?: false
+                            SwitchPreference(
+                                checked = selinuxHideEnabled,
+                                onCheckedChange = { enabled ->
+                                    if (!enabled) {
+                                        applySelinuxHide(false)
+                                    } else if ((kernelVersion ?: 0) < 510 || !isGki) {
+                                        showSelinuxHideWarning = true
+                                    } else {
+                                        applySelinuxHide(true)
+                                    }
+                                },
+                                title = stringResource(R.string.settings_selinux_hide),
+                                summary = stringResource(R.string.settings_selinux_hide_summary),
+                                startAction = {
+                                    SettingsIcon(MiuixIcons.Lock)
+                                },
+                                enabled = kernelRuntime != null &&
+                                    (kernelRuntime?.versionCode ?: 0) >= 419,
+                            )
+                        }
+
+                        if (availability.webViewDebugging) {
+                            SwitchPreference(
+                                checked = webDebuggingEnabled,
+                                onCheckedChange = { enabled ->
+                                    prefs.edit {
+                                        putBoolean("enable_web_debugging", enabled)
+                                    }
+                                    webDebuggingEnabled = enabled
+                                },
+                                title = stringResource(R.string.enable_web_debugging),
+                                summary = stringResource(R.string.enable_web_debugging_summary),
+                                startAction = {
+                                    SettingsIcon(MiuixIcons.Edit)
+                                },
+                            )
+                        }
+
+                        if (availability.resetSuPath) {
+                            ArrowPreference(
+                                title = stringResource(R.string.setting_reset_su_path),
+                                startAction = {
+                                    SettingsIcon(MiuixIcons.Edit)
+                                },
+                                onClick = { showResetSuPathDialog = true },
+                            )
+                        }
+                    }
+                }
+            }
+
+            item(key = "appearance") {
+                SettingsSectionCard(
+                    title = stringResource(R.string.settings_section_appearance),
+                ) {
+                    SwitchPreference(
+                        checked = nightFollowSystem,
+                        onCheckedChange = { enabled ->
+                            prefs.edit { putBoolean("night_mode_follow_sys", enabled) }
+                            nightFollowSystem = enabled
+                            refreshTheme.value = true
+                        },
+                        title = stringResource(R.string.settings_night_mode_follow_sys),
+                        summary = stringResource(R.string.settings_night_mode_follow_sys_summary),
+                        startAction = {
+                            SettingsIcon(MiuixIcons.Theme)
+                        },
+                    )
+
+                    if (availability.nightTheme) {
+                        SwitchPreference(
+                            checked = nightThemeEnabled,
+                            onCheckedChange = { enabled ->
+                                prefs.edit { putBoolean("night_mode_enabled", enabled) }
+                                nightThemeEnabled = enabled
+                                refreshTheme.value = true
+                            },
+                            title = stringResource(R.string.settings_night_theme_enabled),
+                            startAction = {
+                                SettingsIcon(MiuixIcons.Theme)
+                            },
+                        )
+                    }
+
+                    if (dynamicColorSupported) {
+                        SwitchPreference(
+                            checked = useSystemDynamicColor,
+                            onCheckedChange = { enabled ->
+                                prefs.edit {
+                                    putBoolean("use_system_color_theme", enabled)
                                 }
-                            }
+                                useSystemDynamicColor = enabled
+                                refreshTheme.value = true
+                            },
+                            title = stringResource(R.string.settings_use_system_color_theme),
+                            summary = stringResource(R.string.settings_use_system_color_theme_summary),
+                            startAction = {
+                                SettingsIcon(MiuixIcons.Theme)
+                            },
+                        )
+                    }
+
+                    if (availability.customColor) {
+                        ArrowPreference(
+                            title = stringResource(R.string.settings_custom_color_theme),
+                            summary = stringResource(colorNameToString(customColor)),
+                            startAction = {
+                                SettingsIcon(MiuixIcons.Theme)
+                            },
+                            onClick = { showThemeChooseDialog = true },
                         )
                     }
                 }
             }
-            val dialogWindowProvider = LocalView.current.parent as DialogWindowProvider
-            APDialogBlurBehindUtils.setupWindowBlurListener(dialogWindowProvider.window)
+
+            item(key = "general") {
+                SettingsSectionCard(
+                    title = stringResource(R.string.settings_section_general),
+                ) {
+                    SwitchPreference(
+                        checked = checkUpdate,
+                        onCheckedChange = { enabled ->
+                            prefs.edit { putBoolean("check_update", enabled) }
+                            checkUpdate = enabled
+                        },
+                        title = stringResource(R.string.settings_check_update),
+                        summary = stringResource(R.string.settings_check_update_summary),
+                        startAction = {
+                            SettingsIcon(MiuixIcons.Update)
+                        },
+                    )
+
+                    ArrowPreference(
+                        title = stringResource(R.string.settings_app_language),
+                        summary = languageSummary,
+                        startAction = {
+                            SettingsIcon(MiuixIcons.Translate)
+                        },
+                        onClick = { showLanguageDialog = true },
+                    )
+                }
+            }
+
+            item(key = "diagnostics") {
+                SettingsSectionCard(
+                    title = stringResource(R.string.settings_section_diagnostics),
+                ) {
+                    ArrowPreference(
+                        title = stringResource(R.string.send_log),
+                        startAction = {
+                            SettingsIcon(MiuixIcons.Report)
+                        },
+                        onClick = { showLogBottomSheet = true },
+                    )
+                }
+            }
         }
+
+        ThemeChooseDialog(
+            show = showThemeChooseDialog,
+            selectedColor = customColor,
+            onDismiss = { showThemeChooseDialog = false },
+            onSelect = { color ->
+                prefs.edit { putString("custom_color", color) }
+                customColor = color
+                refreshTheme.value = true
+                showThemeChooseDialog = false
+            },
+        )
+
+        LanguageDialog(
+            show = showLanguageDialog,
+            onDismiss = { showLanguageDialog = false },
+        )
+
+        ResetSUPathDialog(
+            show = showResetSuPathDialog,
+            onDismiss = { showResetSuPathDialog = false },
+            onApply = { path ->
+                scope.launch {
+                    val success = withContext(Dispatchers.IO) {
+                        val result = Natives.resetSuPath(path)
+                        rootShellForResult(
+                            "echo $path > ${APApplication.SU_PATH_FILE}",
+                        )
+                        result
+                    }
+                    Toast.makeText(
+                        context,
+                        if (success) R.string.success else R.string.failure,
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            },
+        )
+
+        SelinuxHideWarningDialog(
+            show = showSelinuxHideWarning,
+            kernelVersion = kernelRuntime?.versionCode,
+            isGki = kernelRuntime?.isGki ?: false,
+            onDismiss = { showSelinuxHideWarning = false },
+            onConfirm = {
+                showSelinuxHideWarning = false
+                applySelinuxHide(true)
+            },
+        )
+
+        SettingsLogSheet(
+            show = showLogBottomSheet,
+            onDismiss = { showLogBottomSheet = false },
+            onSave = {
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm")
+                val current = LocalDateTime.now().format(formatter)
+                exportBugreportLauncher.launch("APatch_bugreport_${current}.tar.gz")
+                showLogBottomSheet = false
+            },
+            onShare = {
+                scope.launch {
+                    val bugreport = loadingDialog.withLoading {
+                        withContext(Dispatchers.IO) {
+                            getBugreportFile(context)
+                        }
+                    }
+                    val uri = FileProvider.getUriForFile(
+                        context,
+                        "${BuildConfig.APPLICATION_ID}.fileprovider",
+                        bugreport,
+                    )
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        setDataAndType(uri, "application/gzip")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    context.startActivity(
+                        Intent.createChooser(shareIntent, saveLog),
+                    )
+                    showLogBottomSheet = false
+                }
+            },
+        )
     }
 }

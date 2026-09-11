@@ -134,6 +134,10 @@
     <string name="apm_retry">重试</string>
     <string name="system_default">系统默认</string>
     <string name="settings_app_language">语言</string>
+    <string name="settings_section_root">Root 与兼容性</string>
+    <string name="settings_section_appearance">外观</string>
+    <string name="settings_section_general">通用</string>
+    <string name="settings_section_diagnostics">诊断</string>
     <string name="patch">修补内核镜像</string>
     <string name="settings_global_namespace_mode_summary">所有 Root 会话均使用全局挂载命名空间</string>
     <string name="settings_global_namespace_mode">全局命名空间模式</string>
