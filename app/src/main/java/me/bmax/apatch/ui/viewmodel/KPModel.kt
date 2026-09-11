@@ -48,6 +48,8 @@ object KPModel {
         var loadSource: String = "",
         var installed: Boolean = false,
         var disabled: Boolean = false,
+        var loaded: Boolean = false,
+        var pinyin: String = "",
     ) : IExtraInfo
 
     @Immutable

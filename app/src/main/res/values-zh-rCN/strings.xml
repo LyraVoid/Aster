@@ -51,6 +51,9 @@
     <string name="home_selinux_status">SELinux 状态</string>
     <string name="home_manager_version">管理器版本</string>
     <string name="kpm_unload_confirm">卸载“%s”模块？</string>
+    <string name="kpm_remove_confirm">移除“%s”？如果模块正在运行会同时卸载，并删除已安装的持久文件。</string>
+    <string name="kpm_uninstall_success">已移除 %s</string>
+    <string name="kpm_uninstall_failed">无法移除 %s</string>
     <string name="kpm_kp_not_installed">未安装内核补丁</string>
     <string name="kpm_version">版本</string>
     <string name="home_selinux_status_unknown">未知</string>
@@ -63,7 +66,11 @@
     <string name="kpm_load">加载</string>
     <string name="home_selinux_status_enforcing">强制模式</string>
     <string name="kpm_license">许可</string>
-    <string name="kpm_apm_empty">尚未加载模块</string>
+    <string name="kpm_apm_empty">尚无内核模块</string>
+    <string name="kpm_no_search_results">没有匹配的内核模块</string>
+    <string name="kpm_load_failed">无法读取内核模块列表</string>
+    <string name="kpm_retry">重试</string>
+    <string name="kpm_module_summary">共 %1$d 个模块，已加载 %2$d 个</string>
     <string name="kpm_load_toast_succ">加载成功</string>
     <string name="su_pkg_excluded_setting_title">排除修改</string>
     <string name="su_pkg_excluded_setting_summary">针对此应用还原被模块改动的文件。</string>
@@ -72,6 +79,7 @@
     <string name="kpm_desc">描述</string>
     <string name="su_selinux_via_hook">劫持绕过</string>
     <string name="kpm_args">参数</string>
+    <string name="kpm_loaded">已加载</string>
     <string name="su_refresh">刷新</string>
     <string name="su_sort">排序</string>
     <string name="su_sort_name">按名称排序</string>

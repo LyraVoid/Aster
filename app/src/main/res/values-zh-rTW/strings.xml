@@ -14,6 +14,9 @@
     <string name="reboot_bootloader">重新啟動至 Bootloader</string>
     <string name="apm_reboot_to_apply">重新啟動以應用變更</string>
     <string name="kpm_unload_confirm">確定要刪除「%s」模組嗎？</string>
+    <string name="kpm_remove_confirm">移除「%s」？模組正在執行時會一併卸載，並刪除已安裝的持久檔案。</string>
+    <string name="kpm_uninstall_success">已移除 %s</string>
+    <string name="kpm_uninstall_failed">無法移除 %s</string>
     <string name="apm_uninstall_success">已解除安裝 %s</string>
     <string name="apm_install">安裝</string>
     <string name="kpatch_version">版本：%s</string>
@@ -84,7 +87,12 @@
     <string name="home_kernel">核心版本</string>
     <string name="home_selinux_status_enforcing">強制執行</string>
     <string name="kpm_license">授權</string>
-    <string name="kpm_apm_empty">尚無已匯入的模組</string>
+    <string name="kpm_loaded">已載入</string>
+    <string name="kpm_apm_empty">尚無核心模組</string>
+    <string name="kpm_no_search_results">沒有符合的核心模組</string>
+    <string name="kpm_load_failed">無法讀取核心模組清單</string>
+    <string name="kpm_retry">重試</string>
+    <string name="kpm_module_summary">共 %1$d 個模組，已載入 %2$d 個</string>
     <string name="home_manager_version">管理器版本</string>
     <string name="kpm_load_toast_succ">匯入成功</string>
     <string name="apm_author">作者</string>
