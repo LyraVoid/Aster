@@ -215,6 +215,10 @@ fun listModules(): String {
 // the app-private patch dir. Move it next to apd once root is available;
 // idempotent and a no-op when nothing is pending.
 fun migrateStockBootBackup() {
+    val backup = File(apApp.filesDir.parentFile, "patch/ori.img")
+    if (!backup.isFile) {
+        return
+    }
     withNewRootShell {
         newJob().add(
             "mkdir -p /data/adb/ap && cp /data/user/*/me.bmax.apatch/patch/ori.img /data/adb/ap/ 2>/dev/null && rm -f /data/user/*/me.bmax.apatch/patch/ori.img; true"

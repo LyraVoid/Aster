@@ -11,11 +11,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.apApp
+import me.bmax.apatch.root.RootAccessProbeState
+import me.bmax.apatch.root.RootCapabilitySnapshot
+import me.bmax.apatch.root.RootCheckPhase
 import me.bmax.apatch.root.RootCapabilityRepository
 import me.bmax.apatch.util.Version
 import me.bmax.apatch.util.checkNewVersion
@@ -77,6 +81,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         preferences.registerOnSharedPreferenceChangeListener(preferenceListener)
 
         viewModelScope.launch(Dispatchers.IO) {
+            RootCapabilityRepository.snapshot.first(::canMigrateStockBootBackup)
             migrateStockBootBackup()
         }
         viewModelScope.launch {
@@ -160,3 +165,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         const val CHECK_UPDATE_KEY = "check_update"
     }
 }
+
+internal fun canMigrateStockBootBackup(capability: RootCapabilitySnapshot): Boolean =
+    capability.phase == RootCheckPhase.READY &&
+        capability.rootAccess == RootAccessProbeState.AVAILABLE
