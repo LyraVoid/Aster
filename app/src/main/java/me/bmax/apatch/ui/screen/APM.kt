@@ -60,6 +60,7 @@ import me.bmax.apatch.ui.component.rememberLoadingDialog
 import me.bmax.apatch.ui.module.APModuleContentState
 import me.bmax.apatch.ui.module.MetaModuleWarning
 import me.bmax.apatch.ui.module.resolveAPModuleContentState
+import me.bmax.apatch.ui.module.shouldScrollToTopAfterModuleLoad
 import me.bmax.apatch.ui.viewmodel.APModuleViewModel
 import me.bmax.apatch.util.DownloadListener
 import me.bmax.apatch.util.download
@@ -115,7 +116,20 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
     val modules = viewModel.moduleList
     val scrollBehavior = MiuixScrollBehavior()
     val moduleListState = rememberLazyListState()
+    var lastKnownModuleCount by rememberSaveable { mutableStateOf(-1) }
     var searchExpanded by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(viewModel.totalModuleCount) {
+        if (
+            shouldScrollToTopAfterModuleLoad(
+                previousCount = lastKnownModuleCount,
+                currentCount = viewModel.totalModuleCount,
+            )
+        ) {
+            moduleListState.scrollToItem(0)
+        }
+        lastKnownModuleCount = viewModel.totalModuleCount
+    }
 
     LaunchedEffect(Unit) {
         if (modules.isEmpty() || viewModel.isNeedRefresh) {

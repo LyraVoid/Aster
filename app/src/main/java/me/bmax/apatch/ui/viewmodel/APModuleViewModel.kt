@@ -75,6 +75,9 @@ class APModuleViewModel : ViewModel() {
         }.sortedWith(comparator)
     }
 
+    val totalModuleCount: Int
+        get() = modules.size
+
     var isNeedRefresh by mutableStateOf(false)
         private set
 
