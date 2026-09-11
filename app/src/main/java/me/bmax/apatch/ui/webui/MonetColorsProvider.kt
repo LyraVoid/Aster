@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.Colors
+import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -14,18 +15,36 @@ import java.util.concurrent.atomic.AtomicReference
 object MonetColorsProvider {
 
     private val colorsCss: AtomicReference<String?> = AtomicReference(null)
+    private val listeners = CopyOnWriteArraySet<CssListener>()
 
     fun getColorsCss(): String {
         return colorsCss.get() ?: ""
     }
 
+    fun interface CssListener {
+        fun onCssChanged(css: String)
+    }
+
+    fun registerListener(listener: CssListener): AutoCloseable {
+        listeners.add(listener)
+        listener.onCssChanged(getColorsCss())
+        return AutoCloseable {
+            listeners.remove(listener)
+        }
+    }
+
     @Composable
     fun UpdateCss() {
         val colorScheme = MiuixTheme.colorScheme
+        val css = buildMonetColorsCss(colorScheme)
 
-        LaunchedEffect(colorScheme) {
-            // Generate CSS only when colorScheme changes.
-            colorsCss.set(buildMonetColorsCss(colorScheme))
+        LaunchedEffect(css) {
+            // Miuix mutates the existing Colors object, so keying the effect on
+            // the generated CSS is what reliably detects a theme change.
+            colorsCss.set(css)
+            listeners.forEach { listener ->
+                runCatching { listener.onCssChanged(css) }
+            }
         }
     }
 

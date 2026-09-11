@@ -18,7 +18,7 @@ import com.topjohnwu.superuser.ShellUtils
 import com.topjohnwu.superuser.internal.UiThreadHandler
 import me.bmax.apatch.ui.WebUIActivity
 import me.bmax.apatch.ui.viewmodel.SuperUserViewModel
-import me.bmax.apatch.util.createRootShell
+import me.bmax.apatch.util.getRootShell
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.CompletableFuture
@@ -26,7 +26,7 @@ import java.util.concurrent.CompletableFuture
 class WebViewInterface(val context: Context, private val webView: WebView) {
     @JavascriptInterface
     fun exec(cmd: String): String {
-        val shell = createRootShell()
+        val shell = getRootShell()
         return ShellUtils.fastCmd(shell, cmd)
     }
 
@@ -60,7 +60,7 @@ class WebViewInterface(val context: Context, private val webView: WebView) {
         processOptions(finalCommand, options)
         finalCommand.append(cmd)
 
-        val shell = createRootShell()
+        val shell = getRootShell()
         val result = shell.newJob().add(finalCommand.toString()).to(ArrayList(), ArrayList()).exec()
         val stdout = result.out.joinToString(separator = "\n")
         val stderr = result.err.joinToString(separator = "\n")
@@ -93,7 +93,7 @@ class WebViewInterface(val context: Context, private val webView: WebView) {
             finalCommand.append(command)
         }
 
-        val shell = createRootShell()
+        val shell = getRootShell()
 
         val emitData = fun(name: String, data: String) {
             val jsCode = "javascript: (function() { try { ${callbackFunc}.${name}.emit('data', ${

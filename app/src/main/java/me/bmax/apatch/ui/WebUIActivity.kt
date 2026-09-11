@@ -40,8 +40,10 @@ import me.bmax.apatch.ui.theme.APatchTheme
 import me.bmax.apatch.ui.viewmodel.SuperUserViewModel
 import me.bmax.apatch.ui.webui.AppIconUtil
 import me.bmax.apatch.ui.webui.Insets
+import me.bmax.apatch.ui.webui.MonetColorsProvider
 import me.bmax.apatch.ui.webui.SuFilePathHandler
 import me.bmax.apatch.ui.webui.WebViewInterface
+import me.bmax.apatch.ui.webui.WebUiThemeInjector
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.io.ByteArrayInputStream
@@ -59,6 +61,7 @@ class WebUIActivity : ComponentActivity() {
     private var webCanGoBack = false
     private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
+    private var themeCssSubscription: AutoCloseable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -219,6 +222,11 @@ class WebUIActivity : ComponentActivity() {
                 webCanGoBack = view?.canGoBack() == true
                 super.doUpdateVisitedHistory(view, url, isReload)
             }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                injectThemeColors(MonetColorsProvider.getColorsCss())
+            }
         }
 
         webView?.apply {
@@ -251,6 +259,17 @@ class WebUIActivity : ComponentActivity() {
                 }
             }
             loadUrl("https://mui.kernelsu.org/index.html")
+            themeCssSubscription?.close()
+            themeCssSubscription = MonetColorsProvider.registerListener { css ->
+                injectThemeColors(css)
+            }
+        }
+    }
+
+    private fun injectThemeColors(css: String) {
+        if (css.isBlank()) return
+        webView?.post {
+            webView?.evaluateJavascript(WebUiThemeInjector.buildScript(css), null)
         }
     }
 
@@ -261,5 +280,13 @@ class WebUIActivity : ComponentActivity() {
                 ViewCompat.requestApplyInsets(container)
             }
         }
+    }
+
+    override fun onDestroy() {
+        themeCssSubscription?.close()
+        themeCssSubscription = null
+        webView?.destroy()
+        webView = null
+        super.onDestroy()
     }
 }
