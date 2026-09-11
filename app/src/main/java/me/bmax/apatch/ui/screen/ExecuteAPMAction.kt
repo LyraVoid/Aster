@@ -1,22 +1,13 @@
 package me.bmax.apatch.ui.screen
 
 import android.os.Environment
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Save
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,7 +32,17 @@ import kotlinx.coroutines.withContext
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.component.KeyEventBlocker
 import me.bmax.apatch.util.runAPModuleAction
-import me.bmax.apatch.util.ui.LocalSnackbarHost
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.SnackbarHost
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Back
+import top.yukonga.miuix.kmp.icon.extended.FileDownloads
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -52,10 +53,10 @@ import java.util.Locale
 fun ExecuteAPMActionScreen(navigator: DestinationsNavigator, moduleId: String) {
     var text by rememberSaveable { mutableStateOf("") }
     val logContent = remember { StringBuilder() }
-    val snackBarHost = LocalSnackbarHost.current
+    val snackBarHost = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
-    var actionResult: Boolean
+    val logSavedLabel = stringResource(R.string.log_saved)
 
     fun appendLog(line: String) {
         logContent.append(line).append("\n")
@@ -67,7 +68,7 @@ fun ExecuteAPMActionScreen(navigator: DestinationsNavigator, moduleId: String) {
         if (text.isNotEmpty()) {
             return@LaunchedEffect
         }
-        withContext(Dispatchers.IO) {
+        val success = withContext(Dispatchers.IO) {
             runAPModuleAction(
                 moduleId,
                 onStdout = {
@@ -80,31 +81,37 @@ fun ExecuteAPMActionScreen(navigator: DestinationsNavigator, moduleId: String) {
                 onStderr = {
                     appendLog(it)
                 }
-            ).let {
-                actionResult = it
-            }
+            )
         }
-        if (actionResult) {
+        if (success) {
             navigator.popBackStack()
         }
     }
 
     Scaffold(
         topBar = {
-            TopBar(
+            ExecuteAPMActionTopBar(
                 onBack = dropUnlessResumed {
                     navigator.popBackStack()
                 },
                 onSave = {
                     scope.launch {
-                        val format = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.getDefault())
-                        val date = format.format(Date())
-                        val file = File(
-                            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                            "APatch_apm_action_log_${date}.log"
-                        )
-                        file.writeText(logContent.toString())
-                        snackBarHost.showSnackbar("Log saved to ${file.absolutePath}")
+                        val path = withContext(Dispatchers.IO) {
+                            val format = SimpleDateFormat(
+                                "yyyy-MM-dd-HH-mm-ss",
+                                Locale.getDefault(),
+                            )
+                            val date = format.format(Date())
+                            val file = File(
+                                Environment.getExternalStoragePublicDirectory(
+                                    Environment.DIRECTORY_DOWNLOADS,
+                                ),
+                                "APatch_apm_action_log_${date}.log"
+                            )
+                            file.writeText(logContent.toString())
+                            file.absolutePath
+                        }
+                        snackBarHost.showSnackbar(message = "$logSavedLabel: $path")
                     }
                 }
             )
@@ -114,43 +121,61 @@ fun ExecuteAPMActionScreen(navigator: DestinationsNavigator, moduleId: String) {
         KeyEventBlocker {
             it.key == Key.VolumeDown || it.key == Key.VolumeUp
         }
-        Column(
-            modifier = Modifier
-                .fillMaxSize(1f)
-                .padding(innerPadding)
-                .verticalScroll(scrollState),
-        ) {
-            LaunchedEffect(text) {
-                scrollState.animateScrollTo(scrollState.maxValue)
-            }
-            Text(
-                modifier = Modifier.padding(8.dp),
-                text = text,
-                fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                fontFamily = FontFamily.Monospace,
-                lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
-            )
-        }
+        ExecuteAPMActionLog(
+            text = text,
+            scrollState = scrollState,
+            contentPadding = innerPadding,
+        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TopBar(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
+private fun ExecuteAPMActionTopBar(
+    onBack: () -> Unit,
+    onSave: () -> Unit,
+) {
     TopAppBar(
-        title = { Text(stringResource(R.string.apm_action)) },
+        title = stringResource(R.string.apm_action),
         navigationIcon = {
-            IconButton(
-                onClick = onBack
-            ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = MiuixIcons.Back,
+                    contentDescription = stringResource(R.string.back),
+                )
+            }
         },
         actions = {
             IconButton(onClick = onSave) {
                 Icon(
-                    imageVector = Icons.Filled.Save,
-                    contentDescription = "Save log"
+                    imageVector = MiuixIcons.FileDownloads,
+                    contentDescription = stringResource(R.string.save_log),
                 )
             }
         }
     )
+}
+
+@Composable
+private fun ExecuteAPMActionLog(
+    text: String,
+    scrollState: ScrollState,
+    contentPadding: PaddingValues,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding)
+            .verticalScroll(scrollState),
+    ) {
+        LaunchedEffect(text) {
+            scrollState.animateScrollTo(scrollState.maxValue)
+        }
+        Text(
+            modifier = Modifier.padding(12.dp),
+            text = text,
+            style = MiuixTheme.textStyles.body2.copy(
+                fontFamily = FontFamily.Monospace,
+            ),
+        )
+    }
 }
