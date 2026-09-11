@@ -33,6 +33,27 @@ object Natives {
         }
     }
 
+    @Keep
+    class SuPathResult(
+        val rc: Long,
+        val path: String?,
+    ) {
+        val isSuccess: Boolean
+            get() = rc >= 0L && !path.isNullOrBlank()
+
+        val valueOrNull: String?
+            get() = path?.takeIf { isSuccess }
+    }
+
+    @Keep
+    class SuUidsResult(
+        val rc: Long,
+        val uids: IntArray,
+    ) {
+        val isSuccess: Boolean
+            get() = rc >= 0L
+    }
+
 
     @FastNative
     private external fun nativeSu(superKey: String, toUid: Int, scontext: String?): Long
@@ -55,11 +76,23 @@ object Natives {
         return nativeSuPath(APApplication.superKey)
     }
 
+    private external fun nativeSuPathResult(superKey: String): SuPathResult
+
+    fun suPathResult(): SuPathResult {
+        return nativeSuPathResult(APApplication.superKey)
+    }
+
     @FastNative
     private external fun nativeSuUids(superKey: String): IntArray
 
     fun suUids(): IntArray {
         return nativeSuUids(APApplication.superKey)
+    }
+
+    private external fun nativeSuUidsResult(superKey: String): SuUidsResult
+
+    fun suUidsResult(): SuUidsResult {
+        return nativeSuUidsResult(APApplication.superKey)
     }
 
     @FastNative

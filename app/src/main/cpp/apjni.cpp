@@ -6,6 +6,7 @@
  */
 
 #include <cstring>
+#include <utility>
 #include <vector>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -73,27 +74,66 @@ jint nativeGetUidExclude(JNIEnv *env, jobject /* this */, jstring super_key_jstr
     return static_cast<int>(sc_get_ap_mod_exclude(super_key.get(), uid));
 }
 
+struct SuUidQueryResult {
+    long rc;
+    std::vector<int> uids;
+};
+
+SuUidQueryResult querySuUids(const char *super_key) {
+    long num = sc_su_uid_nums(super_key);
+    if (num < 0) [[unlikely]] {
+        LOGE("nativeSuUids count error: %ld", num);
+        return {num, {}};
+    }
+    if (num == 0) {
+        return {0, {}};
+    }
+
+    std::vector<int> uids(static_cast<size_t>(num));
+    long n = sc_su_allow_uids(super_key, (uid_t *) uids.data(), static_cast<int>(num));
+    if (n < 0) [[unlikely]] {
+        LOGE("nativeSuUids list error: %ld", n);
+        return {n, {}};
+    }
+    if (n > num) [[unlikely]] {
+        LOGE("nativeSuUids returned too many UIDs: %ld > %ld", n, num);
+        n = num;
+    }
+
+    uids.resize(static_cast<size_t>(n));
+    return {n, std::move(uids)};
+}
+
+jintArray toJIntArray(JNIEnv *env, const std::vector<int> &uids) {
+    auto array = env->NewIntArray(static_cast<jsize>(uids.size()));
+    if (!uids.empty()) {
+        env->SetIntArrayRegion(
+            array,
+            0,
+            static_cast<jsize>(uids.size()),
+            uids.data()
+        );
+    }
+    return array;
+}
+
 jintArray nativeSuUids(JNIEnv *env, jobject /* this */, jstring super_key_jstr) {
     ensureSuperKeyNonNull(super_key_jstr);
 
     const auto super_key = JUTFString(env, super_key_jstr);
-    int num = static_cast<int>(sc_su_uid_nums(super_key.get()));
+    const auto result = querySuUids(super_key.get());
+    return toJIntArray(env, result.uids);
+}
 
-    if (num <= 0) [[unlikely]] {
-        LOGW("SuperUser Count less than 1, skip allocating vector...");
-        return env->NewIntArray(0);
-    }
+jobject nativeSuUidsResult(JNIEnv *env, jobject /* this */, jstring super_key_jstr) {
+    ensureSuperKeyNonNull(super_key_jstr);
 
-    std::vector<int> uids(num);
+    const auto super_key = JUTFString(env, super_key_jstr);
+    const auto result = querySuUids(super_key.get());
 
-    long n = sc_su_allow_uids(super_key.get(), (uid_t *) uids.data(), num);
-    if (n > 0) [[unlikely]] {
-        auto array = env->NewIntArray(n);
-        env->SetIntArrayRegion(array, 0, n, uids.data());
-        return array;
-    }
-
-    return env->NewIntArray(0);
+    jclass cls = env->FindClass("me/bmax/apatch/Natives$SuUidsResult");
+    jmethodID constructor = env->GetMethodID(cls, "<init>", "(J[I)V");
+    return env->NewObject(cls, constructor, result.rc, toJIntArray(env, result.uids));
 }
 
 jobject nativeSuProfile(JNIEnv *env, jobject /* this */, jstring super_key_jstr, jint uid) {
@@ -258,6 +298,22 @@ jstring nativeSuPath(JNIEnv *env, jobject /* this */, jstring super_key_jstr) {
     return env->NewStringUTF(buf);
 }
 
+jobject nativeSuPathResult(JNIEnv *env, jobject /* this */, jstring super_key_jstr) {
+    ensureSuperKeyNonNull(super_key_jstr);
+
+    const auto super_key = JUTFString(env, super_key_jstr);
+    char buf[SU_PATH_MAX_LEN] = { '\0' };
+    long rc = sc_su_get_path(super_key.get(), buf, sizeof(buf));
+    if (rc < 0) [[unlikely]] {
+        LOGE("nativeSuPathResult error: %ld", rc);
+    }
+
+    jclass cls = env->FindClass("me/bmax/apatch/Natives$SuPathResult");
+    jmethodID constructor = env->GetMethodID(cls, "<init>", "(JLjava/lang/String;)V");
+    jstring path = env->NewStringUTF(buf);
+    return env->NewObject(cls, constructor, rc, path);
+}
+
 jboolean nativeResetSuPath(JNIEnv *env, jobject /* this */, jstring super_key_jstr, jstring su_path_jstr) {
     ensureSuperKeyNonNull(super_key_jstr);
 
@@ -326,6 +382,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void * /*reserved*/) {
         {"nativeSetUidExclude", "(Ljava/lang/String;II)I", reinterpret_cast<void *>(&nativeSetUidExclude)},
         {"nativeGetUidExclude", "(Ljava/lang/String;I)I", reinterpret_cast<void *>(&nativeGetUidExclude)},
         {"nativeSuUids", "(Ljava/lang/String;)[I", reinterpret_cast<void *>(&nativeSuUids)},
+        {"nativeSuUidsResult", "(Ljava/lang/String;)Lme/bmax/apatch/Natives$SuUidsResult;", reinterpret_cast<void *>(&nativeSuUidsResult)},
         {"nativeSuProfile", "(Ljava/lang/String;I)Lme/bmax/apatch/Natives$Profile;", reinterpret_cast<void *>(&nativeSuProfile)},
         {"nativeLoadKernelPatchModule", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J", reinterpret_cast<void *>(&nativeLoadKernelPatchModule)},
         {"nativeControlKernelPatchModule", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lme/bmax/apatch/Natives$KPMCtlRes;", reinterpret_cast<void *>(&nativeControlKernelPatchModule)},
@@ -336,6 +393,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void * /*reserved*/) {
         {"nativeGrantSu", "(Ljava/lang/String;IILjava/lang/String;)J", reinterpret_cast<void *>(&nativeGrantSu)},
         {"nativeRevokeSu", "(Ljava/lang/String;I)J", reinterpret_cast<void *>(&nativeRevokeSu)},
         {"nativeSuPath", "(Ljava/lang/String;)Ljava/lang/String;", reinterpret_cast<void *>(&nativeSuPath)},
+        {"nativeSuPathResult", "(Ljava/lang/String;)Lme/bmax/apatch/Natives$SuPathResult;", reinterpret_cast<void *>(&nativeSuPathResult)},
         {"nativeResetSuPath", "(Ljava/lang/String;Ljava/lang/String;)Z", reinterpret_cast<void *>(&nativeResetSuPath)},
         {"nativeControlFeature", "(Ljava/lang/String;Ljava/lang/String;I)J", reinterpret_cast<void *>(&nativeControlFeature)},
     };
