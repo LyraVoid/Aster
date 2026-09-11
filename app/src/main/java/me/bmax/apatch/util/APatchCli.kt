@@ -440,10 +440,14 @@ fun isJailbreakMode(): Boolean {
 }
 
 fun hasMagisk(): Boolean {
-    val shell = getRootShell()
-    val result = shell.newJob().add("nsenter --mount=/proc/1/ns/mnt which magisk").exec()
-    Log.i(TAG, "has magisk: ${result.isSuccess}")
-    return result.isSuccess
+    return runCatching {
+        val shell = getRootShell()
+        val result = shell.newJob().add("nsenter --mount=/proc/1/ns/mnt which magisk").exec()
+        Log.i(TAG, "has magisk: ${result.isSuccess}")
+        result.isSuccess
+    }.onFailure {
+        Log.w(TAG, "Failed to probe Magisk", it)
+    }.getOrDefault(false)
 }
 
 fun isGlobalNamespaceEnabled(): Boolean {
@@ -471,4 +475,3 @@ fun getFileNameFromUri(context: Context, uri: Uri): String? {
     }
     return fileName
 }
-

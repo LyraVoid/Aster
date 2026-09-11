@@ -13,7 +13,10 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import me.bmax.apatch.apApp
+import me.bmax.apatch.ui.module.MetaModuleWarning
+import me.bmax.apatch.ui.module.probeMetaModuleWarning
 import me.bmax.apatch.util.HanziToPinyin
+import me.bmax.apatch.util.hasMagisk
 import me.bmax.apatch.util.listModules
 import org.json.JSONArray
 import org.json.JSONObject
@@ -24,6 +27,8 @@ class APModuleViewModel : ViewModel() {
     companion object {
         private const val TAG = "ModuleViewModel"
         private var modules by mutableStateOf<List<ModuleInfo>>(emptyList())
+        private var cachedMagiskPresent by mutableStateOf(false)
+        private var cachedMetaModuleWarning by mutableStateOf<MetaModuleWarning?>(null)
     }
 
     data class ModuleInfo(
@@ -72,6 +77,12 @@ class APModuleViewModel : ViewModel() {
     var isNeedRefresh by mutableStateOf(false)
         private set
 
+    val isMagiskPresent: Boolean
+        get() = cachedMagiskPresent
+
+    val metaModuleWarning: MetaModuleWarning?
+        get() = cachedMetaModuleWarning
+
     fun markNeedRefresh() {
         isNeedRefresh = true
     }
@@ -83,6 +94,7 @@ class APModuleViewModel : ViewModel() {
             val start = SystemClock.elapsedRealtime()
 
             kotlin.runCatching {
+                cachedMagiskPresent = runCatching { hasMagisk() }.getOrDefault(false)
 
                 val result = listModules()
 
@@ -112,6 +124,7 @@ class APModuleViewModel : ViewModel() {
                             pinyin = HanziToPinyin.getInstance().toPinyinString(name) ?: ""
                         )
                     }.toList()
+                cachedMetaModuleWarning = probeMetaModuleWarning(modules.map(ModuleInfo::id))
                 isNeedRefresh = false
                 isRefreshing = false
 

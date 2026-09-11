@@ -53,7 +53,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -81,7 +80,6 @@ import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.ExecuteAPMActionScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.InstallScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.topjohnwu.superuser.io.SuFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -99,10 +97,10 @@ import me.bmax.apatch.ui.component.WarningCard
 import me.bmax.apatch.ui.component.pinnedScrollBehavior
 import me.bmax.apatch.ui.component.rememberConfirmDialog
 import me.bmax.apatch.ui.component.rememberLoadingDialog
+import me.bmax.apatch.ui.module.MetaModuleWarning
 import me.bmax.apatch.ui.viewmodel.APModuleViewModel
 import me.bmax.apatch.util.DownloadListener
 import me.bmax.apatch.util.download
-import me.bmax.apatch.util.hasMagisk
 import me.bmax.apatch.util.isJailbreakMode
 import me.bmax.apatch.util.reboot
 import me.bmax.apatch.util.toggleModule
@@ -149,7 +147,7 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
     ) { viewModel.fetchModuleList() }
     val scrollBehavior = pinnedScrollBehavior()
 
-    val hasMagisk = hasMagisk()
+    val hasMagisk = viewModel.isMagiskPresent
     val hideInstallButton = hasMagisk
 
     val moduleListState = rememberLazyListState()
@@ -242,35 +240,6 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
     }
 }
 
-private fun getMetaModuleWarningText(
-    viewModel: APModuleViewModel,
-    context: Context
-) : String? {
-    val needsMountModule = viewModel.moduleList.any { module ->
-        val moduleDir = "/data/adb/modules/${module.id}"
-
-        // Module requires mounting if it has a system dir and no skip_mount file
-        val hasSystem = SuFile.open("$moduleDir/system").isDirectory
-        val isSkipped = SuFile.open("$moduleDir/skip_mount").isFile
-
-        hasSystem && !isSkipped
-    }
-
-    if (!needsMountModule) return null
-
-    val metaDir = "/data/adb/metamodule"
-    val metaProp = SuFile.open("$metaDir/module.prop").isFile
-    val metaRemoved = SuFile.open("$metaDir/remove").isFile
-    val metaDisabled = SuFile.open("$metaDir/disable").isFile
-
-    return when {
-        !metaProp -> context.getString(R.string.no_meta_module_installed)
-        metaRemoved -> context.getString(R.string.meta_module_removed)
-        metaDisabled -> context.getString(R.string.meta_module_disabled)
-        else -> null
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MetaModuleWarningCard(
@@ -322,6 +291,12 @@ private fun ModuleList(
     val changelogText = stringResource(R.string.apm_changelog)
     val downloadingText = stringResource(R.string.apm_downloading)
     val startDownloadingText = stringResource(R.string.apm_start_downloading)
+    val metaModuleWarningText = when (viewModel.metaModuleWarning) {
+        MetaModuleWarning.NOT_INSTALLED -> stringResource(R.string.no_meta_module_installed)
+        MetaModuleWarning.PENDING_REMOVAL -> stringResource(R.string.meta_module_removed)
+        MetaModuleWarning.DISABLED -> stringResource(R.string.meta_module_disabled)
+        null -> null
+    }
 
     val context = LocalContext.current
     val loadingDialog = rememberLoadingDialog()
@@ -456,12 +431,6 @@ private fun ModuleList(
         onRefresh = { viewModel.fetchModuleList() },
         isRefreshing = viewModel.isRefreshing
     ) {
-        val metaModuleWarningText by produceState<String?>(initialValue = null, viewModel.moduleList) {
-            value = withContext(Dispatchers.IO) {
-                getMetaModuleWarningText(viewModel, context)
-            }
-        }
-
         LazyColumn(
             modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
             state = state,
