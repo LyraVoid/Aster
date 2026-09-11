@@ -167,12 +167,8 @@ internal class HomeWallpaperStore(context: Context) {
         )
     }
 
-    private fun resolveStoredFile(path: String?): File? {
-        val normalized = path?.takeIf { it.isNotBlank() } ?: return null
-        val file = File(appContext.filesDir, normalized).canonicalFile
-        val root = appContext.filesDir.canonicalFile
-        return file.takeIf { it.path.startsWith(root.path + File.separator) }
-    }
+    private fun resolveStoredFile(path: String?): File? =
+        HomeWallpaperFiles.resolve(appContext.filesDir, path)
 
     private fun readCrop(): HomeWallpaperCrop = HomeWallpaperCrop(
         zoom = preferences.getFloat(KEY_ZOOM, HomeWallpaperCrop.Default.zoom),

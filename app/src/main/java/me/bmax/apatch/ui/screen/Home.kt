@@ -74,6 +74,7 @@ import me.bmax.apatch.ui.home.HomeUpdateState
 import me.bmax.apatch.ui.home.HomeViewModel
 import me.bmax.apatch.ui.home.HomeWallpaperCrop
 import me.bmax.apatch.ui.home.HomeWallpaperEvent
+import me.bmax.apatch.ui.home.HomeWallpaperFiles
 import me.bmax.apatch.ui.home.HomeWallpaperMaxZoom
 import me.bmax.apatch.ui.home.HomeWallpaperMinZoom
 import me.bmax.apatch.ui.home.HomeWallpaperPhase
@@ -121,7 +122,6 @@ import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.LocalContentColor
-import java.io.File
 
 @Destination<RootGraph>(start = true)
 @Composable
@@ -565,9 +565,12 @@ private fun HomeWallpaperImage(
 ) {
     val context = LocalContext.current
     val path = state.imagePath ?: return
-    val request = remember(path, state.revision, context) {
+    val file = remember(path, context) {
+        HomeWallpaperFiles.resolve(context.filesDir, path)
+    } ?: return
+    val request = remember(file, path, state.revision, context) {
         ImageRequest.Builder(context)
-            .data(File(path))
+            .data(file)
             .memoryCacheKey("home-wallpaper-${state.revision}")
             .crossfade(true)
             .build()
