@@ -383,4 +383,10 @@
     <string name="navigation_checking_root">Checking Root capabilities</string>
     <string name="navigation_kernel_patch_required">KernelPatch is not ready</string>
     <string name="navigation_android_patch_required">APatch is not installed</string>
+
+    <string name="navigation_mode_title">Navigation layout</string>
+    <string name="navigation_mode_auto">Automatic</string>
+    <string name="navigation_mode_bottom">Bottom navigation</string>
+    <string name="navigation_mode_sidebar">Sidebar navigation</string>
+    <string name="navigation_mode_auto_summary">Bottom navigation on narrow windows; sidebar on wide windows.</string>
 </resources>

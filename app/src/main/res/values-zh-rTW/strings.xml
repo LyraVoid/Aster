@@ -295,4 +295,10 @@
     <string name="navigation_checking_root">正在檢查 Root 能力</string>
     <string name="navigation_kernel_patch_required">KernelPatch 尚未就緒</string>
     <string name="navigation_android_patch_required">APatch 尚未安裝</string>
+
+    <string name="navigation_mode_title">導覽配置</string>
+    <string name="navigation_mode_auto">自動適應</string>
+    <string name="navigation_mode_bottom">底部導覽</string>
+    <string name="navigation_mode_sidebar">側欄導覽</string>
+    <string name="navigation_mode_auto_summary">窄螢幕使用底部導覽，寬螢幕使用側欄導覽。</string>
 </resources>

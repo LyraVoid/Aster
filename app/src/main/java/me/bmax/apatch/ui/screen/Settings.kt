@@ -29,6 +29,9 @@ import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -38,6 +41,9 @@ import me.bmax.apatch.Natives
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.component.rememberLoadingDialog
 import me.bmax.apatch.ui.settings.resolveSettingsFeatureAvailability
+import me.bmax.apatch.ui.shell.NavigationMode
+import me.bmax.apatch.ui.shell.rememberNavigationMode
+import me.bmax.apatch.ui.shell.setNavigationMode
 import me.bmax.apatch.ui.theme.refreshTheme
 import me.bmax.apatch.util.getBugreportFile
 import me.bmax.apatch.util.getKernelVersionCode
@@ -59,11 +65,10 @@ import top.yukonga.miuix.kmp.icon.extended.Settings
 import top.yukonga.miuix.kmp.icon.extended.Theme
 import top.yukonga.miuix.kmp.icon.extended.Translate
 import top.yukonga.miuix.kmp.icon.extended.Update
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 private data class KernelRuntimeInfo(
     val versionCode: Int?,
@@ -115,6 +120,8 @@ fun SettingScreen() {
         mutableStateOf(prefs.getString("custom_color", "blue") ?: "blue")
     }
 
+    val navigationMode by rememberNavigationMode()
+    var showNavigationModeDialog by rememberSaveable { mutableStateOf(false) }
     var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
     var showResetSuPathDialog by rememberSaveable { mutableStateOf(false) }
     var showThemeChooseDialog by rememberSaveable { mutableStateOf(false) }
@@ -341,6 +348,13 @@ fun SettingScreen() {
                 SettingsSectionCard(
                     title = stringResource(R.string.settings_section_appearance),
                 ) {
+                    ArrowPreference(
+                        title = stringResource(R.string.navigation_mode_title),
+                        summary = stringResource(navigationMode.label),
+                        startAction = { SettingsIcon(MiuixIcons.Layers) },
+                        onClick = { showNavigationModeDialog = true },
+                    )
+
                     SwitchPreference(
                         checked = nightFollowSystem,
                         onCheckedChange = { enabled ->
@@ -441,6 +455,24 @@ fun SettingScreen() {
                         onClick = { showLogBottomSheet = true },
                     )
                 }
+            }
+        }
+
+        OverlayDialog(
+            show = showNavigationModeDialog,
+            title = stringResource(R.string.navigation_mode_title),
+            onDismissRequest = { showNavigationModeDialog = false },
+        ) {
+            NavigationMode.entries.forEach { mode ->
+                RadioButtonPreference(
+                    title = stringResource(mode.label),
+                    summary = if (mode == NavigationMode.Auto) stringResource(R.string.navigation_mode_auto_summary) else null,
+                    selected = navigationMode == mode,
+                    onClick = {
+                        showNavigationModeDialog = false
+                        setNavigationMode(mode)
+                    },
+                )
             }
         }
 

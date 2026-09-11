@@ -8,10 +8,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -31,16 +40,18 @@ import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
 import me.bmax.apatch.R
 import me.bmax.apatch.util.ui.LocalSnackbarHost
 import top.yukonga.miuix.kmp.basic.Badge
+import top.yukonga.miuix.kmp.basic.NavigationBar
+import top.yukonga.miuix.kmp.basic.NavigationBarItem
 import top.yukonga.miuix.kmp.basic.NavigationRail
-import top.yukonga.miuix.kmp.basic.NavigationRailItem
 import top.yukonga.miuix.kmp.basic.NavigationRailDefaults
+import top.yukonga.miuix.kmp.basic.NavigationRailItem
 import top.yukonga.miuix.kmp.basic.NavigationRailState
 import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.rememberNavigationRailState
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-private val CompactNavigationBreakpoint = 600.dp
+private val CompactNavigationBreakpoint = CompactNavigationWidthDp.dp
 
 @Composable
 fun AsterAppShell(
@@ -50,71 +61,107 @@ fun AsterAppShell(
     modifier: Modifier = Modifier,
     content: @Composable (Modifier) -> Unit,
 ) {
+    val navigationMode by rememberNavigationMode()
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val useBottomNavigation = navigationMode.usesBottomNavigation(maxWidth.value)
         val useCompactShell = maxWidth < CompactNavigationBreakpoint
         val railState = rememberNavigationRailState()
 
-        LaunchedEffect(useCompactShell) {
-            if (!useCompactShell) {
-                railState.expand()
-            }
+        LaunchedEffect(useBottomNavigation, useCompactShell) {
+            if (useBottomNavigation || useCompactShell) railState.collapse() else railState.expand()
         }
-
-        BackHandler(enabled = useCompactShell && railState.isExpanded) {
+        BackHandler(enabled = !useBottomNavigation && useCompactShell && railState.isExpanded) {
             railState.collapse()
         }
 
-        if (useCompactShell) {
-            val contentModifier = Modifier
-                .fillMaxSize()
-                .padding(start = NavigationRailDefaults.MinWidth)
-
-            Box(modifier = Modifier.fillMaxSize()) {
-                CompositionLocalProvider(LocalSnackbarHost provides snackbarHostState) {
-                    content(contentModifier)
+        // Keep the NavHost at one composition location across layout changes.
+        Column(Modifier.fillMaxSize()) {
+            Row(Modifier.weight(1f).fillMaxWidth()) {
+                if (!useBottomNavigation && !useCompactShell) {
+                    AsterNavigationRail(navController, capabilities, railState, collapseAfterNavigation = false)
                 }
-
-                AnimatedVisibility(
-                    visible = railState.isExpanded,
-                    modifier = Modifier.fillMaxSize(),
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MiuixTheme.colorScheme.windowDimming.copy(alpha = 0.32f))
-                            .clickable { railState.collapse() }
+                Box(Modifier.weight(1f).fillMaxHeight()) {
+                    CompositionLocalProvider(LocalSnackbarHost provides snackbarHostState) {
+                        content(
+                            Modifier.fillMaxSize()
+                                .padding(start = if (!useBottomNavigation && useCompactShell) NavigationRailDefaults.MinWidth else 0.dp)
+                                .then(
+                                    if (useBottomNavigation) Modifier.consumeWindowInsets(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
+                                    else Modifier
+                                )
+                        )
+                    }
+                    NavigationScrim(
+                        visible = !useBottomNavigation && useCompactShell && railState.isExpanded,
+                        onDismiss = { railState.collapse() },
                     )
+                    if (!useBottomNavigation && useCompactShell) {
+                        AsterNavigationRail(
+                            navController, capabilities, railState,
+                            modifier = Modifier.align(Alignment.CenterStart),
+                            collapseAfterNavigation = true,
+                        )
+                    }
                 }
-
-                AsterNavigationRail(
-                    navController = navController,
-                    capabilities = capabilities,
-                    state = railState,
-                    modifier = Modifier.align(Alignment.CenterStart),
-                    collapseAfterNavigation = true,
-                )
             }
-        } else {
-            Row(modifier = Modifier.fillMaxSize()) {
-                AsterNavigationRail(
-                    navController = navController,
-                    capabilities = capabilities,
-                    state = railState,
-                    collapseAfterNavigation = false,
-                )
-                CompositionLocalProvider(LocalSnackbarHost provides snackbarHostState) {
-                    content(
-                        Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                    )
-                }
+            if (useBottomNavigation) {
+                AsterBottomNavigation(navController, capabilities)
             }
         }
     }
 }
+
+@Composable
+private fun NavigationScrim(visible: Boolean, onDismiss: () -> Unit) {
+    AnimatedVisibility(
+        visible = visible,
+        modifier = Modifier.fillMaxSize(),
+        enter = fadeIn(),
+        exit = fadeOut(),
+    ) {
+        Box(
+            Modifier.fillMaxSize()
+                .background(MiuixTheme.colorScheme.windowDimming.copy(alpha = 0.32f))
+                .clickable(onClick = onDismiss)
+        )
+    }
+}
+
+@Composable
+private fun AsterBottomNavigation(
+    navController: NavHostController,
+    capabilities: AsterNavigationCapabilities,
+) {
+    val navigator = navController.rememberDestinationsNavigator()
+    NavigationBar(
+        modifier = Modifier.background(MiuixTheme.colorScheme.surface)
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
+    ) {
+        PrimaryDestination.entries.forEach { destination ->
+            val selected by navController.isRouteOnBackStackAsState(destination.direction)
+            val disabledReason = navigationDisabledReason(destination, capabilities)
+            NavigationBarItem(
+                selected = selected,
+                onClick = { navigatePrimary(navigator, destination, selected) },
+                icon = destination.icon,
+                label = stringResource(destination.label),
+                enabled = disabledReason == null,
+                badge = if (disabledReason == null) null else {
+                    { Badge { Text("!") } }
+                },
+                modifier = navigationItemModifier(disabledReason),
+            )
+        }
+    }
+}
+
+private fun navigationItemModifier(disabledReason: String?): Modifier = Modifier
+    .alpha(if (disabledReason == null) 1f else 0.42f)
+    .then(
+        if (disabledReason == null) Modifier else Modifier.semantics {
+            stateDescription = disabledReason
+        }
+    )
 
 @Composable
 private fun AsterNavigationRail(
@@ -162,17 +209,7 @@ private fun AsterNavigationRail(
                         }
                     }
                 },
-                modifier = Modifier
-                    .alpha(if (disabledReason == null) 1f else 0.42f)
-                    .then(
-                        if (disabledReason == null) {
-                            Modifier
-                        } else {
-                            Modifier.semantics {
-                                stateDescription = disabledReason
-                            }
-                        }
-                    ),
+                modifier = navigationItemModifier(disabledReason),
             )
         }
     }
