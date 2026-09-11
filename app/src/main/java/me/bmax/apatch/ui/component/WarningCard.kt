@@ -1,105 +1,91 @@
 package me.bmax.apatch.ui.component
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Close
+import top.yukonga.miuix.kmp.icon.extended.Info
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+
+enum class WarningCardTone {
+    Warning,
+    Neutral,
+}
 
 @Composable
 fun WarningCard(
     message: String,
-    color: Color? = null,
+    modifier: Modifier = Modifier,
+    tone: WarningCardTone = WarningCardTone.Warning,
     onClick: (() -> Unit)? = null,
     onClose: (() -> Unit)? = null,
-    icon: (@Composable () -> Unit)? = null
+    icon: (@Composable () -> Unit)? = null,
 ) {
-    val cardColors = CardDefaults.cardColors(
-        containerColor = color ?: MaterialTheme.colorScheme.errorContainer,
-        contentColor = MaterialTheme.colorScheme.onErrorContainer,
-        disabledContainerColor = MaterialTheme.colorScheme.errorContainer,
-        disabledContentColor = MaterialTheme.colorScheme.onErrorContainer
-    )
+    val containerColor = when (tone) {
+        WarningCardTone.Warning -> MiuixTheme.colorScheme.errorContainer
+        WarningCardTone.Neutral -> MiuixTheme.colorScheme.surfaceContainerHigh
+    }
+    val contentColor = when (tone) {
+        WarningCardTone.Warning -> MiuixTheme.colorScheme.onErrorContainer
+        WarningCardTone.Neutral -> MiuixTheme.colorScheme.onSurface
+    }
 
-    ElevatedCard(
-        colors = cardColors,
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.defaultColors(
+            color = containerColor,
+            contentColor = contentColor,
+        ),
+        onClick = onClick,
     ) {
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .then(onClick?.let { Modifier.clickable { it() } } ?: Modifier)
-                .padding(20.dp)
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().align(Alignment.CenterStart).padding(end = 40.dp)
-            ) {
-                if (icon != null) {
-                    icon()
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Error,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .wrapContentHeight(Alignment.CenterVertically)
+            if (icon != null) {
+                icon()
+            } else {
+                Icon(
+                    imageVector = MiuixIcons.Info,
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(20.dp),
                 )
             }
-
-
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = message,
+                style = MiuixTheme.textStyles.body2,
+                color = contentColor,
+                modifier = Modifier.weight(1f),
+            )
             if (onClose != null) {
+                Spacer(Modifier.width(10.dp))
                 Icon(
-                    imageVector = Icons.Default.Close,
+                    imageVector = MiuixIcons.Close,
                     contentDescription = stringResource(android.R.string.cancel),
-                    tint = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.clickable {
-                        onClose()
-                    }.size(18.dp).align(Alignment.TopEnd)
+                    tint = contentColor,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable(onClick = onClose),
                 )
             }
         }
-    }
-}
-
-@Preview
-@Composable
-private fun WarningCardPreview() {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        WarningCard(message = "Warning message")
-        WarningCard(message = "Warning message", onClose = {})
-        WarningCard(
-            message = "Warning message ",
-            MaterialTheme.colorScheme.outlineVariant,
-        ) {}
     }
 }

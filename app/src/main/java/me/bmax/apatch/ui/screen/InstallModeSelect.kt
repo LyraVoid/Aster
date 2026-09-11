@@ -6,22 +6,19 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,6 +29,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.dropUnlessResumed
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
@@ -41,188 +40,227 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.component.WarningCard
-import me.bmax.apatch.ui.component.rememberConfirmDialog
+import me.bmax.apatch.ui.component.WarningCardTone
+import me.bmax.apatch.ui.install.InstallMethodType
+import me.bmax.apatch.ui.install.resolveInstallModeState
 import me.bmax.apatch.ui.viewmodel.PatchesViewModel
 import me.bmax.apatch.util.isABDevice
 import me.bmax.apatch.util.isJailbreakMode
 import me.bmax.apatch.util.rootAvailable
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Back
+import top.yukonga.miuix.kmp.preference.RadioButtonPreference
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 // Hand-off channel from this screen to the Patches screen; a plain var would not
 // notify the LaunchedEffect consuming it there.
 var selectedBootImage by mutableStateOf<Uri?>(null)
 
+private data class InstallEnvironment(
+    val rootAvailable: Boolean,
+    val isAbDevice: Boolean,
+    val jailbreakBlocked: Boolean,
+)
+
 @Destination<RootGraph>
 @Composable
 fun InstallModeSelectScreen(navigator: DestinationsNavigator) {
-    var installMethod by remember {
-        mutableStateOf<InstallMethod?>(null)
-    }
+    var environment by remember { mutableStateOf<InstallEnvironment?>(null) }
+    var selectedMethod by remember { mutableStateOf<InstallMethodType?>(null) }
+    var showInactiveSlotConfirm by remember { mutableStateOf(false) }
 
-    Scaffold(topBar = {
-        TopBar(
-            onBack = dropUnlessResumed { navigator.popBackStack() },
-        )
-    }) {
-        Column(modifier = Modifier.padding(it)) {
-            SelectInstallMethod(
-                onSelected = { method ->
-                    installMethod = method
-                },
-                navigator = navigator
-            )
-
-        }
-    }
-}
-
-sealed class InstallMethod {
-    data class SelectFile(
-        val uri: Uri? = null,
-        @param:StringRes override val label: Int = R.string.mode_select_page_select_file,
-    ) : InstallMethod()
-
-    data object DirectInstall : InstallMethod() {
-        override val label: Int
-            get() = R.string.mode_select_page_patch_and_install
-    }
-
-    data object DirectInstallToInactiveSlot : InstallMethod() {
-        override val label: Int
-            get() = R.string.mode_select_page_install_inactive_slot
-    }
-
-    abstract val label: Int
-    open val summary: String? = null
-}
-
-@Composable
-private fun SelectInstallMethod(
-    onSelected: (InstallMethod) -> Unit = {},
-    navigator: DestinationsNavigator
-) {
-    val rootAvailable = rootAvailable()
-    val isAbDevice = isABDevice()
-    var jailbreakBlocked by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        jailbreakBlocked = withContext(Dispatchers.IO) { isJailbreakMode() }
-    }
-
-    val radioOptions =
-        mutableListOf<InstallMethod>(InstallMethod.SelectFile())
-    if (rootAvailable) {
-        radioOptions.add(InstallMethod.DirectInstall)
-        if (isAbDevice) {
-            radioOptions.add(InstallMethod.DirectInstallToInactiveSlot)
+        environment = withContext(Dispatchers.IO) {
+            InstallEnvironment(
+                rootAvailable = rootAvailable(),
+                isAbDevice = isABDevice(),
+                jailbreakBlocked = isJailbreakMode(),
+            )
         }
     }
 
-    var selectedOption by remember { mutableStateOf<InstallMethod?>(null) }
+    val modeState = environment?.let {
+        resolveInstallModeState(
+            rootAvailable = it.rootAvailable,
+            isAbDevice = it.isAbDevice,
+            jailbreakBlocked = it.jailbreakBlocked,
+        )
+    }
     val selectImageLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            it.data?.data?.let { uri ->
-                val option = InstallMethod.SelectFile(uri)
-                selectedOption = option
-                onSelected(option)
-                selectedBootImage = option.uri
-                navigator.navigate(PatchesDestination(PatchesViewModel.PatchMode.PATCH_ONLY))
-            }
-        }
+        contract = ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
+        val uri = result.data?.data ?: return@rememberLauncherForActivityResult
+
+        selectedMethod = InstallMethodType.SelectFile
+        selectedBootImage = uri
+        navigator.navigate(
+            PatchesDestination(PatchesViewModel.PatchMode.PATCH_ONLY),
+        )
     }
 
-    val confirmDialog = rememberConfirmDialog(onConfirm = {
-        selectedOption = InstallMethod.DirectInstallToInactiveSlot
-        onSelected(InstallMethod.DirectInstallToInactiveSlot)
-        navigator.navigate(PatchesDestination(PatchesViewModel.PatchMode.INSTALL_TO_NEXT_SLOT))
-    }, onDismiss = null)
-    val dialogTitle = stringResource(id = android.R.string.dialog_alert_title)
-    val dialogContent = stringResource(id = R.string.mode_select_page_install_inactive_slot_warning)
-
-    val onClick = { option: InstallMethod ->
-        when (option) {
-            is InstallMethod.SelectFile -> {
-                // Reset before selecting
+    val onSelect: (InstallMethodType) -> Unit = { method ->
+        selectedMethod = method
+        when (method) {
+            InstallMethodType.SelectFile -> {
                 selectedBootImage = null
                 selectImageLauncher.launch(
                     Intent(Intent.ACTION_GET_CONTENT).apply {
                         type = "application/octet-stream"
-                    }
+                    },
                 )
             }
 
-            is InstallMethod.DirectInstall -> {
-                selectedOption = option
-                onSelected(option)
-                navigator.navigate(PatchesDestination(PatchesViewModel.PatchMode.PATCH_AND_INSTALL))
+            InstallMethodType.DirectInstall -> {
+                navigator.navigate(
+                    PatchesDestination(PatchesViewModel.PatchMode.PATCH_AND_INSTALL),
+                )
             }
 
-            is InstallMethod.DirectInstallToInactiveSlot -> {
-                confirmDialog.showConfirm(dialogTitle, dialogContent)
+            InstallMethodType.InactiveSlot -> {
+                showInactiveSlotConfirm = true
             }
         }
     }
 
-    Column {
-        if (jailbreakBlocked) {
-            Box(Modifier.padding(12.dp)) {
-                WarningCard(
-                    message = stringResource(R.string.jailbreak_no_patch),
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                )
-            }
-        }
-        if (!rootAvailable) {
-            Box(Modifier.padding(12.dp)) {
-                WarningCard(
-                    message = stringResource(R.string.home_install_unknown_summary),
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                )
-            }
-        }
-        if (!jailbreakBlocked) {
-            radioOptions.forEach { option ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        onClick(option)
-                    }) {
-                RadioButton(selected = option.javaClass == selectedOption?.javaClass, onClick = {
-                    onClick(option)
-                })
-                Column {
-                    Text(
-                        text = stringResource(id = option.label),
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        fontFamily = MaterialTheme.typography.titleMedium.fontFamily,
-                        fontStyle = MaterialTheme.typography.titleMedium.fontStyle
-                    )
-                    option.summary?.let {
-                        Text(
-                            text = it,
-                            fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                            fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
-                            fontStyle = MaterialTheme.typography.bodySmall.fontStyle
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = stringResource(R.string.mode_select_page_title),
+                navigationIcon = {
+                    IconButton(
+                        onClick = dropUnlessResumed { navigator.popBackStack() },
+                    ) {
+                        Icon(
+                            imageVector = MiuixIcons.Back,
+                            contentDescription = stringResource(R.string.back),
                         )
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
+        if (modeState == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(vertical = 8.dp),
+            ) {
+                if (modeState.showJailbreakWarning) {
+                    WarningCard(
+                        message = stringResource(R.string.jailbreak_no_patch),
+                        tone = WarningCardTone.Neutral,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    )
+                }
+                if (modeState.showRootWarning) {
+                    WarningCard(
+                        message = stringResource(R.string.home_install_unknown_summary),
+                        tone = WarningCardTone.Neutral,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    )
+                }
+                if (modeState.methods.isNotEmpty()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        insideMargin = PaddingValues(vertical = 4.dp),
+                    ) {
+                        modeState.methods.forEach { method ->
+                            RadioButtonPreference(
+                                title = stringResource(method.labelRes()),
+                                selected = selectedMethod == method,
+                                onClick = { onSelect(method) },
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+
+    if (showInactiveSlotConfirm) {
+        Dialog(
+            onDismissRequest = { showInactiveSlotConfirm = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = 560.dp),
+                    insideMargin = PaddingValues(20.dp),
+                ) {
+                    Text(
+                        text = stringResource(android.R.string.dialog_alert_title),
+                        style = MiuixTheme.textStyles.title4,
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = stringResource(R.string.mode_select_page_install_inactive_slot_warning),
+                        style = MiuixTheme.textStyles.body2,
+                    )
+                    Spacer(Modifier.height(18.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        TextButton(
+                            text = stringResource(android.R.string.cancel),
+                            onClick = { showInactiveSlotConfirm = false },
+                            modifier = Modifier.weight(1f),
+                        )
+                        Button(
+                            onClick = {
+                                showInactiveSlotConfirm = false
+                                navigator.navigate(
+                                    PatchesDestination(
+                                        PatchesViewModel.PatchMode.INSTALL_TO_NEXT_SLOT,
+                                    ),
+                                )
+                            },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColorsPrimary(),
+                        ) {
+                            Text(stringResource(android.R.string.ok))
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TopBar(onBack: () -> Unit = {}) {
-    TopAppBar(
-        title = { Text(stringResource(R.string.mode_select_page_title)) },
-        navigationIcon = {
-            IconButton(
-                onClick = onBack
-            ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
-        },
-    )
+@StringRes
+private fun InstallMethodType.labelRes(): Int = when (this) {
+    InstallMethodType.SelectFile -> R.string.mode_select_page_select_file
+    InstallMethodType.DirectInstall -> R.string.mode_select_page_patch_and_install
+    InstallMethodType.InactiveSlot -> R.string.mode_select_page_install_inactive_slot
 }

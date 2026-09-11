@@ -87,6 +87,7 @@ import kotlinx.coroutines.withContext
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.component.SwitchItem
 import me.bmax.apatch.ui.component.WarningCard
+import me.bmax.apatch.ui.component.WarningCardTone
 import me.bmax.apatch.ui.viewmodel.KPModel
 import me.bmax.apatch.ui.viewmodel.PatchesViewModel
 import me.bmax.apatch.util.Version
@@ -113,7 +114,7 @@ fun Patches(mode: PatchesViewModel.PatchMode) {
             ) {
                 WarningCard(
                     message = stringResource(R.string.jailbreak_no_patch),
-                    color = MaterialTheme.colorScheme.outlineVariant,
+                    tone = WarningCardTone.Neutral,
                 )
             }
         }
