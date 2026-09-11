@@ -4,31 +4,19 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.util.Log
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,7 +32,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
 import com.ramcosta.composedestinations.annotation.Destination
@@ -56,11 +43,25 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.component.KeyEventBlocker
-import me.bmax.apatch.ui.component.rememberCustomDialog
 import me.bmax.apatch.util.hasMetaModule
 import me.bmax.apatch.util.installModule
 import me.bmax.apatch.util.reboot
-import me.bmax.apatch.util.ui.LocalSnackbarHost
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.SnackbarHost
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Back
+import top.yukonga.miuix.kmp.icon.extended.FileDownloads
+import top.yukonga.miuix.kmp.icon.extended.Refresh
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -78,50 +79,21 @@ enum class MODULE_TYPE {
 fun InstallScreen(navigator: DestinationsNavigator, uri: Uri, type: MODULE_TYPE) {
     var text by rememberSaveable { mutableStateOf("") }
     val logContent = remember { StringBuilder() }
-    var showFloatAction by rememberSaveable { mutableStateOf(false) }
+    var showRebootAction by rememberSaveable { mutableStateOf(false) }
+    var showMetaModuleWarning by rememberSaveable { mutableStateOf(false) }
 
     fun appendLog(line: String) {
         logContent.append(line).append("\n")
         val newText = text + line + "\n"
         text = if (newText.length > 100_000) newText.takeLast(100_000) else newText
     }
-    val metaModuleAlertDialog = rememberCustomDialog { dismiss: () -> Unit ->
-        val uriHandler = LocalUriHandler.current
-        AlertDialog(
-            onDismissRequest = { dismiss() },
-            icon = {
-                Icon(Icons.Outlined.Info, contentDescription = null)
-            },
-            title = {
-                Row(modifier = Modifier
-                    .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(text = stringResource(R.string.warning_of_meta_module_title))
-                }
-            },
-            text = {
-                Text(text = stringResource(R.string.warning_of_meta_module_summary))
-            },
-            confirmButton = {
-                FilledTonalButton(onClick = { dismiss() }) {
-                    Text(text = stringResource(id = android.R.string.ok))
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = {
-                    uriHandler.openUri("https://apatch.dev/meta-module.html")
-                }) {
-                    Text(text = stringResource(id = R.string.learn_more))
-                }
-            },
-        )
-    }
 
     val context = LocalContext.current
-    val snackBarHost = LocalSnackbarHost.current
+    val snackBarHost = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+    val uriHandler = LocalUriHandler.current
+    val logSavedLabel = stringResource(R.string.log_saved)
 
     LaunchedEffect(Unit) {
         if (text.isNotEmpty()) {
@@ -132,17 +104,8 @@ fun InstallScreen(navigator: DestinationsNavigator, uri: Uri, type: MODULE_TYPE)
                 if (!success) return@installModule
 
                 scope.launch {
-                    showFloatAction = true
-
-                    // check metamodule
-                    if (hasMetaModule()) return@launch
-                    val mountOldDirectory =
-                        SuFile.open("/data/adb/modules/${getModuleIdFromUri(context, uri)}/system")
-                    val mountNewDirectory =
-                        SuFile.open("/data/adb/modules_update/${getModuleIdFromUri(context, uri)}/system")
-                    if (!mountNewDirectory.isDirectory && !mountOldDirectory.isDirectory) return@launch
-
-                    metaModuleAlertDialog.show()
+                    showRebootAction = true
+                    showMetaModuleWarning = shouldShowMetaModuleWarning(context, uri)
                 }
 
             }, onStdout = {
@@ -162,57 +125,179 @@ fun InstallScreen(navigator: DestinationsNavigator, uri: Uri, type: MODULE_TYPE)
     }
 
     Scaffold(topBar = {
-        TopBar(onBack = dropUnlessResumed {
-            navigator.popBackStack()
-        }, onSave = {
-            scope.launch {
-                val format = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.getDefault())
-                val date = format.format(Date())
-                val file = File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                    "APatch_install_${type}_log_${date}.log"
-                )
-                file.writeText(logContent.toString())
-                snackBarHost.showSnackbar("Log saved to ${file.absolutePath}")
-            }
-        })
+        InstallTopBar(
+            onBack = dropUnlessResumed {
+                navigator.popBackStack()
+            },
+            onSave = {
+                scope.launch {
+                    val path = withContext(Dispatchers.IO) {
+                        val format = SimpleDateFormat(
+                            "yyyy-MM-dd-HH-mm-ss",
+                            Locale.getDefault(),
+                        )
+                        val date = format.format(Date())
+                        val file = File(
+                            Environment.getExternalStoragePublicDirectory(
+                                Environment.DIRECTORY_DOWNLOADS,
+                            ),
+                            "APatch_install_${type}_log_${date}.log",
+                        )
+                        file.writeText(logContent.toString())
+                        file.absolutePath
+                    }
+                    snackBarHost.showSnackbar(message = "$logSavedLabel: $path")
+                }
+            },
+        )
     }, floatingActionButton = {
-        if (showFloatAction) {
-            val reboot = stringResource(id = R.string.reboot)
-            ExtendedFloatingActionButton(
+        if (showRebootAction) {
+            InstallRebootAction(
                 onClick = {
-                    scope.launch {
-                        withContext(Dispatchers.IO) {
-                            reboot()
-                        }
+                    scope.launch(Dispatchers.IO) {
+                        reboot()
                     }
                 },
-                icon = { Icon(Icons.Filled.Refresh, reboot) },
-                text = { Text(text = reboot) },
             )
         }
-
     }, snackbarHost = { SnackbarHost(snackBarHost) }) { innerPadding ->
         KeyEventBlocker {
             it.key == Key.VolumeDown || it.key == Key.VolumeUp
         }
-        Column(
-            modifier = Modifier
-                .fillMaxSize(1f)
-                .padding(innerPadding)
-                .verticalScroll(scrollState),
-        ) {
-            LaunchedEffect(text) {
-                scrollState.animateScrollTo(scrollState.maxValue)
-            }
-            Text(
-                modifier = Modifier.padding(8.dp),
-                text = text,
-                fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                fontFamily = FontFamily.Monospace,
-                lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
-            )
+        InstallLog(
+            text = text,
+            scrollState = scrollState,
+            contentPadding = innerPadding,
+        )
+    }
+
+    MetaModuleWarningDialog(
+        show = showMetaModuleWarning,
+        onDismiss = { showMetaModuleWarning = false },
+        onLearnMore = {
+            uriHandler.openUri("https://apatch.dev/meta-module.html")
+        },
+    )
+}
+
+private suspend fun shouldShowMetaModuleWarning(context: Context, uri: Uri): Boolean =
+    withContext(Dispatchers.IO) {
+        try {
+            if (hasMetaModule()) return@withContext false
+
+            val moduleId = getModuleIdFromUri(context, uri) ?: return@withContext false
+            val mountOldDirectory =
+                SuFile.open("/data/adb/modules/$moduleId/system")
+            val mountNewDirectory =
+                SuFile.open("/data/adb/modules_update/$moduleId/system")
+            mountOldDirectory.isDirectory || mountNewDirectory.isDirectory
+        } catch (t: Throwable) {
+            Log.w("ModuleInstall", "Unable to inspect installed module", t)
+            false
         }
+    }
+
+@Composable
+private fun InstallTopBar(
+    onBack: () -> Unit,
+    onSave: () -> Unit,
+) {
+    TopAppBar(
+        title = stringResource(R.string.apm_install),
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = MiuixIcons.Back,
+                    contentDescription = stringResource(R.string.back),
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = onSave) {
+                Icon(
+                    imageVector = MiuixIcons.FileDownloads,
+                    contentDescription = stringResource(R.string.save_log),
+                )
+            }
+        },
+    )
+}
+
+@Composable
+private fun InstallRebootAction(onClick: () -> Unit) {
+    val reboot = stringResource(R.string.reboot)
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColorsPrimary(),
+    ) {
+        Icon(
+            imageVector = MiuixIcons.Refresh,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = MiuixTheme.colorScheme.onPrimary,
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = reboot,
+            style = MiuixTheme.textStyles.button,
+        )
+    }
+}
+
+@Composable
+private fun MetaModuleWarningDialog(
+    show: Boolean,
+    onDismiss: () -> Unit,
+    onLearnMore: () -> Unit,
+) {
+    OverlayDialog(
+        show = show,
+        title = stringResource(R.string.warning_of_meta_module_title),
+        summary = stringResource(R.string.warning_of_meta_module_summary),
+        onDismissRequest = onDismiss,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            TextButton(
+                text = stringResource(R.string.learn_more),
+                onClick = onLearnMore,
+                modifier = Modifier.weight(1f),
+            )
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColorsPrimary(),
+            ) {
+                Text(stringResource(android.R.string.ok))
+            }
+        }
+    }
+}
+
+@Composable
+private fun InstallLog(
+    text: String,
+    scrollState: ScrollState,
+    contentPadding: PaddingValues,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding)
+            .verticalScroll(scrollState),
+    ) {
+        LaunchedEffect(text) {
+            scrollState.animateScrollTo(scrollState.maxValue)
+        }
+        Text(
+            modifier = Modifier.padding(12.dp),
+            text = text,
+            style = MiuixTheme.textStyles.body2.copy(
+                fontFamily = FontFamily.Monospace,
+            ),
+        )
     }
 }
 
@@ -262,26 +347,4 @@ suspend fun getModuleIdFromUri(context: Context, uri: Uri): String? {
             null
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TopBar(onBack: () -> Unit = {}, onSave: () -> Unit = {}) {
-    TopAppBar(title = { Text(stringResource(R.string.apm_install)) }, navigationIcon = {
-        IconButton(
-            onClick = onBack
-        ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
-    }, actions = {
-        IconButton(onClick = onSave) {
-            Icon(
-                imageVector = Icons.Filled.Save, contentDescription = "Localized description"
-            )
-        }
-    })
-}
-
-@Preview
-@Composable
-fun InstallPreview() {
-//    InstallScreen(DestinationsNavigator(), uri = Uri.EMPTY)
 }
