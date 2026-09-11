@@ -384,6 +384,8 @@ dependencies {
     implementation(libs.miuix.preference)
 
     testImplementation(libs.junit)
+    // Android's org.json is a stub on the local JVM test runtime.
+    testImplementation(libs.json)
 
     compileOnly(libs.cxx)
 }
