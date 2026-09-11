@@ -5,7 +5,6 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -27,6 +26,7 @@ import me.bmax.apatch.ui.shell.AsterNavigationTransitions
 import me.bmax.apatch.ui.shell.PrimaryDestination
 import me.bmax.apatch.ui.theme.APatchTheme
 import me.bmax.apatch.ui.viewmodel.SuperUserViewModel
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
 
 class MainActivity : AppCompatActivity() {
 
