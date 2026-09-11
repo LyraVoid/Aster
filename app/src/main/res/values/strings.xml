@@ -211,6 +211,10 @@
     <string name="apm_downloading">Downloading module: %s</string>
     <string name="apm_start_downloading">Start downloading: %s</string>
     <string name="apm_new_version_available">New version %s is available, click to upgrade.</string>
+    <string name="apm_module_summary">%1$d modules · %2$d enabled</string>
+    <string name="apm_no_search_results">No modules match your search</string>
+    <string name="apm_load_failed">Could not load the module list</string>
+    <string name="apm_retry">Retry</string>
 
     <string name="warning_of_meta_module_title">Require Meta module</string>
     <string name="warning_of_meta_module_summary">This module want to mount /system, meta module will handle that. Otherwise, it might not work.</string>

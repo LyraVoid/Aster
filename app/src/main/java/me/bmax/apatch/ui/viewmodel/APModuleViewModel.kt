@@ -29,6 +29,7 @@ class APModuleViewModel : ViewModel() {
         private var modules by mutableStateOf<List<ModuleInfo>>(emptyList())
         private var cachedMagiskPresent by mutableStateOf(false)
         private var cachedMetaModuleWarning by mutableStateOf<MetaModuleWarning?>(null)
+        private var cachedLoadFailed by mutableStateOf(false)
     }
 
     data class ModuleInfo(
@@ -83,6 +84,9 @@ class APModuleViewModel : ViewModel() {
     val metaModuleWarning: MetaModuleWarning?
         get() = cachedMetaModuleWarning
 
+    val hasLoadError: Boolean
+        get() = cachedLoadFailed
+
     fun markNeedRefresh() {
         isNeedRefresh = true
     }
@@ -90,6 +94,7 @@ class APModuleViewModel : ViewModel() {
     fun fetchModuleList() {
         viewModelScope.launch(Dispatchers.IO) {
             isRefreshing = true
+            cachedLoadFailed = false
 
             val start = SystemClock.elapsedRealtime()
 
@@ -140,6 +145,7 @@ class APModuleViewModel : ViewModel() {
                 }.awaitAll()
             }.onFailure { e ->
                 Log.e(TAG, "fetchModuleList: ", e)
+                cachedLoadFailed = true
                 isRefreshing = false
             }
 
@@ -167,7 +173,7 @@ class APModuleViewModel : ViewModel() {
                 ).execute()
             Log.d(TAG, "checkUpdate code: ${response.code}")
             if (response.isSuccessful) {
-                response.body?.string() ?: ""
+                response.body.string()
             } else {
                 ""
             }

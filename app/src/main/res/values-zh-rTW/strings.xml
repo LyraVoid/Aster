@@ -88,6 +88,10 @@
     <string name="home_manager_version">管理器版本</string>
     <string name="kpm_load_toast_succ">匯入成功</string>
     <string name="apm_author">作者</string>
+    <string name="apm_module_summary">共 %1$d 個模組，已啟用 %2$d 個</string>
+    <string name="apm_no_search_results">沒有符合的模組</string>
+    <string name="apm_load_failed">無法讀取模組清單</string>
+    <string name="apm_retry">重試</string>
     <string name="patch_title">修補</string>
     <string name="send_log">發送日誌</string>
     <string name="home_patch_set_key_desc">執行 KernelPatch 時所需的唯一憑證</string>

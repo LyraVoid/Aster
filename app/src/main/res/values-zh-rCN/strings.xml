@@ -120,6 +120,10 @@
     <string name="apm_update">更新</string>
     <string name="apm_author">作者</string>
     <string name="apm_not_installed">尚未注入系统补丁</string>
+    <string name="apm_module_summary">共 %1$d 个模块，已启用 %2$d 个</string>
+    <string name="apm_no_search_results">没有匹配的模块</string>
+    <string name="apm_load_failed">无法读取模块列表</string>
+    <string name="apm_retry">重试</string>
     <string name="system_default">系统默认</string>
     <string name="settings_app_language">语言</string>
     <string name="patch">修补内核镜像</string>
