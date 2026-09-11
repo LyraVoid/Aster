@@ -62,7 +62,10 @@ fun AsterAppShell(
     content: @Composable (Modifier) -> Unit,
 ) {
     val navigationMode by rememberNavigationMode()
-    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+    // Page fades expose the shell; keep its background opaque and in sync with the app theme.
+    BoxWithConstraints(
+        modifier = modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface),
+    ) {
         val useBottomNavigation = navigationMode.usesBottomNavigation(maxWidth.value)
         val useCompactShell = maxWidth < CompactNavigationBreakpoint
         val railState = rememberNavigationRailState()
