@@ -71,10 +71,41 @@ fun createRootShell(globalMnt: Boolean = false): Shell {
     }
 }
 
-private fun createMainRootShell() : Shell {
+private fun clearMainShellRegistration() {
+    val clazz = MainShell::class.java
+    clazz.getDeclaredField("isInitMain").apply {
+        isAccessible = true
+        setBoolean(null, false)
+        isAccessible = false
+    }
+
+    clazz.getDeclaredField("mainShell").apply {
+        isAccessible = true
+        @Suppress("UNCHECKED_CAST")
+        val arr = get(null) as Array<Any?>
+        arr[0] = null
+        isAccessible = false
+    }
+
+    clazz.getDeclaredField("mainBuilder").apply {
+        isAccessible = true
+        set(null, null)
+        isAccessible = false
+    }
+}
+
+private fun createMainRootShell(): Shell = synchronized(MainShell::class.java) {
+    clearMainShellRegistration()
+
     val builder = Shell.Builder.create()
         .setInitializers(RootShellInitializer::class.java)
-    val shell = try {
+
+    // Register the builder before building. libsu rejects setBuilder() once it
+    // has cached a main shell, and a concurrent Shell.get() can otherwise cache
+    // its default shell while this custom shell is being built.
+    MainShell.setBuilder(builder)
+
+    try {
         builder.build(SUPERCMD, APApplication.superKey, "-Z", APApplication.MAGISK_SCONTEXT)
     } catch (e: Throwable) {
         Log.e(TAG, "su failed: ", e)
@@ -93,9 +124,6 @@ private fun createMainRootShell() : Shell {
             }
         }
     }
-
-    MainShell.setBuilder(builder)
-    return shell
 }
 
 object APatchCli {
@@ -108,28 +136,6 @@ object APatchCli {
     @Synchronized
     fun refresh() {
         val tmp = SHELL
-
-        val clazz = MainShell::class.java // reset MainShell
-        clazz.getDeclaredField("isInitMain").apply {
-            isAccessible = true
-            setBoolean(null, false)
-            isAccessible = false
-        }
-
-        clazz.getDeclaredField("mainShell").apply {
-            isAccessible = true
-            @Suppress("UNCHECKED_CAST")
-            val arr = get(null) as Array<Any?>
-            arr[0] = null
-            isAccessible = false
-        }
-
-        clazz.getDeclaredField("mainBuilder").apply {
-            isAccessible = true
-            set(null, null)
-            isAccessible = false
-        }
-
         SHELL = createMainRootShell()
         tmp.close()
     }
