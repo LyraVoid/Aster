@@ -21,6 +21,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.MutableLiveData
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.ui.webui.MonetColorsProvider
+import top.yukonga.miuix.kmp.theme.ColorSchemeMode
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.theme.ThemeColorSpec
+import top.yukonga.miuix.kmp.theme.ThemeController
+import top.yukonga.miuix.kmp.theme.ThemePaletteStyle
 
 @Composable
 private fun SystemBarStyle(
@@ -167,12 +172,55 @@ fun APatchTheme(
         darkMode = darkTheme
     )
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = {
-            MonetColorsProvider.UpdateCss()
-            content()
-        }
-    )
+    val miuixColorSchemeMode = when {
+        darkThemeFollowSys -> ColorSchemeMode.MonetSystem
+        darkTheme -> ColorSchemeMode.MonetDark
+        else -> ColorSchemeMode.MonetLight
+    }
+    val miuixKeyColor = if (dynamicColor) {
+        null
+    } else {
+        LegacyMiuixThemeSeeds[customColorScheme] ?: LegacyMiuixThemeSeeds.getValue("blue")
+    }
+    val miuixThemeController = remember(miuixColorSchemeMode, miuixKeyColor) {
+        ThemeController(
+            colorSchemeMode = miuixColorSchemeMode,
+            keyColor = miuixKeyColor,
+            colorSpec = ThemeColorSpec.Spec2021,
+            paletteStyle = ThemePaletteStyle.TonalSpot,
+        )
+    }
+
+    MiuixTheme(controller = miuixThemeController) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = {
+                MonetColorsProvider.UpdateCss()
+                content()
+            }
+        )
+    }
 }
+
+private val LegacyMiuixThemeSeeds = mapOf(
+    "amber" to Color(0xFFFFC107),
+    "blue_grey" to Color(0xFF607D8B),
+    "blue" to Color(0xFF2196F3),
+    "brown" to Color(0xFF795548),
+    "cyan" to Color(0xFF00BCD4),
+    "deep_orange" to Color(0xFFFF5722),
+    "deep_purple" to Color(0xFF673AB7),
+    "green" to Color(0xFF4CAF50),
+    "indigo" to Color(0xFF3F51B5),
+    "light_blue" to Color(0xFF03A9F4),
+    "light_green" to Color(0xFF8BC34A),
+    "lime" to Color(0xFFCDDC39),
+    "orange" to Color(0xFFFF9800),
+    "pink" to Color(0xFFE91E63),
+    "purple" to Color(0xFF9C27B0),
+    "red" to Color(0xFFF44336),
+    "sakura" to Color(0xFFE88AA6),
+    "teal" to Color(0xFF009688),
+    "yellow" to Color(0xFFFFD600),
+)

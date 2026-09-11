@@ -381,5 +381,9 @@ dependencies {
 
     implementation(libs.ini4j)
 
+    implementation(libs.miuix.ui)
+    implementation(libs.miuix.icons)
+    implementation(libs.miuix.preference)
+
     compileOnly(libs.cxx)
 }

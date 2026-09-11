@@ -242,4 +242,9 @@
     <string name="kpm_embedded">已嵌入</string>
     <string name="kpm_embedded_unload_invalid">嵌入的 KPM 無法卸載；重新啟動後仍會保持啟用。</string>
     <string name="kpm_install_toast_succ">安裝成功，重新啟動後生效</string>
+    <string name="navigation_expand">展開導覽</string>
+    <string name="navigation_collapse">收合導覽</string>
+    <string name="navigation_checking_root">正在檢查 Root 能力</string>
+    <string name="navigation_kernel_patch_required">KernelPatch 尚未就緒</string>
+    <string name="navigation_android_patch_required">APatch 尚未安裝</string>
 </resources>
