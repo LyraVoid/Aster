@@ -245,6 +245,8 @@
     <string name="home_appearance">首页外观</string>
     <string name="home_panorama_switch">全景模式</string>
     <string name="home_panorama_switch_summary">首页变成壁纸场景，其他页面使用悬浮导航。</string>
+    <string name="home_scene_labels_switch">侧栏文字标签</string>
+    <string name="home_scene_labels_switch_summary">在每个侧栏图标下显示文字。</string>
     <string name="home_scene_clock_switch">显示时钟与电量</string>
     <string name="home_scene_clock_switch_summary">在侧栏顶部显示场景时钟和电量。</string>
     <string name="home_wallpaper_choose">选择图片</string>

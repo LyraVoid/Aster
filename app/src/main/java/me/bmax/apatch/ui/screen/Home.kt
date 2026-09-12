@@ -1181,6 +1181,31 @@ private fun HomeWallpaperEnvironment(
 }
 
 @Composable
+private fun SceneSwitchRow(
+    title: String,
+    summary: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(text = title, style = MiuixTheme.textStyles.body1)
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = summary,
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            )
+        }
+        Spacer(Modifier.width(16.dp))
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+@Composable
 private fun HomeWallpaperSheet(
     show: Boolean,
     state: HomeWallpaperState,
@@ -1220,63 +1245,46 @@ private fun HomeWallpaperSheet(
                 .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.home_panorama_switch),
-                        style = MiuixTheme.textStyles.body1,
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = stringResource(R.string.home_panorama_switch_summary),
-                        style = MiuixTheme.textStyles.footnote1,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                    )
-                }
-                Spacer(Modifier.width(16.dp))
-                Switch(
-                    checked = panoramaMode,
-                    onCheckedChange = onPanoramaChange,
-                )
-            }
+            SceneSwitchRow(
+                title = stringResource(R.string.home_panorama_switch),
+                summary = stringResource(R.string.home_panorama_switch_summary),
+                checked = panoramaMode,
+                onCheckedChange = onPanoramaChange,
+            )
 
-            // The scene clock and battery only exist in panorama mode, and they repeat the status
-            // bar, so the switch travels with the mode it belongs to.
+            // The rail extras only exist in panorama mode, so their switches travel with the mode
+            // they belong to.
             if (panoramaMode) {
                 val showSceneClock by me.bmax.apatch.ui.shell.rememberVisualFlag(
                     me.bmax.apatch.ui.shell.SceneRailClockFlag,
                     true,
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.home_scene_clock_switch),
-                            style = MiuixTheme.textStyles.body1,
+                val showSceneLabels by me.bmax.apatch.ui.shell.rememberVisualFlag(
+                    me.bmax.apatch.ui.shell.SceneRailLabelsFlag,
+                    true,
+                )
+                SceneSwitchRow(
+                    title = stringResource(R.string.home_scene_clock_switch),
+                    summary = stringResource(R.string.home_scene_clock_switch_summary),
+                    checked = showSceneClock,
+                    onCheckedChange = {
+                        me.bmax.apatch.ui.shell.setVisualFlag(
+                            me.bmax.apatch.ui.shell.SceneRailClockFlag,
+                            it,
                         )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = stringResource(R.string.home_scene_clock_switch_summary),
-                            style = MiuixTheme.textStyles.footnote1,
-                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    },
+                )
+                SceneSwitchRow(
+                    title = stringResource(R.string.home_scene_labels_switch),
+                    summary = stringResource(R.string.home_scene_labels_switch_summary),
+                    checked = showSceneLabels,
+                    onCheckedChange = {
+                        me.bmax.apatch.ui.shell.setVisualFlag(
+                            me.bmax.apatch.ui.shell.SceneRailLabelsFlag,
+                            it,
                         )
-                    }
-                    Spacer(Modifier.width(16.dp))
-                    Switch(
-                        checked = showSceneClock,
-                        onCheckedChange = {
-                            me.bmax.apatch.ui.shell.setVisualFlag(
-                                me.bmax.apatch.ui.shell.SceneRailClockFlag,
-                                it,
-                            )
-                        },
-                    )
-                }
+                    },
+                )
             }
 
             when {

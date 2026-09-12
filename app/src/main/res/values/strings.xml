@@ -311,6 +311,8 @@
     <string name="home_appearance">Home appearance</string>
     <string name="home_panorama_switch">Panorama mode</string>
     <string name="home_panorama_switch_summary">Home becomes a wallpaper scene; other pages use floating navigation.</string>
+    <string name="home_scene_labels_switch">Rail labels</string>
+    <string name="home_scene_labels_switch_summary">Show a label under each rail icon.</string>
     <string name="home_scene_clock_switch">Scene clock and battery</string>
     <string name="home_scene_clock_switch_summary">Show the scene clock and battery at the top of the rail.</string>
     <string name="home_wallpaper_choose">Choose image</string>

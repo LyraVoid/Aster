@@ -85,6 +85,9 @@ internal val LocalHomeSceneHostState = staticCompositionLocalOf<HomeSceneHostSta
 /** The rail clock and battery repeat the status bar, so the appearance sheet can drop them. */
 internal const val SceneRailClockFlag = "scene_rail_clock"
 
+/** Labels help on a photo, but they also crowd it; the appearance sheet can drop them. */
+internal const val SceneRailLabelsFlag = "scene_rail_labels"
+
 private val ClockFormatterHour = DateTimeFormatter.ofPattern("HH")
 private val ClockFormatterMinute = DateTimeFormatter.ofPattern("mm")
 
@@ -161,6 +164,7 @@ internal fun HomeSceneRail(
             SceneBattery()
         }
         Spacer(Modifier.weight(1f))
+        val showLabels by rememberVisualFlag(SceneRailLabelsFlag, true)
         visiblePrimaryDestinations(capabilities)
             .filter { it != PrimaryDestination.Home }
             .forEach { destination ->
@@ -169,6 +173,7 @@ internal fun HomeSceneRail(
                     selected = selected,
                     icon = destination.icon,
                     label = stringResource(destination.label),
+                    showLabel = showLabels,
                     onClick = {
                         navigatePrimary(
                             navigator = navigator,
@@ -183,6 +188,7 @@ internal fun HomeSceneRail(
             selected = false,
             icon = MiuixIcons.Photos,
             label = stringResource(me.bmax.apatch.R.string.home_appearance),
+            showLabel = showLabels,
             onClick = onAppearance,
         )
         Spacer(
@@ -198,6 +204,7 @@ private fun SceneRailItem(
     selected: Boolean,
     icon: ImageVector,
     label: String,
+    showLabel: Boolean,
     onClick: () -> Unit,
 ) {
     val alpha = if (selected) 1f else 0.74f
@@ -222,26 +229,29 @@ private fun SceneRailItem(
         ) {
             Icon(
                 imageVector = icon,
-                contentDescription = null,
+                contentDescription = if (showLabel) null else label,
                 modifier = Modifier.size(23.dp),
                 tint = SceneOnWallpaper.copy(alpha = alpha),
             )
         }
         // Labels matter more here than in a themed bar: the icons sit on a photo, and
-        // "kernel patch" and "system patch" are not self-explaining shapes.
-        Text(
-            text = label,
-            style = TextStyle(
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Medium,
-                color = SceneOnWallpaper.copy(alpha = alpha * 0.88f),
-                shadow = SceneTextShadow,
-                textAlign = TextAlign.Center,
-            ),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        // "kernel patch" and "system patch" are not self-explaining shapes. They stay optional
+        // because a photo someone likes is worth leaving alone.
+        if (showLabel) {
+            Text(
+                text = label,
+                style = TextStyle(
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = SceneOnWallpaper.copy(alpha = alpha * 0.88f),
+                    shadow = SceneTextShadow,
+                    textAlign = TextAlign.Center,
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }
 
