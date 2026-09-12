@@ -613,15 +613,6 @@ private fun HomeScenePanel(
                         style = MiuixTheme.textStyles.title3,
                     )
                     Spacer(Modifier.height(18.dp))
-                    if (state.primaryAction != HomePrimaryAction.NONE) {
-                        Button(
-                            onClick = primaryAction,
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColorsPrimary(),
-                        ) {
-                            Text(stringResource(state.primaryAction.labelRes()))
-                        }
-                    }
                 }
 
                 Column(
@@ -635,15 +626,14 @@ private fun HomeScenePanel(
                         BackupWarningCard(onDismiss = onDismissBackupWarning)
                     }
 
-                    if (state.conclusion != HomeConclusion.NOT_INSTALLED &&
-                        state.conclusion != HomeConclusion.CHECKING &&
-                        state.capability.androidPatch != RootLayerState.AVAILABLE
-                    ) {
-                        AStatusCard(
-                            state = state,
-                            onInstall = onInstallApatch,
-                            onUninstall = onUninstallApatch,
-                        )
+                    if (state.primaryAction != HomePrimaryAction.NONE) {
+                        Button(
+                            onClick = primaryAction,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColorsPrimary(),
+                        ) {
+                            Text(stringResource(state.primaryAction.labelRes()))
+                        }
                     }
 
                     val availableUpdate = state.update as? HomeUpdateState.Available
@@ -2369,10 +2359,10 @@ private fun HomeConclusion.summaryRes(): Int = when (this) {
 private fun HomePrimaryAction.labelRes(): Int = when (this) {
     HomePrimaryAction.NONE -> R.string.home_advanced_details
     HomePrimaryAction.RETRY_CHECK -> R.string.home_action_retry
-    HomePrimaryAction.INSTALL_KERNEL_PATCH -> R.string.home_ap_cando_install
-    HomePrimaryAction.UPDATE_KERNEL_PATCH -> R.string.home_ap_cando_update
-    HomePrimaryAction.INSTALL_APATCH -> R.string.home_ap_cando_install
-    HomePrimaryAction.UPDATE_APATCH -> R.string.home_ap_cando_update
+                    HomePrimaryAction.INSTALL_KERNEL_PATCH -> R.string.home_install_kernel_patch
+    HomePrimaryAction.UPDATE_KERNEL_PATCH -> R.string.home_update_kernel_patch
+    HomePrimaryAction.INSTALL_APATCH -> R.string.home_install_android_patch
+    HomePrimaryAction.UPDATE_APATCH -> R.string.home_update_android_patch
     HomePrimaryAction.REBOOT -> R.string.home_ap_cando_reboot
     HomePrimaryAction.SOFT_REBOOT -> R.string.reboot_soft
 }
