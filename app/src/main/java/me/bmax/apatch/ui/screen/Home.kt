@@ -1226,6 +1226,42 @@ private fun HomeWallpaperSheet(
                 )
             }
 
+            // The scene clock and battery only exist in panorama mode, and they repeat the status
+            // bar, so the switch travels with the mode it belongs to.
+            if (panoramaMode) {
+                val showSceneClock by me.bmax.apatch.ui.shell.rememberVisualFlag(
+                    me.bmax.apatch.ui.shell.SceneRailClockFlag,
+                    true,
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.home_scene_clock_switch),
+                            style = MiuixTheme.textStyles.body1,
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(R.string.home_scene_clock_switch_summary),
+                            style = MiuixTheme.textStyles.footnote1,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        )
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    Switch(
+                        checked = showSceneClock,
+                        onCheckedChange = {
+                            me.bmax.apatch.ui.shell.setVisualFlag(
+                                me.bmax.apatch.ui.shell.SceneRailClockFlag,
+                                it,
+                            )
+                        },
+                    )
+                }
+            }
+
             when {
                 busy -> {
                     Text(

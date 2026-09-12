@@ -82,6 +82,9 @@ internal class HomeSceneHostState {
 
 internal val LocalHomeSceneHostState = staticCompositionLocalOf<HomeSceneHostState?> { null }
 
+/** The rail clock and battery repeat the status bar, so the appearance sheet can drop them. */
+internal const val SceneRailClockFlag = "scene_rail_clock"
+
 private val ClockFormatterHour = DateTimeFormatter.ofPattern("HH")
 private val ClockFormatterMinute = DateTimeFormatter.ofPattern("mm")
 
@@ -150,10 +153,13 @@ internal fun HomeSceneRail(
         modifier = modifier.windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top)).verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        val showSceneClock by rememberVisualFlag(SceneRailClockFlag, true)
         Spacer(Modifier.height(28.dp))
-        SceneClock()
-        Spacer(Modifier.height(24.dp))
-        SceneBattery()
+        if (showSceneClock) {
+            SceneClock()
+            Spacer(Modifier.height(24.dp))
+            SceneBattery()
+        }
         Spacer(Modifier.weight(1f))
         visiblePrimaryDestinations(capabilities)
             .filter { it != PrimaryDestination.Home }

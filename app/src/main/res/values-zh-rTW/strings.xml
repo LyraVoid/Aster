@@ -203,6 +203,8 @@
     <string name="home_appearance">首頁外觀</string>
     <string name="home_panorama_switch">全景模式</string>
     <string name="home_panorama_switch_summary">首頁變成壁紙場景，其他頁面使用懸浮導覽。</string>
+    <string name="home_scene_clock_switch">顯示時鐘與電量</string>
+    <string name="home_scene_clock_switch_summary">在側欄頂部顯示場景時鐘和電量。</string>
     <string name="home_wallpaper_choose">選擇圖片</string>
     <string name="home_wallpaper_change">更換圖片</string>
     <string name="home_wallpaper_remove">移除圖片</string>
