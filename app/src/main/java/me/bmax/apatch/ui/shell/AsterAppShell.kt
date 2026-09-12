@@ -79,6 +79,7 @@ import top.yukonga.miuix.kmp.basic.NavigationRail
 import top.yukonga.miuix.kmp.basic.NavigationRailDefaults
 import top.yukonga.miuix.kmp.basic.NavigationRailItem
 import top.yukonga.miuix.kmp.basic.NavigationRailState
+import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.rememberNavigationRailState
@@ -158,120 +159,129 @@ fun AsterAppShell(
     }
     val backdrop = rememberLayerBackdrop()
 
-    // Page fades expose the shell; keep its background opaque and in sync with the app theme.
-    BoxWithConstraints(
-        modifier = modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface),
+    // Miuix renders overlays in the nearest Scaffold. Every page brings its own Scaffold, but those
+    // sit below the floating navigation in this shell's draw order, so a dialog opened on a page was
+    // drawn under the bar (and its scrim left the bar undimmed). A Scaffold at the shell root gives
+    // overlays a host that is drawn above the navigation.
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) {
-        val useBottomNavigation = navigationMode.usesBottomNavigation(maxWidth.value)
-        val useCompactShell = maxWidth < CompactNavigationBreakpoint
-        val railState = rememberNavigationRailState()
-        val sceneRailWidth = (maxWidth * 0.25f - 28.dp).coerceIn(56.dp, 80.dp)
-        val sceneProgress by animateFloatAsState(
-            if (sceneActive && sceneExpanded) 1f else 0f,
-            tween(360, easing = FastOutSlowInEasing), label = "scene_sidebar",
-        )
-        val homeSceneHost = remember { HomeSceneHostState() }
-        // The capsule is 64dp tall with a 12dp gap; screens already reserve system insets.
-        val floatingNavigationHeight = 76.dp
-        // YumeBox animates the space it reserves for its floating bar; snapping it would shove the
-        // page up the instant we leave the home scene.
-        val reservedContentBottom by animateDpAsState(
-            targetValue = if (floatingNavigation) floatingNavigationHeight else 0.dp,
-            animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing),
-            label = "floating_navigation_reserved_height",
-        )
-
-        LaunchedEffect(useBottomNavigation, useCompactShell, panorama) {
-            if (panorama) return@LaunchedEffect
-            if (useBottomNavigation || useCompactShell) railState.collapse() else railState.expand()
-        }
-        BackHandler(enabled = !floatingShell && !useBottomNavigation && useCompactShell && railState.isExpanded) {
-            railState.collapse()
-        }
-
-        if (sceneActive) {
-            HomeSceneBackdrop(
-                state = wallpaperState,
-                railWidth = sceneRailWidth,
-                windowWidth = maxWidth,
+        // Page fades expose the shell; keep its background opaque and in sync with the app theme.
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface),
+        ) {
+            val useBottomNavigation = navigationMode.usesBottomNavigation(maxWidth.value)
+            val useCompactShell = maxWidth < CompactNavigationBreakpoint
+            val railState = rememberNavigationRailState()
+            val sceneRailWidth = (maxWidth * 0.25f - 28.dp).coerceIn(56.dp, 80.dp)
+            val sceneProgress by animateFloatAsState(
+                if (sceneActive && sceneExpanded) 1f else 0f,
+                tween(360, easing = FastOutSlowInEasing), label = "scene_sidebar",
             )
-        }
+            val homeSceneHost = remember { HomeSceneHostState() }
+            // The capsule is 64dp tall with a 12dp gap; screens already reserve system insets.
+            val floatingNavigationHeight = 76.dp
+            // YumeBox animates the space it reserves for its floating bar; snapping it would shove the
+            // page up the instant we leave the home scene.
+            val reservedContentBottom by animateDpAsState(
+                targetValue = if (floatingNavigation) floatingNavigationHeight else 0.dp,
+                animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing),
+                label = "floating_navigation_reserved_height",
+            )
 
-        if (sceneActive && sceneProgress > 0.01f) {
-            HomeSceneRail(navController, capabilities,
-                onAppearance = { homeSceneHost.openAppearance?.invoke() },
-                modifier = Modifier.width(sceneRailWidth).fillMaxHeight().zIndex(1f).graphicsLayer {
-                    alpha = sceneProgress
-                    translationX = -size.width * (1f - sceneProgress)
-                })
-        }
-        // Keep the host in a stable slot; the scene decor sits behind the page.
-        Column(Modifier.fillMaxSize().layerBackdrop(backdrop)
-            .then(if (floatingNavigation) Modifier.nestedScroll(scrollConnection)
-                .pointerInput(Unit) {
-                    awaitEachGesture {
-                        awaitFirstDown(false, PointerEventPass.Initial)
-                        interaction++
+            LaunchedEffect(useBottomNavigation, useCompactShell, panorama) {
+                if (panorama) return@LaunchedEffect
+                if (useBottomNavigation || useCompactShell) railState.collapse() else railState.expand()
+            }
+            BackHandler(enabled = !floatingShell && !useBottomNavigation && useCompactShell && railState.isExpanded) {
+                railState.collapse()
+            }
+
+            if (sceneActive) {
+                HomeSceneBackdrop(
+                    state = wallpaperState,
+                    railWidth = sceneRailWidth,
+                    windowWidth = maxWidth,
+                )
+            }
+
+            if (sceneActive && sceneProgress > 0.01f) {
+                HomeSceneRail(navController, capabilities,
+                    onAppearance = { homeSceneHost.openAppearance?.invoke() },
+                    modifier = Modifier.width(sceneRailWidth).fillMaxHeight().zIndex(1f).graphicsLayer {
+                        alpha = sceneProgress
+                        translationX = -size.width * (1f - sceneProgress)
+                    })
+            }
+            // Keep the host in a stable slot; the scene decor sits behind the page.
+            Column(Modifier.fillMaxSize().layerBackdrop(backdrop)
+                .then(if (floatingNavigation) Modifier.nestedScroll(scrollConnection)
+                    .pointerInput(Unit) {
+                        awaitEachGesture {
+                            awaitFirstDown(false, PointerEventPass.Initial)
+                            interaction++
+                        }
+                    } else Modifier)) {
+                Row(Modifier.weight(1f).fillMaxWidth()) {
+                    if (!floatingShell && !useBottomNavigation && !useCompactShell) {
+                        AsterNavigationRail(navController, capabilities, railState, collapseAfterNavigation = false)
                     }
-                } else Modifier)) {
-            Row(Modifier.weight(1f).fillMaxWidth()) {
-                if (!floatingShell && !useBottomNavigation && !useCompactShell) {
-                    AsterNavigationRail(navController, capabilities, railState, collapseAfterNavigation = false)
+                    Box(Modifier.weight(1f).fillMaxHeight()) {
+                        CompositionLocalProvider(
+                            LocalSnackbarHost provides snackbarHostState,
+                            LocalFloatingNavigationInset provides reservedContentBottom,
+                            LocalSceneProgress provides sceneProgress,
+                            LocalHomeSceneHostState provides homeSceneHost,
+                        ) {
+                            content(
+                                Modifier.fillMaxSize()
+                                    .padding(
+                                        start = if (sceneActive) sceneRailWidth * sceneProgress else if (!floatingShell && !useBottomNavigation && useCompactShell) {
+                                            NavigationRailDefaults.MinWidth
+                                        } else {
+                                            0.dp
+                                        }
+                                    )
+                                    .then(
+                                        if (!floatingShell && useBottomNavigation) Modifier.consumeWindowInsets(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
+                                        else Modifier
+                                    )
+                            )
+                        }
+                        NavigationScrim(
+                            visible = !floatingShell && !useBottomNavigation && useCompactShell && railState.isExpanded,
+                            onDismiss = { railState.collapse() },
+                        )
+                        if (!floatingShell && !useBottomNavigation && useCompactShell) {
+                            AsterNavigationRail(
+                                navController, capabilities, railState,
+                                modifier = Modifier.align(Alignment.CenterStart),
+                                collapseAfterNavigation = true,
+                            )
+                        }
+                    }
                 }
-                Box(Modifier.weight(1f).fillMaxHeight()) {
-                    CompositionLocalProvider(
-                        LocalSnackbarHost provides snackbarHostState,
-                        LocalFloatingNavigationInset provides reservedContentBottom,
-                        LocalSceneProgress provides sceneProgress,
-                        LocalHomeSceneHostState provides homeSceneHost,
-                    ) {
-                        content(
-                            Modifier.fillMaxSize()
-                                .padding(
-                                    start = if (sceneActive) sceneRailWidth * sceneProgress else if (!floatingShell && !useBottomNavigation && useCompactShell) {
-                                        NavigationRailDefaults.MinWidth
-                                    } else {
-                                        0.dp
-                                    }
-                                )
-                                .then(
-                                    if (!floatingShell && useBottomNavigation) Modifier.consumeWindowInsets(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
-                                    else Modifier
-                                )
-                        )
-                    }
-                    NavigationScrim(
-                        visible = !floatingShell && !useBottomNavigation && useCompactShell && railState.isExpanded,
-                        onDismiss = { railState.collapse() },
-                    )
-                    if (!floatingShell && !useBottomNavigation && useCompactShell) {
-                        AsterNavigationRail(
-                            navController, capabilities, railState,
-                            modifier = Modifier.align(Alignment.CenterStart),
-                            collapseAfterNavigation = true,
-                        )
-                    }
+                AnimatedVisibility(
+                    visible = !floatingShell && useBottomNavigation,
+                    enter = fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
+                    exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom),
+                ) {
+                    AsterBottomNavigation(navController, visibleDestinations)
                 }
             }
-            AnimatedVisibility(
-                visible = !floatingShell && useBottomNavigation,
-                enter = fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
-                exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom),
-            ) {
-                AsterBottomNavigation(navController, visibleDestinations)
-            }
-        }
 
-        AnimatedVisibility(visible = floatingNavigation && !hidden,
-            modifier = Modifier.align(Alignment.BottomCenter), enter = fadeIn(), exit = fadeOut()) {
-            AsterFloatingNavigation(
-                navController = navController,
-                destinations = visibleDestinations,
-                backdrop = backdrop,
-                blurEnabled = blurEnabled && Build.VERSION.SDK_INT >= 31,
-                glassEnabled = blurEnabled && glassEnabled && Build.VERSION.SDK_INT >= 33,
-                modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)).padding(horizontal = 12.dp, vertical = 12.dp),
-            )
+            AnimatedVisibility(visible = floatingNavigation && !hidden,
+                modifier = Modifier.align(Alignment.BottomCenter), enter = fadeIn(), exit = fadeOut()) {
+                AsterFloatingNavigation(
+                    navController = navController,
+                    destinations = visibleDestinations,
+                    backdrop = backdrop,
+                    blurEnabled = blurEnabled && Build.VERSION.SDK_INT >= 31,
+                    glassEnabled = blurEnabled && glassEnabled && Build.VERSION.SDK_INT >= 33,
+                    modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)).padding(horizontal = 12.dp, vertical = 12.dp),
+                )
+            }
         }
     }
 }
