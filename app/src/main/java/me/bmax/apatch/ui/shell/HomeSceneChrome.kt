@@ -58,7 +58,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.ramcosta.composedestinations.utils.isRouteOnBackStackAsState
 import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -139,7 +138,7 @@ internal fun HomeSceneRail(
         visiblePrimaryDestinations(capabilities)
             .filter { it != PrimaryDestination.Home }
             .forEach { destination ->
-                val selected by navController.isRouteOnBackStackAsState(destination.direction)
+                val selected = navController.isCurrentPrimaryDestination(destination)
                 SceneRailItem(
                     selected = selected,
                     icon = destination.icon,

@@ -71,7 +71,6 @@ import androidx.navigation.NavHostController
 import com.ramcosta.composedestinations.generated.NavGraphs
 import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.ramcosta.composedestinations.utils.isRouteOnBackStackAsState
 import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
@@ -340,7 +339,7 @@ private fun AsterBottomNavigation(
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
     ) {
         destinations.forEach { destination ->
-            val selected by navController.isRouteOnBackStackAsState(destination.direction)
+            val selected = navController.isCurrentPrimaryDestination(destination)
             NavigationBarItem(
                 selected = selected,
                 onClick = { navigatePrimary(navigator, destination, selected) },
@@ -401,7 +400,7 @@ private fun AsterNavigationRail(
         collapseContentDescription = stringResource(R.string.navigation_collapse),
     ) {
         visiblePrimaryDestinations(capabilities).forEach { destination ->
-            val isCurrentDestination by navController.isRouteOnBackStackAsState(destination.direction)
+            val isCurrentDestination = navController.isCurrentPrimaryDestination(destination)
 
             NavigationRailItem(
                 selected = isCurrentDestination,
@@ -420,6 +419,20 @@ private fun AsterNavigationRail(
             )
         }
     }
+}
+
+/**
+ * Whether [destination] is the page the user is looking at right now.
+ *
+ * Primary pages are kept on the back stack so their state can be restored, and Home is the anchor
+ * that is never popped. "Is this route on the back stack" therefore reports Home as selected on
+ * every page - and a selected navigation item swallows taps, which left Home highlighted and
+ * unresponsive at the same time.
+ */
+@Composable
+internal fun NavHostController.isCurrentPrimaryDestination(destination: PrimaryDestination): Boolean {
+    val entry by currentBackStackEntryAsState()
+    return entry?.destination?.route == destination.direction.route
 }
 
 internal fun navigatePrimary(
