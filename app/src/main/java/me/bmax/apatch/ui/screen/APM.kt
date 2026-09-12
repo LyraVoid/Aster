@@ -80,7 +80,6 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.SearchBar
 import top.yukonga.miuix.kmp.basic.SnackbarDuration
-import top.yukonga.miuix.kmp.basic.SnackbarHost
 import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import top.yukonga.miuix.kmp.basic.SnackbarResult
 import top.yukonga.miuix.kmp.basic.Text
@@ -193,7 +192,6 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
                 }
             }
         },
-        snackbarHost = { SnackbarHost(snackBarHost) },
     ) { innerPadding ->
         if (viewModel.isMagiskPresent) {
             Box(

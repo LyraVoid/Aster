@@ -15,6 +15,8 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -56,6 +58,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -80,6 +83,7 @@ import top.yukonga.miuix.kmp.basic.NavigationRailDefaults
 import top.yukonga.miuix.kmp.basic.NavigationRailItem
 import top.yukonga.miuix.kmp.basic.NavigationRailState
 import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.SnackbarHost
 import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.rememberNavigationRailState
@@ -158,20 +162,49 @@ fun AsterAppShell(
         }
     }
     val backdrop = rememberLayerBackdrop()
-
+    // The capsule is 64dp tall with a 12dp gap; screens already reserve system insets.
+    val floatingNavigationHeight = 76.dp
+    // YumeBox animates the space it reserves for its floating bar; snapping it would shove the page
+    // up the instant we leave the home scene.
+    val reservedContentBottom by animateDpAsState(
+        targetValue = if (floatingNavigation) floatingNavigationHeight else 0.dp,
+        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing),
+        label = "floating_navigation_reserved_height",
+    )
+    // The shell hosts the snackbar, so it has to stay clear of whatever chrome sits at the bottom:
+    // the floating capsule, or the standard navigation bar. The scaffold below already adds the
+    // system inset, so the standard bar only contributes the height it uses above that inset.
+    var bottomBarHeight by remember { mutableStateOf(0.dp) }
+    var snackbarBottomPadding by remember { mutableStateOf(0.dp) }
+    val safeDrawingBottom = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding()
     // Miuix renders overlays in the nearest Scaffold. Every page brings its own Scaffold, but those
     // sit below the floating navigation in this shell's draw order, so a dialog opened on a page was
     // drawn under the bar (and its scrim left the bar undimmed). A Scaffold at the shell root gives
     // overlays a host that is drawn above the navigation.
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom),
+        snackbarHost = {
+            SnackbarHost(
+                state = snackbarHostState,
+                modifier = Modifier.padding(bottom = snackbarBottomPadding),
+            )
+        },
     ) {
         // Page fades expose the shell; keep its background opaque and in sync with the app theme.
         BoxWithConstraints(
             modifier = Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface),
         ) {
+            val density = LocalDensity.current
             val useBottomNavigation = navigationMode.usesBottomNavigation(maxWidth.value)
+            val bottomBarVisible = !floatingShell && useBottomNavigation
+            SideEffect {
+                snackbarBottomPadding = when {
+                    floatingNavigation -> reservedContentBottom
+                    bottomBarVisible -> (bottomBarHeight - safeDrawingBottom).coerceAtLeast(0.dp)
+                    else -> 0.dp
+                }
+            }
             val useCompactShell = maxWidth < CompactNavigationBreakpoint
             val railState = rememberNavigationRailState()
             val sceneRailWidth = (maxWidth * 0.25f - 28.dp).coerceIn(56.dp, 80.dp)
@@ -180,15 +213,6 @@ fun AsterAppShell(
                 tween(360, easing = FastOutSlowInEasing), label = "scene_sidebar",
             )
             val homeSceneHost = remember { HomeSceneHostState() }
-            // The capsule is 64dp tall with a 12dp gap; screens already reserve system insets.
-            val floatingNavigationHeight = 76.dp
-            // YumeBox animates the space it reserves for its floating bar; snapping it would shove the
-            // page up the instant we leave the home scene.
-            val reservedContentBottom by animateDpAsState(
-                targetValue = if (floatingNavigation) floatingNavigationHeight else 0.dp,
-                animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing),
-                label = "floating_navigation_reserved_height",
-            )
 
             LaunchedEffect(useBottomNavigation, useCompactShell, panorama) {
                 if (panorama) return@LaunchedEffect
@@ -263,7 +287,10 @@ fun AsterAppShell(
                     }
                 }
                 AnimatedVisibility(
-                    visible = !floatingShell && useBottomNavigation,
+                    visible = bottomBarVisible,
+                    modifier = Modifier.onSizeChanged {
+                        bottomBarHeight = with(density) { it.height.toDp() }
+                    },
                     enter = fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
                     exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom),
                 ) {

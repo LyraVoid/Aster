@@ -77,7 +77,6 @@ import me.bmax.apatch.util.rootShellForResult
 import me.bmax.apatch.util.setGlobalNamespaceEnabled
 import me.bmax.apatch.util.ui.LocalSnackbarHost
 import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.SnackbarHost
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Edit
@@ -296,7 +295,6 @@ fun SettingScreen() {
         topBar = {
             TopAppBar(title = stringResource(R.string.settings))
         },
-        snackbarHost = { SnackbarHost(snackBarHost) },
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
