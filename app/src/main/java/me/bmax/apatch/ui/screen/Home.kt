@@ -71,6 +71,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -311,6 +312,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 onDismissBackupWarning = viewModel::dismissBackupWarning,
                 onUpdateClick = { showUpdateDialog = true },
                 onLearnMore = { uriHandler.openUri("https://apatch.dev") },
+                onAppearance = { showWallpaperSheet = true },
             )
         } else {
             Scaffold(
@@ -477,6 +479,7 @@ private fun HomeScenePanel(
     onDismissBackupWarning: () -> Unit,
     onUpdateClick: () -> Unit,
     onLearnMore: () -> Unit,
+    onAppearance: () -> Unit,
 ) {
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -545,14 +548,37 @@ private fun HomeScenePanel(
                                     )
                                 )
                         )
-                        Text(
-                            text = stringResource(R.string.home_wallpaper_empty),
-                            style = MiuixTheme.textStyles.body2,
-                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        Column(
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .padding(horizontal = 28.dp),
-                        )
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(14.dp),
+                        ) {
+                            Text(
+                                text = stringResource(
+                                    if (wallpaperState.phase == HomeWallpaperPhase.LOADING) {
+                                        R.string.home_wallpaper_loading
+                                    } else {
+                                        R.string.home_wallpaper_empty
+                                    }
+                                ),
+                                style = MiuixTheme.textStyles.body2,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                textAlign = TextAlign.Center,
+                            )
+                            // Without this the only way into the wallpaper sheet is the rail icon
+                            // at the very bottom of the scene, which is easy to miss while the
+                            // hero is still an empty placeholder.
+                            if (wallpaperState.phase != HomeWallpaperPhase.LOADING) {
+                                Button(
+                                    onClick = onAppearance,
+                                    colors = ButtonDefaults.buttonColorsPrimary(),
+                                ) {
+                                    Text(stringResource(R.string.home_wallpaper_choose))
+                                }
+                            }
+                        }
                     }
                     HomeWallpaperImage(
                         state = wallpaperState,
