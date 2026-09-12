@@ -54,6 +54,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -189,7 +191,7 @@ internal fun HomeSceneRail(
 private fun SceneRailItem(
     selected: Boolean,
     icon: ImageVector,
-    label: String?,
+    label: String,
     onClick: () -> Unit,
 ) {
     val alpha = if (selected) 1f else 0.74f
@@ -214,12 +216,26 @@ private fun SceneRailItem(
         ) {
             Icon(
                 imageVector = icon,
-                contentDescription = label,
+                contentDescription = null,
                 modifier = Modifier.size(23.dp),
                 tint = SceneOnWallpaper.copy(alpha = alpha),
             )
         }
-
+        // Labels matter more here than in a themed bar: the icons sit on a photo, and
+        // "kernel patch" and "system patch" are not self-explaining shapes.
+        Text(
+            text = label,
+            style = TextStyle(
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Medium,
+                color = SceneOnWallpaper.copy(alpha = alpha * 0.88f),
+                shadow = SceneTextShadow,
+                textAlign = TextAlign.Center,
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
