@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.bmax.apatch.ui.theme.WallpaperColorTheme
 
 class HomeWallpaperViewModel(application: Application) : AndroidViewModel(application) {
     private val store = HomeWallpaperStore(application)
@@ -23,9 +24,23 @@ class HomeWallpaperViewModel(application: Application) : AndroidViewModel(applic
 
     init {
         viewModelScope.launch {
-            mutableUiState.value = withContext(Dispatchers.IO) {
+            val loaded = withContext(Dispatchers.IO) {
                 runCatching { store.load() }
                     .getOrElse { HomeWallpaperState(phase = HomeWallpaperPhase.ERROR) }
+            }
+            publish(loaded)
+        }
+    }
+
+    /**
+     * A new wallpaper means the app colours derived from it are stale, so every state change goes
+     * through here. Deriving is cheap and skips work unless the wallpaper revision moved.
+     */
+    private fun publish(state: HomeWallpaperState) {
+        mutableUiState.value = state
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                runCatching { WallpaperColorTheme.sync(getApplication(), state) }
             }
         }
     }
@@ -41,7 +56,7 @@ class HomeWallpaperViewModel(application: Application) : AndroidViewModel(applic
                 runCatching { store.setEnabled(enabled) }
             }
             result.fold(
-                onSuccess = { mutableUiState.value = it },
+                onSuccess = { publish(it) },
                 onFailure = {
                     mutableUiState.value = previous
                     mutableEvents.emit(HomeWallpaperEvent.ChangeFailed)
@@ -61,7 +76,7 @@ class HomeWallpaperViewModel(application: Application) : AndroidViewModel(applic
                 runCatching { store.importFrom(source) }
             }
             result.fold(
-                onSuccess = { mutableUiState.value = it },
+                onSuccess = { publish(it) },
                 onFailure = {
                     mutableUiState.value = previous
                     mutableEvents.emit(HomeWallpaperEvent.ImportFailed)
@@ -94,7 +109,7 @@ class HomeWallpaperViewModel(application: Application) : AndroidViewModel(applic
                 runCatching { store.remove() }
             }
             result.fold(
-                onSuccess = { mutableUiState.value = it },
+                onSuccess = { publish(it) },
                 onFailure = {
                     mutableUiState.value = previous
                     mutableEvents.emit(HomeWallpaperEvent.ChangeFailed)

@@ -89,8 +89,12 @@ import com.ramcosta.composedestinations.generated.destinations.PatchesDestinatio
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.Locale
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.theme.LocalThemeModeState
+import me.bmax.apatch.ui.theme.WallpaperColorTheme
+import me.bmax.apatch.ui.theme.rememberWallpaperColorEnabled
+import me.bmax.apatch.ui.theme.rememberWallpaperColorSeed
 import me.bmax.apatch.util.Version
 import me.bmax.apatch.root.RootAccessProbeState
 import me.bmax.apatch.root.RootDetailState
@@ -1186,6 +1190,7 @@ private fun SceneSwitchRow(
     summary: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
+    enabled: Boolean = true,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -1201,7 +1206,11 @@ private fun SceneSwitchRow(
             )
         }
         Spacer(Modifier.width(16.dp))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            enabled = enabled,
+        )
     }
 }
 
@@ -1217,6 +1226,8 @@ private fun HomeWallpaperSheet(
     onCropChange: (HomeWallpaperCrop) -> Unit,
 ) {
     val busy = state.phase == HomeWallpaperPhase.LOADING
+    val useWallpaperColor by rememberWallpaperColorEnabled()
+    val wallpaperColorSeed by rememberWallpaperColorSeed()
     var zoom by remember(show, state.imagePath, state.revision, state.crop) {
         mutableFloatStateOf(state.crop.zoom)
     }
@@ -1285,6 +1296,39 @@ private fun HomeWallpaperSheet(
                         )
                     },
                 )
+            }
+
+            // The same choice is also offered in Settings; both read the same stored preference,
+            // so whichever one is used first is reflected in the other straight away.
+            SceneSwitchRow(
+                title = stringResource(R.string.home_wallpaper_color_theme),
+                summary = stringResource(
+                    if (state.hasImage) {
+                        R.string.home_wallpaper_color_theme_summary
+                    } else {
+                        R.string.settings_wallpaper_color_theme_no_wallpaper
+                    }
+                ),
+                checked = useWallpaperColor,
+                onCheckedChange = { WallpaperColorTheme.setEnabled(it) },
+                enabled = state.hasImage,
+            )
+            if (wallpaperColorSeed != 0) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        Modifier
+                            .size(20.dp)
+                            .clip(CircleShape)
+                            .background(Color(wallpaperColorSeed))
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = stringResource(R.string.home_wallpaper_color_seed) + " · " +
+                            String.format(Locale.ROOT, "#%06X", wallpaperColorSeed and 0xFFFFFF),
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                }
             }
 
             when {

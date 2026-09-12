@@ -23,6 +23,7 @@ class SettingsAvailabilityTest {
                 dynamicColorSupported = true,
                 nightFollowSystem = true,
                 useSystemDynamicColor = true,
+            useWallpaperColor = false,
             ),
         )
     }
@@ -35,6 +36,7 @@ class SettingsAvailabilityTest {
             dynamicColorSupported = true,
             nightFollowSystem = true,
             useSystemDynamicColor = true,
+            useWallpaperColor = false,
         )
 
         assertEquals(false, result.globalNamespace)
@@ -52,6 +54,7 @@ class SettingsAvailabilityTest {
             dynamicColorSupported = true,
             nightFollowSystem = true,
             useSystemDynamicColor = true,
+            useWallpaperColor = false,
         )
 
         assertEquals(true, result.webViewDebugging)
@@ -66,6 +69,7 @@ class SettingsAvailabilityTest {
             dynamicColorSupported = true,
             nightFollowSystem = true,
             useSystemDynamicColor = true,
+            useWallpaperColor = false,
         )
 
         assertEquals(true, result.globalNamespace)
@@ -83,6 +87,7 @@ class SettingsAvailabilityTest {
             dynamicColorSupported = false,
             nightFollowSystem = false,
             useSystemDynamicColor = true,
+            useWallpaperColor = false,
         )
 
         assertEquals(true, result.nightTheme)
@@ -97,9 +102,38 @@ class SettingsAvailabilityTest {
             dynamicColorSupported = true,
             nightFollowSystem = true,
             useSystemDynamicColor = true,
+            useWallpaperColor = false,
         )
 
         assertEquals(false, result.nightTheme)
         assertEquals(false, result.customColor)
+    }
+
+    @Test
+    fun wallpaperColoursTakeThePresetListAway() {
+        val result = resolveSettingsFeatureAvailability(
+            kPatchReady = true,
+            aPatchReady = true,
+            dynamicColorSupported = false,
+            nightFollowSystem = true,
+            useSystemDynamicColor = false,
+            useWallpaperColor = true,
+        )
+
+        assertEquals(false, result.customColor)
+    }
+
+    @Test
+    fun switchingWallpaperColoursOffBringsThePresetListBack() {
+        val result = resolveSettingsFeatureAvailability(
+            kPatchReady = true,
+            aPatchReady = true,
+            dynamicColorSupported = true,
+            nightFollowSystem = true,
+            useSystemDynamicColor = false,
+            useWallpaperColor = false,
+        )
+
+        assertEquals(true, result.customColor)
     }
 }

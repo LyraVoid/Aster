@@ -19,6 +19,7 @@ fun resolveSettingsFeatureAvailability(
     dynamicColorSupported: Boolean,
     nightFollowSystem: Boolean,
     useSystemDynamicColor: Boolean,
+    useWallpaperColor: Boolean,
 ): SettingsFeatureAvailability {
     val fullRootRuntime = kPatchReady && aPatchReady
     return SettingsFeatureAvailability(
@@ -28,6 +29,9 @@ fun resolveSettingsFeatureAvailability(
         webViewDebugging = aPatchReady,
         resetSuPath = kPatchReady,
         nightTheme = !nightFollowSystem,
-        customColor = !dynamicColorSupported || !useSystemDynamicColor,
+        // Both the system colour and the preset list are overridden by the wallpaper colours, so
+        // they step aside while it is on, the same way the preset list already steps aside for the
+        // system colour.
+        customColor = (!dynamicColorSupported || !useSystemDynamicColor) && !useWallpaperColor,
     )
 }

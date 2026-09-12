@@ -102,6 +102,11 @@ fun APatchTheme(
         )
     }
     var customColorScheme by remember { mutableStateOf(prefs.getString("custom_color", "blue")) }
+    // Highest priority of the three: it is the most specific choice the user can make, and the
+    // system colour and the preset list below are left untouched so switching it off restores
+    // whatever they had.
+    var useWallpaperColor by remember { mutableStateOf(WallpaperColorTheme.isEnabled()) }
+    var wallpaperColorSeed by remember { mutableStateOf(WallpaperColorTheme.seed()) }
 
     val refreshThemeObserver by refreshTheme.observeAsState(false)
     if (refreshThemeObserver == true) {
@@ -112,6 +117,8 @@ fun APatchTheme(
             true
         ) else false
         customColorScheme = prefs.getString("custom_color", "blue")
+        useWallpaperColor = WallpaperColorTheme.isEnabled()
+        wallpaperColorSeed = WallpaperColorTheme.seed()
         refreshTheme.postValue(false)
     }
 
@@ -130,10 +137,10 @@ fun APatchTheme(
         darkTheme -> ColorSchemeMode.MonetDark
         else -> ColorSchemeMode.MonetLight
     }
-    val miuixKeyColor = if (dynamicColor) {
-        null
-    } else {
-        LegacyMiuixThemeSeeds[customColorScheme] ?: LegacyMiuixThemeSeeds.getValue("blue")
+    val miuixKeyColor = when {
+        useWallpaperColor && wallpaperColorSeed != 0 -> Color(wallpaperColorSeed)
+        dynamicColor -> null
+        else -> LegacyMiuixThemeSeeds[customColorScheme] ?: LegacyMiuixThemeSeeds.getValue("blue")
     }
     val miuixThemeController = remember(miuixColorSchemeMode, miuixKeyColor) {
         ThemeController(

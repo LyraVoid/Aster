@@ -37,6 +37,7 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import me.bmax.apatch.ui.home.HomeViewModel
+import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
 import me.bmax.apatch.ui.home.HomeUpdateState
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.Modifier
@@ -66,7 +67,9 @@ import me.bmax.apatch.ui.shell.rememberGlobalLayout
 import me.bmax.apatch.ui.shell.rememberNavigationMode
 import me.bmax.apatch.ui.shell.setGlobalLayout
 import me.bmax.apatch.ui.shell.setNavigationMode
+import me.bmax.apatch.ui.theme.WallpaperColorTheme
 import me.bmax.apatch.ui.theme.refreshTheme
+import me.bmax.apatch.ui.theme.rememberWallpaperColorEnabled
 import me.bmax.apatch.util.getBugreportFile
 import me.bmax.apatch.util.getKernelVersionCode
 import me.bmax.apatch.util.isGkiKernel
@@ -210,6 +213,16 @@ fun SettingScreen() {
     var customColor by rememberSaveable {
         mutableStateOf(prefs.getString("custom_color", "blue") ?: "blue")
     }
+    val useWallpaperColor by rememberWallpaperColorEnabled()
+    val wallpaperViewModel = LocalHomeWallpaperViewModel.current
+    val wallpaperState = if (wallpaperViewModel == null) {
+        null
+    } else {
+        wallpaperViewModel.uiState.collectAsStateWithLifecycle().value
+    }
+    // The colours are derived from the Home wallpaper, so the switch only makes sense once there
+    // is one to derive them from.
+    val hasWallpaper = wallpaperState?.hasImage == true
 
     val navigationMode by rememberNavigationMode()
     val globalLayout by rememberGlobalLayout()
@@ -251,6 +264,7 @@ fun SettingScreen() {
         dynamicColorSupported = dynamicColorSupported,
         nightFollowSystem = nightFollowSystem,
         useSystemDynamicColor = useSystemDynamicColor,
+        useWallpaperColor = useWallpaperColor,
     )
     val languageSummary = AppCompatDelegate.getApplicationLocales()[0]?.displayLanguage
         ?.replaceFirstChar {
@@ -530,7 +544,26 @@ fun SettingScreen() {
                         )
                     }
 
-                    if (dynamicColorSupported) {
+                    SwitchPreference(
+                        checked = useWallpaperColor,
+                        onCheckedChange = { WallpaperColorTheme.setEnabled(it) },
+                        title = stringResource(R.string.settings_wallpaper_color_theme),
+                        summary = stringResource(
+                            if (hasWallpaper) {
+                                R.string.settings_wallpaper_color_theme_summary
+                            } else {
+                                R.string.settings_wallpaper_color_theme_no_wallpaper
+                            }
+                        ),
+                        enabled = hasWallpaper,
+                        startAction = {
+                            SettingsIcon(MiuixIcons.Theme)
+                        },
+                    )
+
+                    // The wallpaper colours outrank the system colour, so the rows it overrides
+                    // step aside instead of claiming to be in charge.
+                    if (dynamicColorSupported && !useWallpaperColor) {
                         SwitchPreference(
                             checked = useSystemDynamicColor,
                             onCheckedChange = { enabled ->

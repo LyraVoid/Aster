@@ -313,6 +313,12 @@
     <string name="home_panorama_switch_summary">Home becomes a wallpaper scene; other pages use floating navigation.</string>
     <string name="home_scene_labels_switch">Rail labels</string>
     <string name="home_scene_labels_switch_summary">Show a label under each rail icon.</string>
+    <string name="settings_wallpaper_color_theme">Wallpaper colours</string>
+    <string name="settings_wallpaper_color_theme_summary">Build the app colours from your Home wallpaper. Outranks the system colour and the presets.</string>
+    <string name="settings_wallpaper_color_theme_no_wallpaper">Choose a Home wallpaper first.</string>
+    <string name="home_wallpaper_color_theme">Wallpaper colours</string>
+    <string name="home_wallpaper_color_theme_summary">Derive the app colours from this wallpaper.</string>
+    <string name="home_wallpaper_color_seed">Derived colour</string>
     <string name="home_scene_clock_switch">Scene clock and battery</string>
     <string name="home_scene_clock_switch_summary">Show the scene clock and battery at the top of the rail.</string>
     <string name="home_wallpaper_choose">Choose image</string>
