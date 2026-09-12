@@ -207,6 +207,12 @@ fun HomeScreen(navigator: DestinationsNavigator) {
         )
     }
 
+    // The module counts come from the patches that are running, so they move while the user is on
+    // another page. Home is recomposed on the way back, which is the moment to read them again.
+    LaunchedEffect(viewModel) {
+        viewModel.refreshCounts()
+    }
+
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
