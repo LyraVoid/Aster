@@ -1,5 +1,11 @@
 package me.bmax.apatch.ui.screen
 
+import androidx.compose.foundation.layout.widthIn
+
+import androidx.compose.foundation.gestures.detectTapGestures
+
+import androidx.compose.ui.input.pointer.pointerInput
+
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -10,23 +16,30 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -35,18 +48,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -54,9 +66,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.APModuleScreenDestination
@@ -65,6 +74,8 @@ import com.ramcosta.composedestinations.generated.destinations.InstallModeSelect
 import com.ramcosta.composedestinations.generated.destinations.KPModuleScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.PatchesDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import java.time.LocalDate
+import java.time.LocalTime
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.theme.LocalThemeModeState
 import me.bmax.apatch.util.Version
@@ -83,7 +94,8 @@ import me.bmax.apatch.ui.home.HomeUpdateState
 import me.bmax.apatch.ui.home.HomeViewModel
 import me.bmax.apatch.ui.home.HomeWallpaperCrop
 import me.bmax.apatch.ui.home.HomeWallpaperEvent
-import me.bmax.apatch.ui.home.HomeWallpaperFiles
+import me.bmax.apatch.ui.home.HomeWallpaperImage
+import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
 import me.bmax.apatch.ui.home.HomeWallpaperMaxZoom
 import me.bmax.apatch.ui.home.HomeWallpaperMinZoom
 import me.bmax.apatch.ui.home.HomeWallpaperPhase
@@ -91,6 +103,10 @@ import me.bmax.apatch.ui.home.HomeWallpaperState
 import me.bmax.apatch.ui.home.HomeWallpaperViewModel
 import me.bmax.apatch.ui.home.androidVersion
 import me.bmax.apatch.ui.home.displayName
+import me.bmax.apatch.ui.shell.LocalHomeSceneHostState
+import me.bmax.apatch.ui.shell.GlobalLayout
+import me.bmax.apatch.ui.shell.rememberGlobalLayout
+import me.bmax.apatch.ui.shell.setGlobalLayout
 import me.bmax.apatch.ui.viewmodel.PatchesViewModel
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -137,11 +153,17 @@ import top.yukonga.miuix.kmp.utils.PressFeedbackType
 @Composable
 fun HomeScreen(navigator: DestinationsNavigator) {
     val viewModel: HomeViewModel = viewModel()
-    val wallpaperViewModel: HomeWallpaperViewModel = viewModel()
+    // The shell paints the scene backdrop from the same instance, so it is hoisted to the activity
+    // store and provided through a composition local.
+    val wallpaperViewModel: HomeWallpaperViewModel =
+        LocalHomeWallpaperViewModel.current ?: viewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val wallpaperState by wallpaperViewModel.uiState.collectAsStateWithLifecycle()
+    val globalLayout by rememberGlobalLayout()
+    val sceneMode = globalLayout == GlobalLayout.Panorama
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
+    val sceneHostState = LocalHomeSceneHostState.current
 
     var showMore by rememberSaveable { mutableStateOf(false) }
     var showReboot by rememberSaveable { mutableStateOf(false) }
@@ -190,26 +212,59 @@ fun HomeScreen(navigator: DestinationsNavigator) {
         }
     }
 
+    // Panorama mode owns the scene, so an image picked earlier while the mode was off must not
+    // stay in the store's disabled state.
+    LaunchedEffect(sceneMode, wallpaperState.phase) {
+        if (sceneMode &&
+            wallpaperState.hasImage &&
+            wallpaperState.phase == HomeWallpaperPhase.DISABLED
+        ) {
+            wallpaperViewModel.setEnabled(true)
+        }
+    }
+
+    DisposableEffect(sceneHostState) {
+        sceneHostState?.openAppearance = { showWallpaperSheet = true }
+        onDispose { sceneHostState?.openAppearance = null }
+    }
+
     val onInstallClick = dropUnlessResumed {
         navigator.navigate(InstallModeSelectScreenDestination)
     }
+    val onApmClick = dropUnlessResumed {
+        navigator.navigate(APModuleScreenDestination)
+    }
+    val onKpmClick = dropUnlessResumed {
+        navigator.navigate(KPModuleScreenDestination)
+    }
+    val onMainCardClick = dropUnlessResumed {
+        when (state.conclusion) {
+            HomeConclusion.NOT_INSTALLED,
+            HomeConclusion.NEED_UPDATE -> navigator.navigate(InstallModeSelectScreenDestination)
 
-    Scaffold(
-        topBar = {
-            HomeTopBar(
-                canReboot = state.capability.rootAccess == RootAccessProbeState.AVAILABLE,
-                update = state.update,
+            HomeConclusion.NEED_REBOOT -> viewModel.reboot()
+            HomeConclusion.CHECK_FAILED -> viewModel.refreshCapabilities()
+            else -> showUninstallDialog = true
+        }
+    }
+
+    Scaffold(containerColor = Color.Transparent) {
+    Box(Modifier.fillMaxSize()) {
+        if (sceneMode) {
+            HomeScenePanel(
+                state = state,
+                wallpaperState = wallpaperState,
                 showMore = showMore,
-                showReboot = showReboot,
                 onShowMoreChange = { showMore = it },
+                showReboot = showReboot,
                 onShowRebootChange = { showReboot = it },
-                onAppearance = { showWallpaperSheet = true },
                 onInstallClick = {
                     showMore = false
                     onInstallClick()
                 },
                 onCheckUpdates = {
                     showMore = false
+                    showUpdateDialog = true
                     viewModel.checkForUpdates(force = true)
                 },
                 onFeedback = {
@@ -228,119 +283,566 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     showReboot = false
                     pendingDangerousReboot = reason
                 },
+                onMainCardClick = onMainCardClick,
+                onApmClick = onApmClick,
+                onKpmClick = onKpmClick,
+                onRefresh = {
+                    viewModel.refreshCapabilities()
+                    Toast.makeText(context, R.string.home_refresh_requested, Toast.LENGTH_SHORT).show()
+                },
+                onInstallApatch = viewModel::installApatch,
+                onUninstallApatch = viewModel::uninstallApatch,
+                onDismissBackupWarning = viewModel::dismissBackupWarning,
+                onUpdateClick = { showUpdateDialog = true },
+                onLearnMore = { uriHandler.openUri("https://apatch.dev") },
             )
-        },
-    ) { innerPadding ->
-        Box(Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                if (state.showBackupWarning) {
-                    BackupWarningCard(onDismiss = viewModel::dismissBackupWarning)
-                }
-
-                KStatusCard(
-                    state = state,
-                    onMainCardClick = dropUnlessResumed {
-                        when (state.conclusion) {
-                            HomeConclusion.NOT_INSTALLED,
-                            HomeConclusion.NEED_UPDATE -> navigator.navigate(InstallModeSelectScreenDestination)
-                            HomeConclusion.NEED_REBOOT -> viewModel.reboot()
-                            HomeConclusion.CHECK_FAILED -> viewModel.refreshCapabilities()
-                            else -> showUninstallDialog = true
-                        }
-                    },
-                    onApmClick = dropUnlessResumed {
-                        navigator.navigate(APModuleScreenDestination)
-                    },
-                    onKpmClick = dropUnlessResumed {
-                        navigator.navigate(KPModuleScreenDestination)
-                    },
-                )
-
-                if (state.conclusion != HomeConclusion.NOT_INSTALLED &&
-                    state.conclusion != HomeConclusion.CHECKING &&
-                    state.capability.androidPatch != RootLayerState.AVAILABLE
+        } else {
+            Scaffold(
+                topBar = {
+                    HomeTopBar(
+                        canReboot = state.capability.rootAccess == RootAccessProbeState.AVAILABLE,
+                        update = state.update,
+                        showMore = showMore,
+                        showReboot = showReboot,
+                        onShowMoreChange = { showMore = it },
+                        onShowRebootChange = { showReboot = it },
+                        onAppearance = { showWallpaperSheet = true },
+                        onInstallClick = {
+                            showMore = false
+                            onInstallClick()
+                        },
+                        onCheckUpdates = {
+                            showMore = false
+                            viewModel.checkForUpdates(force = true)
+                        },
+                        onFeedback = {
+                            showMore = false
+                            uriHandler.openUri("https://github.com/bmax121/APatch/issues/new/choose")
+                        },
+                        onAbout = {
+                            showMore = false
+                            navigator.navigate(AboutScreenDestination)
+                        },
+                        onReboot = { reason ->
+                            showReboot = false
+                            viewModel.reboot(reason)
+                        },
+                        onDangerousReboot = { reason ->
+                            showReboot = false
+                            pendingDangerousReboot = reason
+                        },
+                    )
+                },
+            ) { innerPadding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .padding(bottom = me.bmax.apatch.ui.shell.LocalFloatingNavigationInset.current),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    AStatusCard(
+                    if (state.showBackupWarning) {
+                        BackupWarningCard(onDismiss = viewModel::dismissBackupWarning)
+                    }
+
+                    KStatusCard(
                         state = state,
-                        onInstall = viewModel::installApatch,
-                        onUninstall = viewModel::uninstallApatch,
+                        onMainCardClick = onMainCardClick,
+                        onApmClick = onApmClick,
+                        onKpmClick = onKpmClick,
                     )
+
+                    if (state.conclusion != HomeConclusion.NOT_INSTALLED &&
+                        state.conclusion != HomeConclusion.CHECKING &&
+                        state.capability.androidPatch != RootLayerState.AVAILABLE
+                    ) {
+                        AStatusCard(
+                            state = state,
+                            onInstall = viewModel::installApatch,
+                            onUninstall = viewModel::uninstallApatch,
+                        )
+                    }
+
+                    val availableUpdate = state.update as? HomeUpdateState.Available
+                    if (availableUpdate != null) {
+                        UpdateAvailableCard(
+                            update = availableUpdate,
+                            onClick = { showUpdateDialog = true },
+                        )
+                    }
+
+                    DeviceInfoCard(state = state)
+
+                    LearnMoreCard(onClick = { uriHandler.openUri("https://apatch.dev") })
+                    Spacer(Modifier.height(16.dp))
                 }
-
-                val availableUpdate = state.update as? HomeUpdateState.Available
-                if (availableUpdate != null) {
-                    UpdateAvailableCard(
-                        update = availableUpdate,
-                        onClick = { showUpdateDialog = true },
-                    )
-                }
-
-                DeviceInfoCard(state = state)
-
-                LearnMoreCard(onClick = { uriHandler.openUri("https://apatch.dev") })
-                Spacer(Modifier.height(16.dp))
-            }
-
-            HomeWallpaperSheet(
-                show = showWallpaperSheet,
-                state = wallpaperState,
-                onDismissRequest = { showWallpaperSheet = false },
-                onEnabledChange = wallpaperViewModel::setEnabled,
-                onChooseImage = launchWallpaperPicker,
-                onRemoveImage = wallpaperViewModel::removeImage,
-                onCropChange = wallpaperViewModel::saveCrop,
-            )
-
-            if (showUninstallDialog) {
-                UninstallDialog(
-                    show = true,
-                    onDismiss = { showUninstallDialog = false },
-                    onRemoveAndroidPatch = {
-                        showUninstallDialog = false
-                        viewModel.uninstallApatch()
-                    },
-                    onUninstallAll = {
-                        showUninstallDialog = false
-                        viewModel.uninstallApatch()
-                        navigator.navigate(PatchesDestination(PatchesViewModel.PatchMode.UNPATCH))
-                    },
-                )
-            }
-
-            pendingDangerousReboot?.let { reason ->
-                val download = reason == "download"
-                RebootConfirmationDialog(
-                    show = true,
-                    download = download,
-                    onDismiss = { pendingDangerousReboot = null },
-                    onConfirm = {
-                        pendingDangerousReboot = null
-                        viewModel.reboot(reason)
-                    },
-                )
-            }
-
-            val update = state.update as? HomeUpdateState.Available
-            if (showUpdateDialog && update != null) {
-                UpdateDialog(
-                    show = true,
-                    update = update,
-                    onDismiss = { showUpdateDialog = false },
-                    onOpen = {
-                        showUpdateDialog = false
-                        uriHandler.openUri(update.downloadUrl)
-                    },
-                )
             }
         }
+
+        HomeWallpaperSheet(
+            show = showWallpaperSheet,
+            state = wallpaperState,
+            panoramaMode = sceneMode,
+            onDismissRequest = { showWallpaperSheet = false },
+            onPanoramaChange = { enabled ->
+                setGlobalLayout(
+                    if (enabled) GlobalLayout.Panorama else GlobalLayout.Standard
+                )
+            },
+            onChooseImage = launchWallpaperPicker,
+            onRemoveImage = wallpaperViewModel::removeImage,
+            onCropChange = wallpaperViewModel::saveCrop,
+        )
+
+        if (showUninstallDialog) {
+            UninstallDialog(
+                show = true,
+                onDismiss = { showUninstallDialog = false },
+                onRemoveAndroidPatch = {
+                    showUninstallDialog = false
+                    viewModel.uninstallApatch()
+                },
+                onUninstallAll = {
+                    showUninstallDialog = false
+                    viewModel.uninstallApatch()
+                    navigator.navigate(PatchesDestination(PatchesViewModel.PatchMode.UNPATCH))
+                },
+            )
+        }
+
+        pendingDangerousReboot?.let { reason ->
+            val download = reason == "download"
+            RebootConfirmationDialog(
+                show = true,
+                download = download,
+                onDismiss = { pendingDangerousReboot = null },
+                onConfirm = {
+                    pendingDangerousReboot = null
+                    viewModel.reboot(reason)
+                },
+            )
+        }
+
+        val update = state.update as? HomeUpdateState.Available
+        if (showUpdateDialog && update == null) {
+            val updateMessage = when (state.update) {
+                HomeUpdateState.Checking -> R.string.home_update_checking
+                HomeUpdateState.UpToDate -> R.string.home_update_current
+                HomeUpdateState.Failed -> R.string.home_update_failed
+                else -> R.string.home_update_checking
+            }
+            OverlayDialog(show = true, onDismissRequest = { showUpdateDialog = false }) {
+                Text(stringResource(updateMessage), modifier = Modifier.padding(24.dp))
+            }
+        }
+        if (showUpdateDialog && update != null) {
+            UpdateDialog(
+                show = true,
+                update = update,
+                onDismiss = { showUpdateDialog = false },
+                onOpen = {
+                    showUpdateDialog = false
+                    uriHandler.openUri(update.downloadUrl)
+                },
+            )
+        }
     }
+    }
+}
+
+@Composable
+private fun HomeScenePanel(
+    state: HomeUiState,
+    wallpaperState: HomeWallpaperState,
+    showMore: Boolean,
+    onShowMoreChange: (Boolean) -> Unit,
+    showReboot: Boolean,
+    onShowRebootChange: (Boolean) -> Unit,
+    onInstallClick: () -> Unit,
+    onCheckUpdates: () -> Unit,
+    onFeedback: () -> Unit,
+    onAbout: () -> Unit,
+    onReboot: (String) -> Unit,
+    onDangerousReboot: (String) -> Unit,
+    onMainCardClick: () -> Unit,
+    onApmClick: () -> Unit,
+    onKpmClick: () -> Unit,
+    onRefresh: () -> Unit,
+    onInstallApatch: () -> Unit,
+    onUninstallApatch: () -> Unit,
+    onDismissBackupWarning: () -> Unit,
+    onUpdateClick: () -> Unit,
+    onLearnMore: () -> Unit,
+) {
+    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val canReboot = state.capability.rootAccess == RootAccessProbeState.AVAILABLE
+    val primaryAction = {
+        when (state.conclusion) {
+            HomeConclusion.NOT_INSTALLED,
+            HomeConclusion.NEED_UPDATE -> onInstallClick()
+
+            HomeConclusion.NEED_REBOOT -> onReboot("")
+            else -> onCheckUpdates()
+        }
+    }
+
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val sceneProgress = me.bmax.apatch.ui.shell.LocalSceneProgress.current
+        val sidebarExpanded by me.bmax.apatch.ui.shell.rememberVisualFlag("scene_sidebar_expanded", true)
+        val toggleSidebar = { me.bmax.apatch.ui.shell.setVisualFlag("scene_sidebar_expanded", !sidebarExpanded) }
+        val heroHeight = ((maxHeight - topInset) * if (maxHeight < 480.dp) 0.50f else 0.63f).coerceAtLeast(180.dp)
+
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(top = topInset, bottom = bottomInset)
+                .clip(RoundedCornerShape(topStart = 26.dp * sceneProgress, bottomStart = 26.dp * sceneProgress))
+                .background(MiuixTheme.colorScheme.background),
+        ) {
+            Column(
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .widthIn(max = 600.dp)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                Spacer(Modifier.height(12.dp))
+
+                Box(
+                    Modifier
+                        .padding(horizontal = 14.dp)
+                        .fillMaxWidth()
+                        .height(heroHeight)
+                        .pointerInput(sidebarExpanded) {
+                            detectTapGestures(onDoubleTap = { toggleSidebar() })
+                        }
+                        .clip(RoundedCornerShape(24.dp)),
+                ) {
+                    if (!wallpaperState.isReady) {
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(
+                                            MiuixTheme.colorScheme.primaryContainer,
+                                            MiuixTheme.colorScheme.secondaryContainer,
+                                        )
+                                    )
+                                )
+                        )
+                        Text(
+                            text = stringResource(R.string.home_wallpaper_empty),
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(horizontal = 28.dp),
+                        )
+                    }
+                    HomeWallpaperImage(
+                        state = wallpaperState,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    // Fade the photo into the panel colour instead of a black
+                                    // scrim, so the status strip stays readable on any wallpaper.
+                                    0f to Color.Transparent,
+                                    0.45f to Color.Transparent,
+                                    0.78f to MiuixTheme.colorScheme.background.copy(alpha = 0.88f),
+                                    0.90f to MiuixTheme.colorScheme.background,
+                                    1f to MiuixTheme.colorScheme.background,
+                                )
+                            )
+                    )
+                    top.yukonga.miuix.kmp.basic.TextButton(
+                        text = stringResource(if (sidebarExpanded) R.string.scene_expand else R.string.scene_restore),
+                        onClick = toggleSidebar,
+                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
+                    )
+                    SceneStatusStrip(
+                        state = state,
+                        onClick = onMainCardClick,
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+                    )
+                }
+
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 22.dp, end = 22.dp, top = 18.dp),
+                ) {
+                    Text(
+                        text = listOfNotNull(
+                            sceneGreeting(),
+                            state.environment?.displayName()?.takeIf { it.isNotBlank() },
+                        ).joinToString(" · "),
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = sceneQuote(),
+                        style = MiuixTheme.textStyles.title3,
+                    )
+                    Spacer(Modifier.height(18.dp))
+                    SceneActionRow(
+                        state = state,
+                        onShowMore = { onShowMoreChange(true) },
+                        onPrimary = primaryAction,
+                        onRefresh = onRefresh,
+                    )
+                }
+
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp)
+                        .padding(top = 18.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    if (state.showBackupWarning) {
+                        BackupWarningCard(onDismiss = onDismissBackupWarning)
+                    }
+
+                    if (state.conclusion != HomeConclusion.NOT_INSTALLED &&
+                        state.conclusion != HomeConclusion.CHECKING &&
+                        state.capability.androidPatch != RootLayerState.AVAILABLE
+                    ) {
+                        AStatusCard(
+                            state = state,
+                            onInstall = onInstallApatch,
+                            onUninstall = onUninstallApatch,
+                        )
+                    }
+
+                    val availableUpdate = state.update as? HomeUpdateState.Available
+                    if (availableUpdate != null) {
+                        UpdateAvailableCard(
+                            update = availableUpdate,
+                            onClick = onUpdateClick,
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        ModuleCountCard(
+                            label = stringResource(R.string.apm),
+                            count = state.apmCount,
+                            onClick = onApmClick,
+                            modifier = Modifier.weight(1f),
+                        )
+                        ModuleCountCard(
+                            label = stringResource(R.string.kpm),
+                            count = state.kpmCount,
+                            onClick = onKpmClick,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+
+                    DeviceInfoCard(state = state)
+                    LearnMoreCard(onClick = onLearnMore)
+                    Spacer(Modifier.height(bottomInset + 24.dp))
+                }
+            }
+        }
+
+        HomeMoreMenu(
+            show = showMore,
+            update = state.update,
+            canReboot = canReboot,
+            onDismiss = { onShowMoreChange(false) },
+            onInstallClick = onInstallClick,
+            onRebootRequest = { onShowRebootChange(true) },
+            onCheckUpdates = onCheckUpdates,
+            onFeedback = onFeedback,
+            onAbout = onAbout,
+        )
+        HomeRebootMenu(
+            show = showReboot,
+            onDismiss = { onShowRebootChange(false) },
+            onReboot = onReboot,
+            onDangerousReboot = onDangerousReboot,
+        )
+    }
+}
+
+@Composable
+private fun SceneStatusStrip(
+    state: HomeUiState,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val managerVersion = remember { Version.getManagerVersion() }
+    val installedKpatchVersion = remember(state.conclusion) {
+        runCatching { Version.installedKPVString() }
+            .getOrNull()
+            ?.takeIf { it.isNotBlank() && it != "0" }
+    }
+    val kpatchValue = when (state.conclusion) {
+        HomeConclusion.FULL_APATCH,
+        HomeConclusion.KERNEL_PATCH_ONLY -> installedKpatchVersion
+            ?: stringResource(R.string.kpatch_version, managerVersion.first)
+
+        HomeConclusion.NEED_UPDATE -> "${Version.installedKPVString()} → ${Version.buildKPVString()}"
+        HomeConclusion.NOT_INSTALLED -> stringResource(R.string.home_not_installed)
+        HomeConclusion.NEED_REBOOT -> stringResource(R.string.home_ap_cando_reboot)
+        HomeConclusion.CHECKING -> stringResource(R.string.home_status_checking)
+        else -> stringResource(R.string.home_click_to_install)
+    }
+
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        SceneStatusColumn(
+            title = stringResource(R.string.kernel_patch),
+            value = kpatchValue,
+            modifier = Modifier.weight(1f),
+        )
+        Box(
+            Modifier
+                .padding(horizontal = 14.dp)
+                .width(1.dp)
+                .height(30.dp)
+                .background(MiuixTheme.colorScheme.dividerLine)
+        )
+        SceneStatusColumn(
+            title = stringResource(R.string.android_patch),
+            value = stringResource(state.capability.androidPatch.labelRes()),
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun SceneStatusColumn(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        Text(
+            text = title.uppercase(),
+            style = MiuixTheme.textStyles.footnote1,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            maxLines = 1,
+            softWrap = false,
+        )
+        Spacer(Modifier.height(3.dp))
+        Text(
+            text = value,
+            style = MiuixTheme.textStyles.body1,
+            color = MiuixTheme.colorScheme.onSurface,
+            maxLines = 1,
+            softWrap = false,
+        )
+    }
+}
+
+@Composable
+private fun SceneActionRow(
+    state: HomeUiState,
+    onShowMore: () -> Unit,
+    onPrimary: () -> Unit,
+    onRefresh: () -> Unit,
+) {
+    val primaryLabel = when (state.conclusion) {
+        HomeConclusion.NOT_INSTALLED -> R.string.home_ap_cando_install
+        HomeConclusion.NEED_UPDATE -> R.string.home_ap_cando_update
+        HomeConclusion.NEED_REBOOT -> R.string.home_ap_cando_reboot
+        HomeConclusion.CHECKING -> R.string.home_status_checking
+        else -> R.string.home_update_check
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(
+            onClick = onShowMore,
+            modifier = Modifier.size(52.dp),
+            backgroundColor = MiuixTheme.colorScheme.secondaryContainer,
+            cornerRadius = 16.dp,
+            minWidth = 52.dp,
+            minHeight = 52.dp,
+        ) {
+            Icon(
+                imageVector = MiuixIcons.More,
+                contentDescription = stringResource(R.string.home_more),
+                modifier = Modifier.size(22.dp),
+            )
+        }
+
+        Button(
+            onClick = onPrimary,
+            modifier = Modifier
+                .weight(1f)
+                .height(52.dp),
+            colors = ButtonDefaults.buttonColorsPrimary(),
+            enabled = state.conclusion != HomeConclusion.CHECKING,
+        ) {
+            Text(
+                text = stringResource(primaryLabel),
+                style = MiuixTheme.textStyles.button,
+                maxLines = 1,
+                softWrap = false,
+            )
+        }
+
+        IconButton(
+            onClick = onRefresh,
+            modifier = Modifier.size(52.dp),
+            backgroundColor = MiuixTheme.colorScheme.secondaryContainer,
+            cornerRadius = 16.dp,
+            minWidth = 52.dp,
+            minHeight = 52.dp,
+        ) {
+            Icon(
+                imageVector = MiuixIcons.Refresh,
+                contentDescription = stringResource(R.string.home_update_check),
+                modifier = Modifier.size(22.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun sceneGreeting(): String {
+    val hour = LocalTime.now().hour
+    val res = when (hour) {
+        in 5..11 -> R.string.home_scene_greeting_morning
+        in 12..17 -> R.string.home_scene_greeting_afternoon
+        in 18..22 -> R.string.home_scene_greeting_evening
+        else -> R.string.home_scene_greeting_night
+    }
+    return stringResource(res)
+}
+
+@Composable
+private fun sceneQuote(): String {
+    val quotes = stringArrayResource(R.array.home_scene_quotes)
+    if (quotes.isEmpty()) {
+        return ""
+    }
+    val index = LocalDate.now().dayOfYear % quotes.size
+    return quotes[index]
 }
 
 @Composable
@@ -377,108 +879,148 @@ private fun HomeTopBar(
                     )
                 }
 
-                OverlayListPopup(
+                HomeMoreMenu(
                     show = showMore,
-                    alignment = PopupPositionProvider.Align.BottomEnd,
-                    onDismissRequest = { onShowMoreChange(false) },
-                ) {
-                    ListPopupColumn {
-                        PopupMenuItem(
-                            icon = MiuixIcons.Import,
-                            text = stringResource(R.string.mode_select_page_title),
-                            onClick = onInstallClick,
-                        )
-                        if (canReboot) {
-                            PopupMenuItem(
-                                icon = MiuixIcons.Reset,
-                                text = stringResource(R.string.reboot),
-                                onClick = {
-                                    onShowMoreChange(false)
-                                    onShowRebootChange(true)
-                                },
-                            )
-                        }
-                        PopupMenuItem(
-                            icon = MiuixIcons.Update,
-                            text = when (update) {
-                                HomeUpdateState.Checking -> stringResource(R.string.home_update_checking)
-                                else -> stringResource(R.string.home_update_check)
-                            },
-                            enabled = update !is HomeUpdateState.Checking,
-                            onClick = onCheckUpdates,
-                        )
-                        PopupMenuItem(
-                            icon = MiuixIcons.Help,
-                            text = stringResource(R.string.home_more_menu_feedback_or_suggestion),
-                            onClick = onFeedback,
-                        )
-                        PopupMenuItem(
-                            icon = MiuixIcons.Info,
-                            text = stringResource(R.string.home_more_menu_about),
-                            onClick = onAbout,
-                        )
-                    }
-                }
+                    update = update,
+                    canReboot = canReboot,
+                    onDismiss = { onShowMoreChange(false) },
+                    onInstallClick = onInstallClick,
+                    onRebootRequest = { onShowRebootChange(true) },
+                    onCheckUpdates = onCheckUpdates,
+                    onFeedback = onFeedback,
+                    onAbout = onAbout,
+                )
 
-                OverlayListPopup(
+                HomeRebootMenu(
                     show = showReboot,
-                    alignment = PopupPositionProvider.Align.BottomEnd,
-                    onDismissRequest = { onShowRebootChange(false) },
-                ) {
-                    ListPopupColumn {
-                        PopupMenuItem(
-                            icon = MiuixIcons.Reset,
-                            text = stringResource(R.string.reboot),
-                            onClick = {
-                                onShowRebootChange(false)
-                                onReboot("")
-                            },
-                        )
-                        PopupMenuItem(
-                            icon = MiuixIcons.Refresh,
-                            text = stringResource(R.string.reboot_soft),
-                            onClick = {
-                                onShowRebootChange(false)
-                                onReboot("soft_reboot")
-                            },
-                        )
-                        PopupMenuItem(
-                            icon = MiuixIcons.Reset,
-                            text = stringResource(R.string.reboot_recovery),
-                            onClick = {
-                                onShowRebootChange(false)
-                                onReboot("recovery")
-                            },
-                        )
-                        PopupMenuItem(
-                            icon = MiuixIcons.Reset,
-                            text = stringResource(R.string.reboot_bootloader),
-                            onClick = {
-                                onShowRebootChange(false)
-                                onReboot("bootloader")
-                            },
-                        )
-                        PopupMenuItem(
-                            icon = MiuixIcons.Download,
-                            text = stringResource(R.string.reboot_download),
-                            onClick = {
-                                onShowRebootChange(false)
-                                onDangerousReboot("download")
-                            },
-                        )
-                        PopupMenuItem(
-                            icon = MiuixIcons.Import,
-                            text = stringResource(R.string.reboot_edl),
-                            onClick = {
-                                onShowRebootChange(false)
-                                onDangerousReboot("edl")
-                            },
-                        )
-                    }
-                }
+                    onDismiss = { onShowRebootChange(false) },
+                    onReboot = onReboot,
+                    onDangerousReboot = onDangerousReboot,
+                )
             }
         },
     )
+}
+
+@Composable
+private fun HomeMoreMenu(
+    show: Boolean,
+    update: HomeUpdateState,
+    canReboot: Boolean,
+    onDismiss: () -> Unit,
+    onInstallClick: () -> Unit,
+    onRebootRequest: () -> Unit,
+    onCheckUpdates: () -> Unit,
+    onFeedback: () -> Unit,
+    onAbout: () -> Unit,
+) {
+    OverlayListPopup(
+        show = show,
+        alignment = PopupPositionProvider.Align.BottomEnd,
+        onDismissRequest = onDismiss,
+    ) {
+        ListPopupColumn {
+            PopupMenuItem(
+                icon = MiuixIcons.Import,
+                text = stringResource(R.string.mode_select_page_title),
+                onClick = onInstallClick,
+            )
+            if (canReboot) {
+                PopupMenuItem(
+                    icon = MiuixIcons.Reset,
+                    text = stringResource(R.string.reboot),
+                    onClick = {
+                        onDismiss()
+                        onRebootRequest()
+                    },
+                )
+            }
+            PopupMenuItem(
+                icon = MiuixIcons.Update,
+                text = when (update) {
+                    HomeUpdateState.Checking -> stringResource(R.string.home_update_checking)
+                    else -> stringResource(R.string.home_update_check)
+                },
+                enabled = update !is HomeUpdateState.Checking,
+                onClick = onCheckUpdates,
+            )
+            PopupMenuItem(
+                icon = MiuixIcons.Help,
+                text = stringResource(R.string.home_more_menu_feedback_or_suggestion),
+                onClick = onFeedback,
+            )
+            PopupMenuItem(
+                icon = MiuixIcons.Info,
+                text = stringResource(R.string.home_more_menu_about),
+                onClick = onAbout,
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeRebootMenu(
+    show: Boolean,
+    onDismiss: () -> Unit,
+    onReboot: (String) -> Unit,
+    onDangerousReboot: (String) -> Unit,
+) {
+    OverlayListPopup(
+        show = show,
+        alignment = PopupPositionProvider.Align.BottomEnd,
+        onDismissRequest = onDismiss,
+    ) {
+        ListPopupColumn {
+            PopupMenuItem(
+                icon = MiuixIcons.Reset,
+                text = stringResource(R.string.reboot),
+                onClick = {
+                    onDismiss()
+                    onReboot("")
+                },
+            )
+            PopupMenuItem(
+                icon = MiuixIcons.Refresh,
+                text = stringResource(R.string.reboot_soft),
+                onClick = {
+                    onDismiss()
+                    onReboot("soft_reboot")
+                },
+            )
+            PopupMenuItem(
+                icon = MiuixIcons.Reset,
+                text = stringResource(R.string.reboot_recovery),
+                onClick = {
+                    onDismiss()
+                    onReboot("recovery")
+                },
+            )
+            PopupMenuItem(
+                icon = MiuixIcons.Reset,
+                text = stringResource(R.string.reboot_bootloader),
+                onClick = {
+                    onDismiss()
+                    onReboot("bootloader")
+                },
+            )
+            PopupMenuItem(
+                icon = MiuixIcons.Download,
+                text = stringResource(R.string.reboot_download),
+                onClick = {
+                    onDismiss()
+                    onDangerousReboot("download")
+                },
+            )
+            PopupMenuItem(
+                icon = MiuixIcons.Import,
+                text = stringResource(R.string.reboot_edl),
+                onClick = {
+                    onDismiss()
+                    onDangerousReboot("edl")
+                },
+            )
+        }
+    }
 }
 
 @Composable
@@ -552,44 +1094,12 @@ private fun HomeWallpaperEnvironment(
 }
 
 @Composable
-private fun HomeWallpaperImage(
-    state: HomeWallpaperState,
-    modifier: Modifier = Modifier,
-) {
-    val context = LocalContext.current
-    val path = state.imagePath ?: return
-    val file = remember(path, context) {
-        HomeWallpaperFiles.resolve(context.filesDir, path)
-    } ?: return
-    val request = remember(file, path, state.revision, context) {
-        ImageRequest.Builder(context)
-            .data(file)
-            .memoryCacheKey("home-wallpaper-${state.revision}")
-            .crossfade(true)
-            .build()
-    }
-
-    AsyncImage(
-        model = request,
-        contentDescription = null,
-        contentScale = ContentScale.Crop,
-        alignment = BiasAlignment(
-            horizontalBias = state.crop.biasX,
-            verticalBias = state.crop.biasY,
-        ),
-        modifier = modifier.graphicsLayer {
-            scaleX = state.crop.zoom
-            scaleY = state.crop.zoom
-        },
-    )
-}
-
-@Composable
 private fun HomeWallpaperSheet(
     show: Boolean,
     state: HomeWallpaperState,
+    panoramaMode: Boolean,
     onDismissRequest: () -> Unit,
-    onEnabledChange: (Boolean) -> Unit,
+    onPanoramaChange: (Boolean) -> Unit,
     onChooseImage: () -> Unit,
     onRemoveImage: () -> Unit,
     onCropChange: (HomeWallpaperCrop) -> Unit,
@@ -629,21 +1139,20 @@ private fun HomeWallpaperSheet(
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(R.string.home_wallpaper_enable),
+                        text = stringResource(R.string.home_panorama_switch),
                         style = MiuixTheme.textStyles.body1,
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = stringResource(R.string.home_wallpaper_enable_summary),
+                        text = stringResource(R.string.home_panorama_switch_summary),
                         style = MiuixTheme.textStyles.footnote1,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     )
                 }
                 Spacer(Modifier.width(16.dp))
                 Switch(
-                    checked = state.enabled,
-                    onCheckedChange = onEnabledChange,
-                    enabled = !busy,
+                    checked = panoramaMode,
+                    onCheckedChange = onPanoramaChange,
                 )
             }
 
@@ -656,7 +1165,7 @@ private fun HomeWallpaperSheet(
                     )
                 }
 
-                state.enabled && state.phase == HomeWallpaperPhase.MISSING -> {
+                state.phase == HomeWallpaperPhase.MISSING -> {
                     Text(
                         text = stringResource(R.string.home_wallpaper_missing),
                         style = MiuixTheme.textStyles.body2,
@@ -664,7 +1173,7 @@ private fun HomeWallpaperSheet(
                     )
                 }
 
-                state.enabled && state.phase == HomeWallpaperPhase.ERROR -> {
+                state.phase == HomeWallpaperPhase.ERROR -> {
                     Text(
                         text = stringResource(R.string.home_wallpaper_error),
                         style = MiuixTheme.textStyles.body2,
@@ -672,7 +1181,7 @@ private fun HomeWallpaperSheet(
                     )
                 }
 
-                state.isReady -> {
+                state.hasImage -> {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         insideMargin = PaddingValues(0.dp),
@@ -724,14 +1233,6 @@ private fun HomeWallpaperSheet(
                         enabled = !busy,
                         onValueChange = { biasY = it },
                         onValueChangeFinished = { onCropChange(draftCrop) },
-                    )
-                }
-
-                state.hasImage -> {
-                    Text(
-                        text = stringResource(R.string.home_wallpaper_saved),
-                        style = MiuixTheme.textStyles.body2,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     )
                 }
 
@@ -940,65 +1441,58 @@ private fun KStatusCard(
                 .fillMaxHeight(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                insideMargin = PaddingValues(16.dp),
+            ModuleCountCard(
+                label = stringResource(R.string.apm),
+                count = state.apmCount,
                 onClick = onApmClick,
-                showIndication = true,
-                pressFeedbackType = PressFeedbackType.Tilt,
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start,
-                ) {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = stringResource(R.string.apm),
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 15.sp,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                    )
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = state.apmCount.toString(),
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MiuixTheme.colorScheme.onSurface,
-                    )
-                }
-            }
-
-            Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                insideMargin = PaddingValues(16.dp),
+            )
+            ModuleCountCard(
+                label = stringResource(R.string.kpm),
+                count = state.kpmCount,
                 onClick = onKpmClick,
-                showIndication = true,
-                pressFeedbackType = PressFeedbackType.Tilt,
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start,
-                ) {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = stringResource(R.string.kpm),
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 15.sp,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                    )
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = state.kpmCount.toString(),
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MiuixTheme.colorScheme.onSurface,
-                    )
-                }
-            }
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ModuleCountCard(
+    label: String,
+    count: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier,
+        insideMargin = PaddingValues(16.dp),
+        onClick = onClick,
+        showIndication = true,
+        pressFeedbackType = PressFeedbackType.Tilt,
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.Start,
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = label,
+                fontWeight = FontWeight.Medium,
+                fontSize = 15.sp,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            )
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = count.toString(),
+                fontSize = 26.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MiuixTheme.colorScheme.onSurface,
+            )
         }
     }
 }

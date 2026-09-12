@@ -379,6 +379,8 @@ dependencies {
 
     implementation(libs.ini4j)
 
+    implementation(libs.backdrop)
+    implementation(libs.capsule)
     implementation(libs.miuix.ui)
     implementation(libs.miuix.icons)
     implementation(libs.miuix.preference)

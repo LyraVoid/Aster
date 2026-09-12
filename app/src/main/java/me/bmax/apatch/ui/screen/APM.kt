@@ -181,6 +181,7 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
         floatingActionButton = {
             if (!viewModel.isMagiskPresent) {
                 FloatingActionButton(
+                    modifier = Modifier.padding(bottom = me.bmax.apatch.ui.shell.LocalFloatingNavigationInset.current),
                     onClick = launchZipPicker,
                     containerColor = MiuixTheme.colorScheme.primary,
                 ) {
@@ -467,7 +468,7 @@ private fun APModuleList(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(
                 top = contentPadding.calculateTopPadding() + 8.dp,
-                bottom = contentPadding.calculateBottomPadding() + 96.dp,
+                bottom = contentPadding.calculateBottomPadding() + me.bmax.apatch.ui.shell.LocalFloatingNavigationInset.current + 96.dp,
                 start = 4.dp,
                 end = 4.dp,
             ),

@@ -302,8 +302,8 @@
     <string name="home_security_actions">Security actions</string>
     <string name="home_remove_android_patch">Remove AndroidPatch</string>
     <string name="home_appearance">Home appearance</string>
-    <string name="home_wallpaper_enable">Show wallpaper</string>
-    <string name="home_wallpaper_enable_summary">Display an image only behind the top of Home. Root diagnostics stay unchanged.</string>
+    <string name="home_panorama_switch">Panorama mode</string>
+    <string name="home_panorama_switch_summary">Home becomes a wallpaper scene; other pages use floating navigation.</string>
     <string name="home_wallpaper_choose">Choose image</string>
     <string name="home_wallpaper_change">Change image</string>
     <string name="home_wallpaper_remove">Remove image</string>
@@ -317,6 +317,20 @@
     <string name="home_wallpaper_vertical">Vertical position</string>
     <string name="home_wallpaper_import_failed">Could not import the selected image.</string>
     <string name="home_wallpaper_change_failed">Could not update the Home wallpaper.</string>
+
+    <string name="home_scene_greeting_morning" translatable="false">Good morning</string>
+    <string name="home_scene_greeting_afternoon" translatable="false">Good afternoon</string>
+    <string name="home_scene_greeting_evening" translatable="false">Good evening</string>
+    <string name="home_scene_greeting_night" translatable="false">Good night</string>
+    <string-array name="home_scene_quotes" translatable="false">
+        <item>微睡みの中で、夢を見る</item>
+        <item>透き通る青空、どこまでも</item>
+        <item>君の隣で、風を感じて</item>
+        <item>夢の続きを、もう少しだけ</item>
+        <item>静かな朝に、心ほどけて</item>
+        <item>星が落ちる前に、君に会いたい</item>
+        <item>光の中で、君を探して</item>
+    </string-array>
 
     <string name="mode_select_page_title">Install</string>
     <string name="mode_select_page_patch_and_install">Patch and install</string>
@@ -385,8 +399,29 @@
     <string name="navigation_android_patch_required">APatch is not installed</string>
 
     <string name="navigation_mode_title">Navigation layout</string>
+    <string name="global_layout_title">Global layout</string>
+    <string name="global_layout_panorama">Panorama mode</string>
+    <string name="global_layout_panorama_summary">Wallpaper scene on Home, floating navigation on other pages.</string>
+    <string name="global_layout_standard">Standard mode</string>
+    <string name="global_layout_standard_summary">Classic bottom bar or sidebar layout on every page.</string>
     <string name="navigation_mode_auto">Automatic</string>
     <string name="navigation_mode_bottom">Bottom navigation</string>
     <string name="navigation_mode_sidebar">Sidebar navigation</string>
     <string name="navigation_mode_auto_summary">Bottom navigation on narrow windows; sidebar on wide windows.</string>
+    <string name="scene_expand">Expand wallpaper</string>
+    <string name="scene_restore">Show sidebar</string>
+    <string name="floating_blur">Navigation background blur</string>
+    <string name="floating_blur_summary">Blur the page behind floating navigation</string>
+    <string name="floating_glass">Liquid glass</string>
+    <string name="floating_glass_summary">Refraction and interactive highlights; requires background blur and Android 13 or newer</string>
+    <string name="floating_auto_hide">Hide after inactivity</string>
+    <string name="floating_auto_hide_summary">Hide after 3 seconds; touch the page to show again</string>
+    <string name="floating_scroll_hide">Hide while scrolling down</string>
+    <string name="floating_scroll_hide_summary">Scroll up or touch the page to show again</string>
+    <string name="floating_navigation">Floating navigation</string>
+    <string name="floating_navigation_forced">Required on non-home main pages in panorama mode</string>
+    <string name="floating_navigation_summary">Use floating navigation instead of the bottom bar or sidebar</string>
+    <string name="home_refresh_requested">Refreshing status</string>
+    <string name="home_update_current">Already up to date</string>
+
 </resources>

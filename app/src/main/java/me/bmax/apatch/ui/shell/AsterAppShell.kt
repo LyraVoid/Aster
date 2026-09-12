@@ -1,9 +1,39 @@
 package me.bmax.apatch.ui.shell
 
+import android.os.Build
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.zIndex
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.PointerEventPass
+import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import me.bmax.apatch.ui.component.FloatingBottomBar
+import me.bmax.apatch.ui.component.FloatingBottomBarItem
+import top.yukonga.miuix.kmp.basic.Icon
+import kotlinx.coroutines.delay
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -13,6 +43,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,10 +52,12 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -32,12 +65,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavHostController
 import com.ramcosta.composedestinations.generated.NavGraphs
+import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.utils.isRouteOnBackStackAsState
 import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
 import me.bmax.apatch.util.ui.LocalSnackbarHost
 import top.yukonga.miuix.kmp.basic.Badge
 import top.yukonga.miuix.kmp.basic.NavigationBar
@@ -62,6 +99,55 @@ fun AsterAppShell(
     content: @Composable (Modifier) -> Unit,
 ) {
     val navigationMode by rememberNavigationMode()
+    val globalLayout by rememberGlobalLayout()
+    val panorama = globalLayout == GlobalLayout.Panorama
+    val wallpaperViewModel = LocalHomeWallpaperViewModel.current
+    val wallpaperState = wallpaperViewModel?.let {
+        it.uiState.collectAsStateWithLifecycle().value
+    }
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val onHome = backStackEntry?.destination?.route == HomeScreenDestination.route
+    // Panorama mode owns its chrome: the wallpaper scene on Home, floating navigation everywhere
+    // else. Standard mode keeps the classic shell untouched.
+    val sceneActive = panorama && onHome
+    val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
+    val darkTheme = me.bmax.apatch.ui.theme.LocalThemeModeState.current.isDark
+    androidx.compose.runtime.DisposableEffect(activity, sceneActive, darkTheme) {
+        val controller = activity?.let { androidx.core.view.WindowCompat.getInsetsController(it.window, it.window.decorView) }
+        controller?.isAppearanceLightStatusBars = !sceneActive && !darkTheme
+        controller?.isAppearanceLightNavigationBars = !sceneActive && !darkTheme
+        onDispose {
+            controller?.isAppearanceLightStatusBars = !darkTheme
+            controller?.isAppearanceLightNavigationBars = !darkTheme
+        }
+    }
+    val primaryPage = PrimaryDestination.entries.any { it.direction.route == backStackEntry?.destination?.route }
+    val floatingPreferred by rememberVisualFlag("floating_navigation", false)
+    val floatingShell = panorama || floatingPreferred
+    val floatingNavigation = floatingShell && primaryPage && !sceneActive
+    val blurEnabled by rememberVisualFlag("floating_blur", true)
+    val glassEnabled by rememberVisualFlag("floating_glass", true)
+    val autoHide by rememberVisualFlag("floating_auto_hide", false)
+    val scrollHide by rememberVisualFlag("floating_scroll_hide", false)
+    val sceneExpanded by rememberVisualFlag("scene_sidebar_expanded", true)
+    var interaction by remember { mutableIntStateOf(0) }
+    var hidden by remember { mutableStateOf(false) }
+    LaunchedEffect(interaction, backStackEntry, floatingNavigation, autoHide, scrollHide) {
+        hidden = false
+        if (floatingNavigation && autoHide) { delay(3000); hidden = true }
+    }
+    val scrollConnection = remember(scrollHide) {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (scrollHide && source == NestedScrollSource.UserInput && kotlin.math.abs(available.y) > 2f) {
+                    hidden = available.y < 0
+                }
+                return Offset.Zero
+            }
+        }
+    }
+    val backdrop = rememberLayerBackdrop()
+
     // Page fades expose the shell; keep its background opaque and in sync with the app theme.
     BoxWithConstraints(
         modifier = modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface),
@@ -69,36 +155,86 @@ fun AsterAppShell(
         val useBottomNavigation = navigationMode.usesBottomNavigation(maxWidth.value)
         val useCompactShell = maxWidth < CompactNavigationBreakpoint
         val railState = rememberNavigationRailState()
+        val sceneRailWidth = (maxWidth * 0.25f - 28.dp).coerceIn(56.dp, 80.dp)
+        val sceneProgress by animateFloatAsState(
+            if (sceneActive && sceneExpanded) 1f else 0f,
+            tween(360, easing = FastOutSlowInEasing), label = "scene_sidebar",
+        )
+        val homeSceneHost = remember { HomeSceneHostState() }
+        // The capsule is 64dp tall with a 12dp gap; screens already reserve system insets.
+        val floatingNavigationHeight = 76.dp
+        // YumeBox animates the space it reserves for its floating bar; snapping it would shove the
+        // page up the instant we leave the home scene.
+        val reservedContentBottom by animateDpAsState(
+            targetValue = if (floatingNavigation) floatingNavigationHeight else 0.dp,
+            animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing),
+            label = "floating_navigation_reserved_height",
+        )
 
-        LaunchedEffect(useBottomNavigation, useCompactShell) {
+        LaunchedEffect(useBottomNavigation, useCompactShell, panorama) {
+            if (panorama) return@LaunchedEffect
             if (useBottomNavigation || useCompactShell) railState.collapse() else railState.expand()
         }
-        BackHandler(enabled = !useBottomNavigation && useCompactShell && railState.isExpanded) {
+        BackHandler(enabled = !floatingShell && !useBottomNavigation && useCompactShell && railState.isExpanded) {
             railState.collapse()
         }
 
-        // Keep the NavHost at one composition location across layout changes.
-        Column(Modifier.fillMaxSize()) {
+        if (sceneActive) {
+            HomeSceneBackdrop(
+                state = wallpaperState,
+                railWidth = sceneRailWidth,
+                windowWidth = maxWidth,
+            )
+        }
+
+        if (sceneActive && sceneProgress > 0.01f) {
+            HomeSceneRail(navController, capabilities,
+                onAppearance = { homeSceneHost.openAppearance?.invoke() },
+                modifier = Modifier.width(sceneRailWidth).fillMaxHeight().zIndex(1f).graphicsLayer {
+                    alpha = sceneProgress
+                    translationX = -size.width * (1f - sceneProgress)
+                })
+        }
+        // Keep the host in a stable slot; the scene decor sits behind the page.
+        Column(Modifier.fillMaxSize().layerBackdrop(backdrop)
+            .then(if (floatingNavigation) Modifier.nestedScroll(scrollConnection)
+                .pointerInput(Unit) {
+                    awaitEachGesture {
+                        awaitFirstDown(false, PointerEventPass.Initial)
+                        interaction++
+                    }
+                } else Modifier)) {
             Row(Modifier.weight(1f).fillMaxWidth()) {
-                if (!useBottomNavigation && !useCompactShell) {
+                if (!floatingShell && !useBottomNavigation && !useCompactShell) {
                     AsterNavigationRail(navController, capabilities, railState, collapseAfterNavigation = false)
                 }
                 Box(Modifier.weight(1f).fillMaxHeight()) {
-                    CompositionLocalProvider(LocalSnackbarHost provides snackbarHostState) {
+                    CompositionLocalProvider(
+                        LocalSnackbarHost provides snackbarHostState,
+                        LocalFloatingNavigationInset provides reservedContentBottom,
+                        LocalSceneProgress provides sceneProgress,
+                        LocalHomeSceneHostState provides homeSceneHost,
+                    ) {
                         content(
                             Modifier.fillMaxSize()
-                                .padding(start = if (!useBottomNavigation && useCompactShell) NavigationRailDefaults.MinWidth else 0.dp)
+                                .padding(
+                                    start = if (sceneActive) sceneRailWidth * sceneProgress else if (!floatingShell && !useBottomNavigation && useCompactShell) {
+                                        NavigationRailDefaults.MinWidth
+                                    } else {
+                                        0.dp
+                                    }
+                                )
                                 .then(
-                                    if (useBottomNavigation) Modifier.consumeWindowInsets(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
+                                    if (!floatingShell && useBottomNavigation) Modifier.consumeWindowInsets(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
                                     else Modifier
                                 )
                         )
                     }
                     NavigationScrim(
-                        visible = !useBottomNavigation && useCompactShell && railState.isExpanded,
+                        visible = !floatingShell && !useBottomNavigation && useCompactShell && railState.isExpanded,
                         onDismiss = { railState.collapse() },
                     )
-                    if (!useBottomNavigation && useCompactShell) {
+                    if (!floatingShell && !useBottomNavigation && useCompactShell) {
                         AsterNavigationRail(
                             navController, capabilities, railState,
                             modifier = Modifier.align(Alignment.CenterStart),
@@ -107,9 +243,25 @@ fun AsterAppShell(
                     }
                 }
             }
-            if (useBottomNavigation) {
+            AnimatedVisibility(
+                visible = !floatingShell && useBottomNavigation,
+                enter = fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
+                exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom),
+            ) {
                 AsterBottomNavigation(navController, capabilities)
             }
+        }
+
+        AnimatedVisibility(visible = floatingNavigation && !hidden,
+            modifier = Modifier.align(Alignment.BottomCenter), enter = fadeIn(), exit = fadeOut()) {
+            AsterFloatingNavigation(
+                navController = navController,
+                capabilities = capabilities,
+                backdrop = backdrop,
+                blurEnabled = blurEnabled && Build.VERSION.SDK_INT >= 31,
+                glassEnabled = blurEnabled && glassEnabled && Build.VERSION.SDK_INT >= 33,
+                modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)).padding(horizontal = 12.dp, vertical = 12.dp),
+            )
         }
     }
 }
@@ -154,6 +306,39 @@ private fun AsterBottomNavigation(
                 },
                 modifier = navigationItemModifier(disabledReason),
             )
+        }
+    }
+}
+
+@Composable
+private fun AsterFloatingNavigation(
+    navController: NavHostController,
+    capabilities: AsterNavigationCapabilities,
+    backdrop: Backdrop,
+    blurEnabled: Boolean,
+    glassEnabled: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val navigator = navController.rememberDestinationsNavigator()
+    val entry by navController.currentBackStackEntryAsState()
+    val selected = PrimaryDestination.entries.indexOfFirst { it.direction.route == entry?.destination?.route }.coerceAtLeast(0)
+    val reasons = PrimaryDestination.entries.map { navigationDisabledReason(it, capabilities) }
+    val select: (Int) -> Unit = { index ->
+        if (reasons[index] == null) navigatePrimary(navigator, PrimaryDestination.entries[index], selected == index)
+    }
+    FloatingBottomBar(
+        modifier = modifier.widthIn(max = 440.dp).fillMaxWidth(),
+        selectedIndex = { selected }, onSelected = select,
+        backdrop = backdrop, tabsCount = PrimaryDestination.entries.size,
+        canSelect = { reasons[it] == null },
+        isBackdropBlurEnabled = blurEnabled, isLiquidGlassEnabled = glassEnabled,
+    ) {
+        PrimaryDestination.entries.forEachIndexed { index, destination ->
+            FloatingBottomBarItem(onClick = { select(index) }, enabled = reasons[index] == null,
+                modifier = navigationItemModifier(reasons[index])) {
+                Icon(destination.icon, stringResource(destination.label), modifier = Modifier.size(24.dp))
+                Text(stringResource(destination.label), fontSize = 10.sp, maxLines = 1)
+            }
         }
     }
 }
@@ -219,7 +404,7 @@ private fun AsterNavigationRail(
 }
 
 @Composable
-private fun navigationDisabledReason(
+internal fun navigationDisabledReason(
     destination: PrimaryDestination,
     capabilities: AsterNavigationCapabilities,
 ): String? = when {
@@ -235,7 +420,7 @@ private fun navigationDisabledReason(
     else -> null
 }
 
-private fun navigatePrimary(
+internal fun navigatePrimary(
     navigator: DestinationsNavigator,
     destination: PrimaryDestination,
     isCurrentDestination: Boolean,

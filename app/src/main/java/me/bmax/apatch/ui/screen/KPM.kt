@@ -211,6 +211,7 @@ fun KPModuleScreen(navigator: DestinationsNavigator) {
             )
         },
         floatingActionButton = {
+            Box(Modifier.padding(bottom = me.bmax.apatch.ui.shell.LocalFloatingNavigationInset.current)) {
             KPModuleFabMenu(
                 expanded = fabMenuExpanded,
                 onExpandedChange = { fabMenuExpanded = it },
@@ -222,6 +223,7 @@ fun KPModuleScreen(navigator: DestinationsNavigator) {
                 onInstall = launchInstallPicker,
                 onLoad = launchLoadPicker,
             )
+            }
         },
     ) { innerPadding ->
         KPModuleList(
@@ -453,7 +455,7 @@ private fun KPModuleList(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(
                 top = contentPadding.calculateTopPadding() + 8.dp,
-                bottom = contentPadding.calculateBottomPadding() + 96.dp,
+                bottom = contentPadding.calculateBottomPadding() + me.bmax.apatch.ui.shell.LocalFloatingNavigationInset.current + 96.dp,
                 start = 4.dp,
                 end = 4.dp,
             ),

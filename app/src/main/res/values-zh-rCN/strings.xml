@@ -44,6 +44,9 @@
     <string name="home_apatch_version">APatch 版本</string>
     <string name="home_su_path">可执行su路径</string>
     <string name="home_ap_cando_update">更新</string>
+    <string name="home_update_check">检查更新</string>
+    <string name="home_update_checking">正在检查更新…</string>
+    <string name="home_status_checking">检查中…</string>
     <string name="apatch_version_update">版本：%1$s → %2$s</string>
     <string name="home_kernel">内核版本</string>
     <string name="patch_title">修补</string>
@@ -229,8 +232,8 @@
     <string name="home_dialog_uninstall_ap_only">仅卸载系统补丁</string>
     <string name="home_dialog_uninstall_all">完全卸载</string>
     <string name="home_appearance">首页外观</string>
-    <string name="home_wallpaper_enable">显示壁纸</string>
-    <string name="home_wallpaper_enable_summary">仅在首页顶部环境区显示图片，不影响 Root 诊断。</string>
+    <string name="home_panorama_switch">全景模式</string>
+    <string name="home_panorama_switch_summary">首页变成壁纸场景，其他页面使用悬浮导航。</string>
     <string name="home_wallpaper_choose">选择图片</string>
     <string name="home_wallpaper_change">更换图片</string>
     <string name="home_wallpaper_remove">移除图片</string>
@@ -298,8 +301,29 @@
     <string name="navigation_android_patch_required">APatch 尚未安装</string>
 
     <string name="navigation_mode_title">导航布局</string>
+    <string name="global_layout_title">全局布局</string>
+    <string name="global_layout_panorama">全景模式</string>
+    <string name="global_layout_panorama_summary">首页是壁纸场景，其他页面使用悬浮导航。</string>
+    <string name="global_layout_standard">标准模式</string>
+    <string name="global_layout_standard_summary">所有页面使用传统的底部导航或侧栏导航。</string>
     <string name="navigation_mode_auto">自动适配</string>
     <string name="navigation_mode_bottom">底部导航</string>
     <string name="navigation_mode_sidebar">侧栏导航</string>
     <string name="navigation_mode_auto_summary">窄屏使用底部导航，宽屏使用侧栏导航。</string>
+    <string name="scene_expand">展开壁纸</string>
+    <string name="scene_restore">显示侧条</string>
+    <string name="floating_blur">悬浮栏背景模糊</string>
+    <string name="floating_blur_summary">模糊悬浮栏背后的页面内容</string>
+    <string name="floating_glass">液态玻璃</string>
+    <string name="floating_glass_summary">折射与交互高光，需开启背景模糊且系统为 Android 13 或更新版本</string>
+    <string name="floating_auto_hide">闲置时隐藏悬浮栏</string>
+    <string name="floating_auto_hide_summary">3 秒后隐藏，触摸页面重新显示</string>
+    <string name="floating_scroll_hide">向下浏览时隐藏悬浮栏</string>
+    <string name="floating_scroll_hide_summary">向上浏览或触摸页面重新显示</string>
+    <string name="floating_navigation">悬浮导航</string>
+    <string name="floating_navigation_forced">全景模式在非首页主页面固定使用</string>
+    <string name="floating_navigation_summary">使用悬浮导航替代普通底栏或侧栏</string>
+    <string name="home_refresh_requested">正在刷新状态</string>
+    <string name="home_update_current">已是最新版本</string>
+    <string name="home_update_failed">检查更新失败，请稍后重试</string>
 </resources>

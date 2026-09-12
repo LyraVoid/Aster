@@ -147,7 +147,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun checkForUpdates(force: Boolean = false) {
-        if (!updateCheckEnabled.value) {
+        if (!force && !updateCheckEnabled.value) {
             update.value = HomeUpdateState.Disabled
             return
         }

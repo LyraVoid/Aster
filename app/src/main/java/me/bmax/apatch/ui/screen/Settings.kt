@@ -42,7 +42,10 @@ import me.bmax.apatch.R
 import me.bmax.apatch.ui.component.rememberLoadingDialog
 import me.bmax.apatch.ui.settings.resolveSettingsFeatureAvailability
 import me.bmax.apatch.ui.shell.NavigationMode
+import me.bmax.apatch.ui.shell.GlobalLayout
+import me.bmax.apatch.ui.shell.rememberGlobalLayout
 import me.bmax.apatch.ui.shell.rememberNavigationMode
+import me.bmax.apatch.ui.shell.setGlobalLayout
 import me.bmax.apatch.ui.shell.setNavigationMode
 import me.bmax.apatch.ui.theme.refreshTheme
 import me.bmax.apatch.util.getBugreportFile
@@ -121,6 +124,8 @@ fun SettingScreen() {
     }
 
     val navigationMode by rememberNavigationMode()
+    val globalLayout by rememberGlobalLayout()
+    var showGlobalLayoutDialog by rememberSaveable { mutableStateOf(false) }
     var showNavigationModeDialog by rememberSaveable { mutableStateOf(false) }
     var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
     var showResetSuPathDialog by rememberSaveable { mutableStateOf(false) }
@@ -218,7 +223,7 @@ fun SettingScreen() {
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 top = innerPadding.calculateTopPadding() + 4.dp,
-                bottom = innerPadding.calculateBottomPadding() + 32.dp,
+                bottom = innerPadding.calculateBottomPadding() + me.bmax.apatch.ui.shell.LocalFloatingNavigationInset.current + 32.dp,
             ),
         ) {
             if (
@@ -349,11 +354,60 @@ fun SettingScreen() {
                     title = stringResource(R.string.settings_section_appearance),
                 ) {
                     ArrowPreference(
-                        title = stringResource(R.string.navigation_mode_title),
-                        summary = stringResource(navigationMode.label),
-                        startAction = { SettingsIcon(MiuixIcons.Layers) },
-                        onClick = { showNavigationModeDialog = true },
+                        title = stringResource(R.string.global_layout_title),
+                        summary = stringResource(globalLayout.label),
+                        startAction = { SettingsIcon(MiuixIcons.Theme) },
+                        onClick = { showGlobalLayoutDialog = true },
                     )
+
+                    val floatingPreferred by me.bmax.apatch.ui.shell.rememberVisualFlag("floating_navigation", false)
+                    SwitchPreference(
+                        title = stringResource(R.string.floating_navigation),
+                        summary = stringResource(if (globalLayout == GlobalLayout.Panorama) R.string.floating_navigation_forced else R.string.floating_navigation_summary),
+                        checked = globalLayout == GlobalLayout.Panorama || floatingPreferred,
+                        enabled = globalLayout == GlobalLayout.Standard,
+                        onCheckedChange = { me.bmax.apatch.ui.shell.setVisualFlag("floating_navigation", it) },
+                    )
+                    if (globalLayout == GlobalLayout.Standard && !floatingPreferred) {
+                        ArrowPreference(
+                            title = stringResource(R.string.navigation_mode_title),
+                            summary = stringResource(navigationMode.label),
+                            startAction = { SettingsIcon(MiuixIcons.Layers) },
+                            onClick = { showNavigationModeDialog = true },
+                        )
+                    }
+
+                    if (globalLayout == GlobalLayout.Panorama || floatingPreferred) {
+                        val floating_blur by me.bmax.apatch.ui.shell.rememberVisualFlag("floating_blur", true)
+                        SwitchPreference(
+                            title = stringResource(R.string.floating_blur),
+                            summary = stringResource(R.string.floating_blur_summary),
+                            checked = floating_blur,
+                            onCheckedChange = { me.bmax.apatch.ui.shell.setVisualFlag("floating_blur", it) },
+                        )
+                        val floating_glass by me.bmax.apatch.ui.shell.rememberVisualFlag("floating_glass", true)
+                        SwitchPreference(
+                            title = stringResource(R.string.floating_glass),
+                            summary = stringResource(R.string.floating_glass_summary),
+                            checked = floating_glass,
+                            enabled = floating_blur && android.os.Build.VERSION.SDK_INT >= 33,
+                            onCheckedChange = { me.bmax.apatch.ui.shell.setVisualFlag("floating_glass", it) },
+                        )
+                        val floating_auto_hide by me.bmax.apatch.ui.shell.rememberVisualFlag("floating_auto_hide", false)
+                        SwitchPreference(
+                            title = stringResource(R.string.floating_auto_hide),
+                            summary = stringResource(R.string.floating_auto_hide_summary),
+                            checked = floating_auto_hide,
+                            onCheckedChange = { me.bmax.apatch.ui.shell.setVisualFlag("floating_auto_hide", it) },
+                        )
+                        val floating_scroll_hide by me.bmax.apatch.ui.shell.rememberVisualFlag("floating_scroll_hide", false)
+                        SwitchPreference(
+                            title = stringResource(R.string.floating_scroll_hide),
+                            summary = stringResource(R.string.floating_scroll_hide_summary),
+                            checked = floating_scroll_hide,
+                            onCheckedChange = { me.bmax.apatch.ui.shell.setVisualFlag("floating_scroll_hide", it) },
+                        )
+                    }
 
                     SwitchPreference(
                         checked = nightFollowSystem,
@@ -455,6 +509,29 @@ fun SettingScreen() {
                         onClick = { showLogBottomSheet = true },
                     )
                 }
+            }
+        }
+
+        OverlayDialog(
+            show = showGlobalLayoutDialog,
+            title = stringResource(R.string.global_layout_title),
+            onDismissRequest = { showGlobalLayoutDialog = false },
+        ) {
+            GlobalLayout.entries.forEach { layout ->
+                RadioButtonPreference(
+                    title = stringResource(layout.label),
+                    summary = stringResource(
+                        when (layout) {
+                            GlobalLayout.Panorama -> R.string.global_layout_panorama_summary
+                            GlobalLayout.Standard -> R.string.global_layout_standard_summary
+                        }
+                    ),
+                    selected = globalLayout == layout,
+                    onClick = {
+                        showGlobalLayoutDialog = false
+                        setGlobalLayout(layout)
+                    },
+                )
             }
         }
 
