@@ -256,6 +256,7 @@ fun AsterAppShell(
                             LocalFloatingNavigationInset provides reservedContentBottom,
                             LocalSceneProgress provides sceneProgress,
                             LocalHomeSceneHostState provides homeSceneHost,
+                            LocalAsterCapabilities provides capabilities,
                         ) {
                             content(
                                 Modifier.fillMaxSize()

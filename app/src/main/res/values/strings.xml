@@ -197,6 +197,8 @@
     <string name="su_no_search_results">No matching applications</string>
     <string name="su_kernel_patch_required_title">KernelPatch required</string>
     <string name="su_kernel_patch_required_desc">Superuser access management requires an active KernelPatch installation.</string>
+    <string name="capability_kernel_patch_required_desc">This page needs an active KernelPatch installation.</string>
+    <string name="capability_android_patch_required_desc">System module management needs an active AndroidPatch installation.</string>
     <string name="su_back_to_home">Go to Home diagnosis</string>
     <string name="su_clear_search">Clear search</string>
     <string name="refresh_pulling">Pull down to refresh</string>

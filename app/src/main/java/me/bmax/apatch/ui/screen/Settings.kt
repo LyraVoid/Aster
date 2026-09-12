@@ -23,7 +23,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -100,12 +99,12 @@ private data class KernelRuntimeInfo(
 @Destination<RootGraph>
 @Composable
 fun SettingScreen() {
-    val state by APApplication.apStateLiveData.observeAsState(APApplication.State.UNKNOWN_STATE)
-    val kPatchReady = state != APApplication.State.UNKNOWN_STATE
-    val aPatchReady =
-        state == APApplication.State.ANDROIDPATCH_INSTALLING ||
-            state == APApplication.State.ANDROIDPATCH_INSTALLED ||
-            state == APApplication.State.ANDROIDPATCH_NEED_UPDATE
+    // Same source the navigation gates itself on: gating the settings section on the older
+    // APApplication state machine let the two disagree, so a row could survive next to a hidden
+    // page that needed exactly the layer it claimed was missing.
+    val capabilities = me.bmax.apatch.ui.shell.LocalAsterCapabilities.current
+    val kPatchReady = capabilities.kernelPatchReady
+    val aPatchReady = capabilities.androidPatchReady
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()

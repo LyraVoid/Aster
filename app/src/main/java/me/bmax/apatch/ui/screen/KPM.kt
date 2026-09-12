@@ -26,7 +26,6 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -37,9 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestination
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.PatchesDestination
@@ -55,12 +54,14 @@ import me.bmax.apatch.APApplication
 import me.bmax.apatch.Natives
 import me.bmax.apatch.R
 import me.bmax.apatch.apApp
+import me.bmax.apatch.ui.component.CapabilityNotice
 import me.bmax.apatch.ui.component.ConfirmResult
 import me.bmax.apatch.ui.component.LoadingDialogHandle
 import me.bmax.apatch.ui.component.rememberConfirmDialog
 import me.bmax.apatch.ui.component.rememberLoadingDialog
 import me.bmax.apatch.ui.kernelmodule.KPModuleContentState
 import me.bmax.apatch.ui.kernelmodule.resolveKPModuleContentState
+import me.bmax.apatch.ui.shell.LocalAsterCapabilities
 import me.bmax.apatch.ui.viewmodel.KPModel
 import me.bmax.apatch.ui.viewmodel.KPModuleViewModel
 import me.bmax.apatch.ui.viewmodel.PatchesViewModel
@@ -107,18 +108,8 @@ private data class UninstallResult(
 @Destination<RootGraph>
 @Composable
 fun KPModuleScreen(navigator: DestinationsNavigator) {
-    val state by APApplication.apStateLiveData.observeAsState(APApplication.State.UNKNOWN_STATE)
-    if (state == APApplication.State.UNKNOWN_STATE) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = stringResource(R.string.kpm_kp_not_installed),
-                style = MiuixTheme.textStyles.body2,
-                textAlign = TextAlign.Center,
-            )
-        }
+    if (!LocalAsterCapabilities.current.kernelPatchReady) {
+        MissingKernelPatchNotice(navigator)
         return
     }
 
@@ -656,5 +647,26 @@ fun KPMControlDialog(
                 }
             }
         }
+    }
+}
+
+/**
+ * KernelPatch is gone, so there is no kernel to list modules for. The navigation entry is hidden in
+ * this state as well; this page only appears if the redirect to Home has not run yet.
+ */
+@Composable
+private fun MissingKernelPatchNotice(navigator: DestinationsNavigator) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        CapabilityNotice(
+            title = stringResource(R.string.su_kernel_patch_required_title),
+            description = stringResource(R.string.capability_kernel_patch_required_desc),
+            actionLabel = stringResource(R.string.su_back_to_home),
+            onAction = { navigator.navigate(HomeScreenDestination) },
+        )
     }
 }

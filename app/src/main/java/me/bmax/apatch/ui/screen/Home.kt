@@ -1,5 +1,6 @@
 package me.bmax.apatch.ui.screen
 
+import me.bmax.apatch.ui.home.canUninstallAnything
 import me.bmax.apatch.ui.home.needsRootAccess
 import top.yukonga.miuix.kmp.basic.PullToRefresh
 
@@ -253,6 +254,10 @@ fun HomeScreen(navigator: DestinationsNavigator) {
         showReboot = false
         showUninstallDialog = true
     }
+    // The three-dot menu only offers uninstall when there is a layer to remove and a root session to
+    // remove it with; otherwise the entry opened a dialog whose every action was disabled.
+    val canUninstall = state.canUninstallAnything()
+
     val onMainCardClick = dropUnlessResumed {
         when (state.conclusion) {
             HomeConclusion.NOT_INSTALLED,
@@ -301,6 +306,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     Toast.makeText(context, R.string.home_refresh_requested, Toast.LENGTH_SHORT).show()
                 },
                 onUninstallClick = onUninstallClick,
+                canUninstall = canUninstall,
                 onInstallApatch = viewModel::installApatch,
                 onDismissBackupWarning = viewModel::dismissBackupWarning,
                 onUpdateClick = { showUpdateDialog = true },
@@ -311,6 +317,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 topBar = {
                     HomeTopBar(
                         canReboot = state.capability.rootAccess == RootAccessProbeState.AVAILABLE,
+                        canUninstall = canUninstall,
                         showMore = showMore,
                         showReboot = showReboot,
                         onShowMoreChange = { showMore = it },
@@ -465,6 +472,7 @@ private fun HomeScenePanel(
     onKpmClick: () -> Unit,
     onRefresh: () -> Unit,
     onUninstallClick: () -> Unit,
+    canUninstall: Boolean,
     onInstallApatch: () -> Unit,
     onDismissBackupWarning: () -> Unit,
     onUpdateClick: () -> Unit,
@@ -683,6 +691,7 @@ private fun HomeScenePanel(
             onShowMoreChange = onShowMoreChange,
             onShowRebootChange = onShowRebootChange,
             canReboot = canReboot,
+            canUninstall = canUninstall,
             onUninstallClick = onUninstallClick,
             onInstallClick = onInstallClick,
             onFeedback = onFeedback,
@@ -850,6 +859,7 @@ private fun sceneQuote(): String {
 @Composable
 private fun HomeTopBar(
     canReboot: Boolean,
+    canUninstall: Boolean,
     showMore: Boolean,
     showReboot: Boolean,
     onShowMoreChange: (Boolean) -> Unit,
@@ -886,6 +896,7 @@ private fun HomeTopBar(
                     onShowMoreChange = onShowMoreChange,
                     onShowRebootChange = onShowRebootChange,
                     canReboot = canReboot,
+                    canUninstall = canUninstall,
                     onUninstallClick = onUninstallClick,
                     onInstallClick = onInstallClick,
                     onFeedback = onFeedback,
@@ -905,6 +916,7 @@ private fun HomeActionsSheet(
     onShowMoreChange: (Boolean) -> Unit,
     onShowRebootChange: (Boolean) -> Unit,
     canReboot: Boolean,
+    canUninstall: Boolean,
     onUninstallClick: () -> Unit,
     onInstallClick: () -> Unit,
     onFeedback: () -> Unit,
@@ -967,12 +979,14 @@ private fun HomeActionsSheet(
                         text = stringResource(R.string.home_more_menu_about),
                         onClick = onAbout,
                     )
-                    PopupMenuItem(
-                        icon = MiuixIcons.Delete,
-                        text = stringResource(R.string.home_dialog_uninstall_title),
-                        onClick = onUninstallClick,
-                        destructive = true,
-                    )
+                    if (canUninstall) {
+                        PopupMenuItem(
+                            icon = MiuixIcons.Delete,
+                            text = stringResource(R.string.home_dialog_uninstall_title),
+                            onClick = onUninstallClick,
+                            destructive = true,
+                        )
+                    }
                 }
             }
         }

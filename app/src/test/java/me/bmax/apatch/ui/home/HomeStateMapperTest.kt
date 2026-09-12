@@ -8,6 +8,8 @@ import me.bmax.apatch.root.RootLayerState
 import me.bmax.apatch.root.RootMode
 import me.bmax.apatch.util.LatestVersionInfo
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class HomeStateMapperTest {
@@ -83,6 +85,116 @@ class HomeStateMapperTest {
 
         assertEquals(HomeConclusion.KERNEL_PATCH_ONLY, state.conclusion)
         assertEquals(HomePrimaryAction.INSTALL_APATCH, state.primaryAction)
+    }
+
+    @Test
+    fun `unreadable android patch keeps the apatch installation entry`() {
+        // The attention flag is absent here, so only the layer state can offer the entry. Without
+        // it the navigation hides the module page and no button is left to install the patch.
+        val state = HomeStateMapper.map(
+            capability = readyCapability(
+                kernelPatch = RootLayerState.AVAILABLE,
+                androidPatch = RootLayerState.UNKNOWN,
+                mode = RootMode.KERNEL_PATCH_ONLY,
+            ),
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+        )
+
+        assertEquals(HomeConclusion.KERNEL_PATCH_ONLY, state.conclusion)
+        assertEquals(HomePrimaryAction.INSTALL_APATCH, state.primaryAction)
+    }
+
+    @Test
+    fun `failed android patch read keeps the apatch installation entry`() {
+        val state = HomeStateMapper.map(
+            capability = readyCapability(
+                kernelPatch = RootLayerState.AVAILABLE,
+                androidPatch = RootLayerState.ERROR,
+                mode = RootMode.KERNEL_PATCH_ONLY,
+            ),
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+        )
+
+        assertEquals(HomePrimaryAction.INSTALL_APATCH, state.primaryAction)
+    }
+
+    @Test
+    fun `a full installation offers no installation entry`() {
+        val state = HomeStateMapper.map(
+            capability = readyCapability(
+                kernelPatch = RootLayerState.AVAILABLE,
+                androidPatch = RootLayerState.AVAILABLE,
+                mode = RootMode.FULL_APATCH,
+            ),
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.UpToDate,
+        )
+
+        assertEquals(HomePrimaryAction.NONE, state.primaryAction)
+    }
+
+    @Test
+    fun `uninstall entry disappears without a root session`() {
+        val state = HomeStateMapper.map(
+            capability = readyCapability(
+                kernelPatch = RootLayerState.AVAILABLE,
+                androidPatch = RootLayerState.AVAILABLE,
+                mode = RootMode.FULL_APATCH,
+            ).copy(rootAccess = RootAccessProbeState.UNAVAILABLE),
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+        )
+
+        assertFalse(state.canUninstallAnything())
+    }
+
+    @Test
+    fun `uninstall entry disappears when no layer is installed`() {
+        val state = HomeStateMapper.map(
+            capability = readyCapability(
+                kernelPatch = RootLayerState.UNAVAILABLE,
+                androidPatch = RootLayerState.UNAVAILABLE,
+                mode = RootMode.NONE,
+            ),
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+        )
+
+        assertFalse(state.canUninstallAnything())
+    }
+
+    @Test
+    fun `uninstall entry survives as long as one layer can come off`() {
+        val kernelOnly = HomeStateMapper.map(
+            capability = readyCapability(
+                kernelPatch = RootLayerState.AVAILABLE,
+                androidPatch = RootLayerState.UNAVAILABLE,
+                mode = RootMode.KERNEL_PATCH_ONLY,
+            ),
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+        )
+        val androidOnly = HomeStateMapper.map(
+            capability = readyCapability(
+                kernelPatch = RootLayerState.NEED_REBOOT,
+                androidPatch = RootLayerState.AVAILABLE,
+                mode = RootMode.FULL_APATCH,
+            ),
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+        )
+
+        assertTrue(kernelOnly.canUninstallAnything())
+        assertTrue(androidOnly.canUninstallAnything())
     }
 
     @Test

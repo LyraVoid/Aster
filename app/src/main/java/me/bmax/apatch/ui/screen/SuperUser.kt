@@ -49,6 +49,7 @@ import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.component.CapabilityNotice
 import me.bmax.apatch.ui.superuser.SuperUserItem
 import me.bmax.apatch.ui.superuser.SuperUserSort
 import me.bmax.apatch.ui.superuser.SuperUserUiState
@@ -72,7 +73,6 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.GridView
-import top.yukonga.miuix.kmp.icon.extended.Info
 import top.yukonga.miuix.kmp.icon.extended.Lock
 import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.icon.extended.Ok
@@ -144,9 +144,10 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                 if (!uiState.isKernelPatchReady) {
                     item(key = "capability-notice") {
                         CapabilityNotice(
-                            onOpenHome = {
-                                navigator.navigate(HomeScreenDestination)
-                            },
+                            title = stringResource(R.string.su_kernel_patch_required_title),
+                            description = stringResource(R.string.su_kernel_patch_required_desc),
+                            actionLabel = stringResource(R.string.su_back_to_home),
+                            onAction = { navigator.navigate(HomeScreenDestination) },
                         )
                     }
                 }
@@ -463,53 +464,6 @@ private fun StatusBadge(label: String) {
             maxLines = 1,
             softWrap = false,
         )
-    }
-}
-
-@Composable
-private fun CapabilityNotice(
-    onOpenHome: () -> Unit,
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        colors = CardDefaults.defaultColors(
-            color = MiuixTheme.colorScheme.errorContainer,
-            contentColor = MiuixTheme.colorScheme.onErrorContainer,
-        ),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Icon(
-                imageVector = MiuixIcons.Info,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MiuixTheme.colorScheme.onErrorContainer,
-            )
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.su_kernel_patch_required_title),
-                    style = MiuixTheme.textStyles.body1,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Text(
-                    text = stringResource(R.string.su_kernel_patch_required_desc),
-                    modifier = Modifier.padding(top = 4.dp),
-                    style = MiuixTheme.textStyles.body2,
-                )
-                TextButton(
-                    text = stringResource(R.string.su_back_to_home),
-                    onClick = onOpenHome,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-            }
-        }
     }
 }
 

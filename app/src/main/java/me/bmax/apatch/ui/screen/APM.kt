@@ -28,7 +28,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -38,10 +37,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestination
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.ExecuteAPMActionScreenDestination
@@ -50,10 +49,10 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
 import me.bmax.apatch.apApp
 import me.bmax.apatch.ui.WebUIActivity
+import me.bmax.apatch.ui.component.CapabilityNotice
 import me.bmax.apatch.ui.component.ConfirmResult
 import me.bmax.apatch.ui.component.rememberConfirmDialog
 import me.bmax.apatch.ui.component.rememberLoadingDialog
@@ -62,6 +61,7 @@ import me.bmax.apatch.ui.module.MetaModuleWarning
 import me.bmax.apatch.ui.module.resolveAPModuleContentState
 import me.bmax.apatch.ui.module.shouldScrollToTopAfterModuleLoad
 import me.bmax.apatch.ui.viewmodel.APModuleViewModel
+import me.bmax.apatch.ui.shell.LocalAsterCapabilities
 import me.bmax.apatch.util.DownloadListener
 import me.bmax.apatch.util.download
 import me.bmax.apatch.util.isJailbreakMode
@@ -95,19 +95,21 @@ import top.yukonga.miuix.kmp.utils.overScrollVertical
 fun APModuleScreen(navigator: DestinationsNavigator) {
     val snackBarHost = LocalSnackbarHost.current
     val context = LocalContext.current
-    val state by APApplication.apStateLiveData.observeAsState(APApplication.State.UNKNOWN_STATE)
-
-    if (state != APApplication.State.ANDROIDPATCH_INSTALLED && state != APApplication.State.ANDROIDPATCH_NEED_UPDATE) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = stringResource(R.string.apm_not_installed),
-                style = MiuixTheme.textStyles.body2,
-                textAlign = TextAlign.Center,
-            )
-        }
+    val capabilities = LocalAsterCapabilities.current
+    if (!capabilities.kernelPatchReady) {
+        MissingLayerNotice(
+            navigator = navigator,
+            title = stringResource(R.string.su_kernel_patch_required_title),
+            description = stringResource(R.string.capability_kernel_patch_required_desc),
+        )
+        return
+    }
+    if (!capabilities.androidPatchReady) {
+        MissingLayerNotice(
+            navigator = navigator,
+            title = stringResource(R.string.apm_not_installed),
+            description = stringResource(R.string.capability_android_patch_required_desc),
+        )
         return
     }
 
@@ -602,5 +604,31 @@ private fun APModuleList(
         }
 
         DownloadListener(context, onInstallModule)
+    }
+}
+
+/**
+ * The layer this page lists modules for is not installed, so the list would be empty with no
+ * explanation. The navigation hides the entry in the same states; this page only appears if the
+ * redirect to Home has not run yet.
+ */
+@Composable
+private fun MissingLayerNotice(
+    navigator: DestinationsNavigator,
+    title: String,
+    description: String,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        CapabilityNotice(
+            title = title,
+            description = description,
+            actionLabel = stringResource(R.string.su_back_to_home),
+            onAction = { navigator.navigate(HomeScreenDestination) },
+        )
     }
 }

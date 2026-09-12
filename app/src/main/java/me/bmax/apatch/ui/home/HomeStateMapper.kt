@@ -109,7 +109,11 @@ internal object HomeStateMapper {
         capability.attention.contains(RootAttention.NEED_INSTALL) ->
             HomePrimaryAction.INSTALL_KERNEL_PATCH
 
-        capability.attention.contains(RootAttention.NEED_APATCH_INSTALL) ->
+        // Covers the attention flag as well as every other unusable system patch (unreadable
+        // version, probe error). Gating on the flag alone left a device with a working kernel and
+        // an unreadable system patch with no way to install it: the module page is hidden and no
+        // button was offered.
+        capability.kernelPatch.isUsable() && !capability.androidPatch.isUsable() ->
             HomePrimaryAction.INSTALL_APATCH
 
         else -> HomePrimaryAction.NONE
@@ -130,3 +134,13 @@ internal object HomeStateMapper {
 internal fun HomeUiState.needsRootAccess(): Boolean =
     capability.phase == RootCheckPhase.READY && capability.kernelPatch.isUsable() &&
         capability.rootAccess != RootAccessProbeState.AVAILABLE
+
+/**
+ * Whether the uninstall entry has anything to do. Removing either layer needs a root session, and at
+ * least one layer has to be there; otherwise the entry would only open a dialog whose every action
+ * is disabled.
+ */
+internal fun HomeUiState.canUninstallAnything(): Boolean =
+    capability.rootAccess == RootAccessProbeState.AVAILABLE &&
+        (capability.kernelPatch.isUsable() ||
+            capability.androidPatch == RootLayerState.AVAILABLE)
