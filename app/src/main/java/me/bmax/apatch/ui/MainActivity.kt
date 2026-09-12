@@ -59,8 +59,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 val rootCapability by RootCapabilityRepository.snapshot.collectAsStateWithLifecycle()
                 val capabilities = AsterNavigationCapabilities(
-                    kernelPatchChecked = rootCapability.phase == RootCheckPhase.READY ||
-                        rootCapability.phase == RootCheckPhase.FAILED,
                     kernelPatchReady = rootCapability.kernelPatch.isUsable(),
                     androidPatchReady = rootCapability.androidPatch.isUsable(),
                 )

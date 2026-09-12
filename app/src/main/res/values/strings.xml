@@ -402,9 +402,6 @@
     <string name="crash_handle_copied">Crash log copied to clipboard.</string>
     <string name="navigation_expand">Expand navigation</string>
     <string name="navigation_collapse">Collapse navigation</string>
-    <string name="navigation_checking_root">Checking Root capabilities</string>
-    <string name="navigation_kernel_patch_required">KernelPatch is not ready</string>
-    <string name="navigation_android_patch_required">APatch is not installed</string>
 
     <string name="navigation_mode_title">Navigation layout</string>
     <string name="global_layout_title">Global layout</string>

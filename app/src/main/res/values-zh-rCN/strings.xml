@@ -305,9 +305,6 @@
     <string name="kpm_install_toast_succ">安装成功，重启后生效</string>
     <string name="navigation_expand">展开导航</string>
     <string name="navigation_collapse">收起导航</string>
-    <string name="navigation_checking_root">正在检查 Root 能力</string>
-    <string name="navigation_kernel_patch_required">KernelPatch 尚未就绪</string>
-    <string name="navigation_android_patch_required">APatch 尚未安装</string>
 
     <string name="navigation_mode_title">导航布局</string>
     <string name="global_layout_title">全局布局</string>

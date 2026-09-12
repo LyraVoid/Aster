@@ -302,7 +302,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 },
                 onUninstallClick = onUninstallClick,
                 onInstallApatch = viewModel::installApatch,
-                onUninstallApatch = viewModel::uninstallApatch,
                 onDismissBackupWarning = viewModel::dismissBackupWarning,
                 onUpdateClick = { showUpdateDialog = true },
                 onLearnMore = { uriHandler.openUri("https://apatch.dev") },
@@ -467,7 +466,6 @@ private fun HomeScenePanel(
     onRefresh: () -> Unit,
     onUninstallClick: () -> Unit,
     onInstallApatch: () -> Unit,
-    onUninstallApatch: () -> Unit,
     onDismissBackupWarning: () -> Unit,
     onUpdateClick: () -> Unit,
     onLearnMore: () -> Unit,
@@ -644,22 +642,31 @@ private fun HomeScenePanel(
                         )
                     }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        ModuleCountCard(
-                            label = stringResource(R.string.apm),
-                            count = state.apmCount,
-                            onClick = onApmClick,
-                            modifier = Modifier.weight(1f),
-                        )
-                        ModuleCountCard(
-                            label = stringResource(R.string.kpm),
-                            count = state.kpmCount,
-                            onClick = onKpmClick,
-                            modifier = Modifier.weight(1f),
-                        )
+                    val showApm = state.capability.kernelPatch.isUsable() &&
+                        state.capability.androidPatch.isUsable()
+                    val showKpm = state.capability.kernelPatch.isUsable()
+                    if (showApm || showKpm) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            if (showApm) {
+                                ModuleCountCard(
+                                    label = stringResource(R.string.apm),
+                                    count = state.apmCount,
+                                    onClick = onApmClick,
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                            if (showKpm) {
+                                ModuleCountCard(
+                                    label = stringResource(R.string.kpm),
+                                    count = state.kpmCount,
+                                    onClick = onKpmClick,
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                        }
                     }
 
                     DeviceInfoCard(state = state)
@@ -1443,28 +1450,37 @@ private fun KStatusCard(
             }
         }
 
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            ModuleCountCard(
-                label = stringResource(R.string.apm),
-                count = state.apmCount,
-                onClick = onApmClick,
+        val showApm = state.capability.kernelPatch.isUsable() &&
+            state.capability.androidPatch.isUsable()
+        val showKpm = state.capability.kernelPatch.isUsable()
+        if (showApm || showKpm) {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-            )
-            ModuleCountCard(
-                label = stringResource(R.string.kpm),
-                count = state.kpmCount,
-                onClick = onKpmClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-            )
+                    .weight(1f)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                if (showApm) {
+                    ModuleCountCard(
+                        label = stringResource(R.string.apm),
+                        count = state.apmCount,
+                        onClick = onApmClick,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                    )
+                }
+                if (showKpm) {
+                    ModuleCountCard(
+                        label = stringResource(R.string.kpm),
+                        count = state.kpmCount,
+                        onClick = onKpmClick,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                    )
+                }
+            }
         }
     }
 }

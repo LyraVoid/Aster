@@ -52,8 +52,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -138,31 +136,28 @@ internal fun HomeSceneRail(
         Spacer(Modifier.height(24.dp))
         SceneBattery()
         Spacer(Modifier.weight(1f))
-        PrimaryDestination.entries.filter { it != PrimaryDestination.Home }.forEach { destination ->
-            val selected by navController.isRouteOnBackStackAsState(destination.direction)
-            val disabledReason = navigationDisabledReason(destination, capabilities)
-            SceneRailItem(
-                selected = selected,
-                enabled = disabledReason == null,
-                icon = destination.icon,
-                label = stringResource(destination.label),
-                disabledReason = disabledReason,
-                onClick = {
-                    navigatePrimary(
-                        navigator = navigator,
-                        destination = destination,
-                        isCurrentDestination = selected,
-                    )
-                },
-            )
-        }
+        visiblePrimaryDestinations(capabilities)
+            .filter { it != PrimaryDestination.Home }
+            .forEach { destination ->
+                val selected by navController.isRouteOnBackStackAsState(destination.direction)
+                SceneRailItem(
+                    selected = selected,
+                    icon = destination.icon,
+                    label = stringResource(destination.label),
+                    onClick = {
+                        navigatePrimary(
+                            navigator = navigator,
+                            destination = destination,
+                            isCurrentDestination = selected,
+                        )
+                    },
+                )
+            }
         Spacer(Modifier.height(12.dp))
         SceneRailItem(
             selected = false,
-            enabled = true,
             icon = MiuixIcons.Photos,
             label = stringResource(me.bmax.apatch.R.string.home_appearance),
-            disabledReason = null,
             onClick = onAppearance,
         )
         Spacer(
@@ -176,28 +171,17 @@ internal fun HomeSceneRail(
 @Composable
 private fun SceneRailItem(
     selected: Boolean,
-    enabled: Boolean,
     icon: ImageVector,
     label: String?,
-    disabledReason: String?,
     onClick: () -> Unit,
 ) {
-    val alpha = when {
-        !enabled -> 0.34f
-        selected -> 1f
-        else -> 0.74f
-    }
+    val alpha = if (selected) 1f else 0.74f
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp, vertical = 4.dp)
             .clip(RoundedCornerShape(18.dp))
-            .clickable(enabled = enabled, onClick = onClick)
-            .then(
-                if (disabledReason == null) Modifier else Modifier.semantics {
-                    stateDescription = disabledReason
-                }
-            )
+            .clickable(onClick = onClick)
             .padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),

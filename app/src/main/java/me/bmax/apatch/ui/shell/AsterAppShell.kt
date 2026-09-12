@@ -60,10 +60,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -76,7 +73,6 @@ import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
 import me.bmax.apatch.util.ui.LocalSnackbarHost
-import top.yukonga.miuix.kmp.basic.Badge
 import top.yukonga.miuix.kmp.basic.NavigationBar
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
 import top.yukonga.miuix.kmp.basic.NavigationRail
@@ -122,6 +118,20 @@ fun AsterAppShell(
         }
     }
     val primaryPage = PrimaryDestination.entries.any { it.direction.route == backStackEntry?.destination?.route }
+    val visibleDestinations = visiblePrimaryDestinations(capabilities)
+    // Capabilities can arrive after the user is already on a page: sending them home beats leaving
+    // a screen the navigation no longer offers.
+    LaunchedEffect(visibleDestinations, backStackEntry) {
+        val route = backStackEntry?.destination?.route ?: return@LaunchedEffect
+        val current = PrimaryDestination.entries.firstOrNull { it.direction.route == route }
+            ?: return@LaunchedEffect
+        if (current !in visibleDestinations) {
+            navController.navigate(PrimaryDestination.Home.direction) {
+                popUpTo(HomeScreenDestination) { saveState = false }
+                launchSingleTop = true
+            }
+        }
+    }
     val floatingPreferred by rememberVisualFlag("floating_navigation", false)
     val floatingShell = panorama || floatingPreferred
     val floatingNavigation = floatingShell && primaryPage && !sceneActive
@@ -248,7 +258,7 @@ fun AsterAppShell(
                 enter = fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
                 exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom),
             ) {
-                AsterBottomNavigation(navController, capabilities)
+                AsterBottomNavigation(navController, visibleDestinations)
             }
         }
 
@@ -256,7 +266,7 @@ fun AsterAppShell(
             modifier = Modifier.align(Alignment.BottomCenter), enter = fadeIn(), exit = fadeOut()) {
             AsterFloatingNavigation(
                 navController = navController,
-                capabilities = capabilities,
+                destinations = visibleDestinations,
                 backdrop = backdrop,
                 blurEnabled = blurEnabled && Build.VERSION.SDK_INT >= 31,
                 glassEnabled = blurEnabled && glassEnabled && Build.VERSION.SDK_INT >= 33,
@@ -285,26 +295,20 @@ private fun NavigationScrim(visible: Boolean, onDismiss: () -> Unit) {
 @Composable
 private fun AsterBottomNavigation(
     navController: NavHostController,
-    capabilities: AsterNavigationCapabilities,
+    destinations: List<PrimaryDestination>,
 ) {
     val navigator = navController.rememberDestinationsNavigator()
     NavigationBar(
         modifier = Modifier.background(MiuixTheme.colorScheme.surface)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
     ) {
-        PrimaryDestination.entries.forEach { destination ->
+        destinations.forEach { destination ->
             val selected by navController.isRouteOnBackStackAsState(destination.direction)
-            val disabledReason = navigationDisabledReason(destination, capabilities)
             NavigationBarItem(
                 selected = selected,
                 onClick = { navigatePrimary(navigator, destination, selected) },
                 icon = destination.icon,
                 label = stringResource(destination.label),
-                enabled = disabledReason == null,
-                badge = if (disabledReason == null) null else {
-                    { Badge { Text("!") } }
-                },
-                modifier = navigationItemModifier(disabledReason),
             )
         }
     }
@@ -313,7 +317,7 @@ private fun AsterBottomNavigation(
 @Composable
 private fun AsterFloatingNavigation(
     navController: NavHostController,
-    capabilities: AsterNavigationCapabilities,
+    destinations: List<PrimaryDestination>,
     backdrop: Backdrop,
     blurEnabled: Boolean,
     glassEnabled: Boolean,
@@ -321,35 +325,25 @@ private fun AsterFloatingNavigation(
 ) {
     val navigator = navController.rememberDestinationsNavigator()
     val entry by navController.currentBackStackEntryAsState()
-    val selected = PrimaryDestination.entries.indexOfFirst { it.direction.route == entry?.destination?.route }.coerceAtLeast(0)
-    val reasons = PrimaryDestination.entries.map { navigationDisabledReason(it, capabilities) }
+    val selected = destinations.indexOfFirst { it.direction.route == entry?.destination?.route }
+        .coerceAtLeast(0)
     val select: (Int) -> Unit = { index ->
-        if (reasons[index] == null) navigatePrimary(navigator, PrimaryDestination.entries[index], selected == index)
+        navigatePrimary(navigator, destinations[index], selected == index)
     }
     FloatingBottomBar(
         modifier = modifier.widthIn(max = 440.dp).fillMaxWidth(),
         selectedIndex = { selected }, onSelected = select,
-        backdrop = backdrop, tabsCount = PrimaryDestination.entries.size,
-        canSelect = { reasons[it] == null },
+        backdrop = backdrop, tabsCount = destinations.size,
         isBackdropBlurEnabled = blurEnabled, isLiquidGlassEnabled = glassEnabled,
     ) {
-        PrimaryDestination.entries.forEachIndexed { index, destination ->
-            FloatingBottomBarItem(onClick = { select(index) }, enabled = reasons[index] == null,
-                modifier = navigationItemModifier(reasons[index])) {
+        destinations.forEachIndexed { index, destination ->
+            FloatingBottomBarItem(onClick = { select(index) }) {
                 Icon(destination.icon, stringResource(destination.label), modifier = Modifier.size(24.dp))
                 Text(stringResource(destination.label), fontSize = 10.sp, maxLines = 1)
             }
         }
     }
 }
-
-private fun navigationItemModifier(disabledReason: String?): Modifier = Modifier
-    .alpha(if (disabledReason == null) 1f else 0.42f)
-    .then(
-        if (disabledReason == null) Modifier else Modifier.semantics {
-            stateDescription = disabledReason
-        }
-    )
 
 @Composable
 private fun AsterNavigationRail(
@@ -369,9 +363,8 @@ private fun AsterNavigationRail(
         expandContentDescription = stringResource(R.string.navigation_expand),
         collapseContentDescription = stringResource(R.string.navigation_collapse),
     ) {
-        PrimaryDestination.entries.forEach { destination ->
+        visiblePrimaryDestinations(capabilities).forEach { destination ->
             val isCurrentDestination by navController.isRouteOnBackStackAsState(destination.direction)
-            val disabledReason = navigationDisabledReason(destination, capabilities)
 
             NavigationRailItem(
                 selected = isCurrentDestination,
@@ -387,37 +380,9 @@ private fun AsterNavigationRail(
                 },
                 icon = destination.icon,
                 label = stringResource(destination.label),
-                enabled = disabledReason == null,
-                badge = if (disabledReason == null) {
-                    null
-                } else {
-                    {
-                        Badge {
-                            Text("!")
-                        }
-                    }
-                },
-                modifier = navigationItemModifier(disabledReason),
             )
         }
     }
-}
-
-@Composable
-internal fun navigationDisabledReason(
-    destination: PrimaryDestination,
-    capabilities: AsterNavigationCapabilities,
-): String? = when {
-    destination.kernelPatchRequired && !capabilities.kernelPatchChecked ->
-        stringResource(R.string.navigation_checking_root)
-
-    destination.kernelPatchRequired && !capabilities.kernelPatchReady ->
-        stringResource(R.string.navigation_kernel_patch_required)
-
-    destination.androidPatchRequired && !capabilities.androidPatchReady ->
-        stringResource(R.string.navigation_android_patch_required)
-
-    else -> null
 }
 
 internal fun navigatePrimary(

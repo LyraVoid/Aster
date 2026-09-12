@@ -59,3 +59,25 @@ enum class PrimaryDestination(
         false
     )
 }
+
+/**
+ * Destinations the shell may show for the current capability snapshot. Pages that the device
+ * cannot use yet are hidden rather than disabled, so navigation never advertises a dead end.
+ *
+ * Checking counts as unavailable: entries appear once the probe reports a usable patch instead of
+ * flashing in and disappearing again.
+ */
+internal fun visiblePrimaryDestinations(
+    capabilities: AsterNavigationCapabilities,
+): List<PrimaryDestination> = PrimaryDestination.entries.filter { it.isVisible(capabilities) }
+
+internal fun PrimaryDestination.isVisible(
+    capabilities: AsterNavigationCapabilities,
+): Boolean = when {
+    this == PrimaryDestination.Home || this == PrimaryDestination.Settings -> true
+    // Every remaining page needs the kernel layer, so one guard covers KModule and SuperUser
+    // before the AndroidPatch-only page is considered.
+    !capabilities.kernelPatchReady -> false
+    androidPatchRequired -> capabilities.androidPatchReady
+    else -> true
+}
