@@ -340,8 +340,7 @@
 
     <string name="home_more_menu_feedback_or_suggestion">Feedback or suggestion</string>
     <string name="home_more_menu_about">About</string>
-    <string name="home_root_tools">Root tools</string>
-    <string name="home_root_tools_summary">Install or patch, reboot, and other manager actions</string>
+    <string name="home_scene_working">Working normally</string>
     <string name="home_root_access_missing">Root access unavailable</string>
     <string name="home_root_access_missing_summary">KernelPatch is installed, but this manager cannot open a root session. Grant root permission again or refresh after fixing the root layer.</string>
 
@@ -349,7 +348,8 @@
 
     <string name="home_dialog_uninstall_ap_only">Remove AndroidPatch</string>
     <string name="home_dialog_uninstall_all">Uninstall all</string>
-    <string name="home_dialog_uninstall_message">Remove AndroidPatch only removes the manager app and keeps the patched boot image. Uninstall all also restores the stock boot image, and the device will lose root until it is patched again.</string>
+    <string name="home_dialog_uninstall_message">Remove AndroidPatch removes the system patch and keeps the kernel patch. Uninstall all removes the system patch, then opens the kernel patch removal flow. Complete that flow to finish uninstalling.</string>
+    <string name="home_uninstall_unavailable">An option is unavailable when its patch is not installed or is not ready to be removed.</string>
 
     <string name="kpm_control_dialog_title">Control KPModule</string>
     <string name="kpm_control_dialog_content">Input control parameters:</string>

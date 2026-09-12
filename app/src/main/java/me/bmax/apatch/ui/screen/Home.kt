@@ -15,6 +15,11 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -88,6 +93,7 @@ import me.bmax.apatch.root.RootAccessProbeState
 import me.bmax.apatch.root.RootDetailState
 import me.bmax.apatch.root.RootLayerState
 import me.bmax.apatch.root.RootMode
+import me.bmax.apatch.root.isUsable
 import me.bmax.apatch.ui.home.HomeConclusion
 import me.bmax.apatch.ui.home.HomeDeviceDensity
 import me.bmax.apatch.ui.home.HomeDeviceEnvironment
@@ -120,8 +126,6 @@ import top.yukonga.miuix.kmp.basic.CardColors
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.ListPopupColumn
-import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Slider
 import top.yukonga.miuix.kmp.basic.SmallTopAppBar
@@ -129,7 +133,9 @@ import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.Close
+import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.icon.extended.Download
 import top.yukonga.miuix.kmp.icon.extended.ExpandLess
 import top.yukonga.miuix.kmp.icon.extended.ExpandMore
@@ -149,7 +155,6 @@ import top.yukonga.miuix.kmp.icon.extended.Unlock
 import top.yukonga.miuix.kmp.icon.extended.Update
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
-import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.window.WindowBottomSheet
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.LocalContentColor
@@ -243,6 +248,11 @@ fun HomeScreen(navigator: DestinationsNavigator) {
     val onKpmClick = dropUnlessResumed {
         navigator.navigate(KPModuleScreenDestination)
     }
+    val onUninstallClick = {
+        showMore = false
+        showReboot = false
+        showUninstallDialog = true
+    }
     val onMainCardClick = dropUnlessResumed {
         when (state.conclusion) {
             HomeConclusion.NOT_INSTALLED,
@@ -290,6 +300,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     viewModel.refreshCapabilities()
                     Toast.makeText(context, R.string.home_refresh_requested, Toast.LENGTH_SHORT).show()
                 },
+                onUninstallClick = onUninstallClick,
                 onInstallApatch = viewModel::installApatch,
                 onUninstallApatch = viewModel::uninstallApatch,
                 onDismissBackupWarning = viewModel::dismissBackupWarning,
@@ -305,6 +316,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                         showReboot = showReboot,
                         onShowMoreChange = { showMore = it },
                         onShowRebootChange = { showReboot = it },
+                        onUninstallClick = onUninstallClick,
                         onAppearance = { showWallpaperSheet = true },
                         onInstallClick = {
                             showMore = false
@@ -394,6 +406,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
         if (showUninstallDialog) {
             UninstallDialog(
                 show = true,
+                state = state,
                 onDismiss = { showUninstallDialog = false },
                 onRemoveAndroidPatch = {
                     showUninstallDialog = false
@@ -452,6 +465,7 @@ private fun HomeScenePanel(
     onApmClick: () -> Unit,
     onKpmClick: () -> Unit,
     onRefresh: () -> Unit,
+    onUninstallClick: () -> Unit,
     onInstallApatch: () -> Unit,
     onUninstallApatch: () -> Unit,
     onDismissBackupWarning: () -> Unit,
@@ -510,7 +524,7 @@ private fun HomeScenePanel(
                         .pointerInput(sidebarExpanded) {
                             detectTapGestures(onDoubleTap = { toggleSidebar() })
                         }
-                        .clip(RoundedCornerShape(24.dp)),
+                        .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
                 ) {
                     if (!wallpaperState.isReady) {
                         Box(
@@ -553,11 +567,18 @@ private fun HomeScenePanel(
                                 )
                             )
                     )
-                    top.yukonga.miuix.kmp.basic.TextButton(
-                        text = stringResource(if (sidebarExpanded) R.string.scene_expand else R.string.scene_restore),
+                    IconButton(
                         onClick = toggleSidebar,
-                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
-                    )
+                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).size(48.dp),
+                        backgroundColor = Color.Transparent,
+                    ) {
+                        Icon(
+                            painter = painterResource(if (sidebarExpanded) R.drawable.wallpaper_expand else R.drawable.wallpaper_collapse),
+                            contentDescription = stringResource(if (sidebarExpanded) R.string.scene_expand else R.string.scene_restore),
+                            modifier = Modifier.size(24.dp),
+                            tint = Color.Unspecified,
+                        )
+                    }
                     Column(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
@@ -659,18 +680,16 @@ private fun HomeScenePanel(
             }
         }
 
-        HomeMoreMenu(
-            show = showMore,
+        HomeActionsSheet(
+            showMore = showMore,
+            showReboot = showReboot,
+            onShowMoreChange = onShowMoreChange,
+            onShowRebootChange = onShowRebootChange,
             canReboot = canReboot,
-            onDismiss = { onShowMoreChange(false) },
+            onUninstallClick = onUninstallClick,
             onInstallClick = onInstallClick,
-            onRebootRequest = { onShowRebootChange(true) },
             onFeedback = onFeedback,
             onAbout = onAbout,
-        )
-        HomeRebootMenu(
-            show = showReboot,
-            onDismiss = { onShowRebootChange(false) },
             onReboot = onReboot,
             onDangerousReboot = onDangerousReboot,
         )
@@ -780,7 +799,11 @@ private fun SceneRootStatus(state: HomeUiState, onTools: () -> Unit) {
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                text = stringResource(if (needsAccess) R.string.home_root_access_missing else state.conclusion.titleRes()),
+                text = stringResource(when {
+                    needsAccess -> R.string.home_root_access_missing
+                    state.conclusion == HomeConclusion.FULL_APATCH -> R.string.home_scene_working
+                    else -> state.conclusion.titleRes()
+                }),
                 style = MiuixTheme.textStyles.title4,
                 fontWeight = FontWeight.SemiBold,
                 color = MiuixTheme.colorScheme.onSurface,
@@ -798,7 +821,7 @@ private fun SceneRootStatus(state: HomeUiState, onTools: () -> Unit) {
         IconButton(onClick = onTools, modifier = Modifier.size(44.dp)) {
             Icon(
                 imageVector = MiuixIcons.More,
-                contentDescription = stringResource(R.string.home_root_tools),
+                contentDescription = stringResource(R.string.home_more),
                 tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             )
         }
@@ -835,6 +858,7 @@ private fun HomeTopBar(
     onShowMoreChange: (Boolean) -> Unit,
     onShowRebootChange: (Boolean) -> Unit,
     onAppearance: () -> Unit,
+    onUninstallClick: () -> Unit,
     onInstallClick: () -> Unit,
     onFeedback: () -> Unit,
     onAbout: () -> Unit,
@@ -859,19 +883,16 @@ private fun HomeTopBar(
                     )
                 }
 
-                HomeMoreMenu(
-                    show = showMore,
+                HomeActionsSheet(
+                    showMore = showMore,
+                    showReboot = showReboot,
+                    onShowMoreChange = onShowMoreChange,
+                    onShowRebootChange = onShowRebootChange,
                     canReboot = canReboot,
-                    onDismiss = { onShowMoreChange(false) },
+                    onUninstallClick = onUninstallClick,
                     onInstallClick = onInstallClick,
-                    onRebootRequest = { onShowRebootChange(true) },
                     onFeedback = onFeedback,
                     onAbout = onAbout,
-                )
-
-                HomeRebootMenu(
-                    show = showReboot,
-                    onDismiss = { onShowRebootChange(false) },
                     onReboot = onReboot,
                     onDangerousReboot = onDangerousReboot,
                 )
@@ -881,113 +902,140 @@ private fun HomeTopBar(
 }
 
 @Composable
-private fun HomeMoreMenu(
-    show: Boolean,
+private fun HomeActionsSheet(
+    showMore: Boolean,
+    showReboot: Boolean,
+    onShowMoreChange: (Boolean) -> Unit,
+    onShowRebootChange: (Boolean) -> Unit,
     canReboot: Boolean,
-    onDismiss: () -> Unit,
+    onUninstallClick: () -> Unit,
     onInstallClick: () -> Unit,
-    onRebootRequest: () -> Unit,
     onFeedback: () -> Unit,
     onAbout: () -> Unit,
+    onReboot: (String) -> Unit,
+    onDangerousReboot: (String) -> Unit,
 ) {
+    val dismiss = {
+        onShowMoreChange(false)
+        onShowRebootChange(false)
+    }
     WindowBottomSheet(
-        show = show,
-        title = stringResource(R.string.home_root_tools),
-        onDismissRequest = onDismiss,
-    ) {
-        ListPopupColumn {
-            PopupMenuItem(
-                icon = MiuixIcons.Import,
-                text = stringResource(R.string.mode_select_page_title),
-                onClick = onInstallClick,
-            )
-            if (canReboot) {
-                PopupMenuItem(
-                    icon = MiuixIcons.Reset,
-                    text = stringResource(R.string.reboot),
-                    onClick = {
-                        onDismiss()
-                        onRebootRequest()
-                    },
-                )
+        show = showMore || showReboot,
+        title = stringResource(if (showReboot) R.string.reboot else R.string.home_more),
+        onDismissRequest = dismiss,
+        startAction = if (showReboot) {
+            {
+                IconButton(onClick = {
+                    onShowMoreChange(true)
+                    onShowRebootChange(false)
+                }) {
+                    Icon(MiuixIcons.Back, stringResource(R.string.home_more))
+                }
             }
-            PopupMenuItem(
-                icon = MiuixIcons.Help,
-                text = stringResource(R.string.home_more_menu_feedback_or_suggestion),
-                onClick = onFeedback,
-            )
-            PopupMenuItem(
-                icon = MiuixIcons.Info,
-                text = stringResource(R.string.home_more_menu_about),
-                onClick = onAbout,
-            )
+        } else null,
+    ) {
+        AnimatedContent(
+            targetState = showReboot,
+            transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(120)) },
+            label = "home_actions",
+        ) { rebootPage ->
+            Column(Modifier.fillMaxWidth().heightIn(max = 480.dp).verticalScroll(rememberScrollState())) {
+                if (rebootPage) {
+                    HomeRebootOptions(onDismiss = dismiss, onReboot = onReboot, onDangerousReboot = onDangerousReboot)
+                } else {
+                    PopupMenuItem(
+                        icon = MiuixIcons.Import,
+                        text = stringResource(R.string.mode_select_page_title),
+                        onClick = onInstallClick,
+                    )
+                    if (canReboot) {
+                        PopupMenuItem(
+                            icon = MiuixIcons.Reset,
+                            text = stringResource(R.string.reboot),
+                            onClick = { onShowRebootChange(true) },
+                        )
+                    }
+                    Box(
+                        Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            .fillMaxWidth().height(1.dp)
+                            .background(MiuixTheme.colorScheme.dividerLine)
+                    )
+                    PopupMenuItem(
+                        icon = MiuixIcons.Help,
+                        text = stringResource(R.string.home_more_menu_feedback_or_suggestion),
+                        onClick = onFeedback,
+                    )
+                    PopupMenuItem(
+                        icon = MiuixIcons.Info,
+                        text = stringResource(R.string.home_more_menu_about),
+                        onClick = onAbout,
+                    )
+                    PopupMenuItem(
+                        icon = MiuixIcons.Delete,
+                        text = stringResource(R.string.home_dialog_uninstall_title),
+                        onClick = onUninstallClick,
+                        destructive = true,
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun HomeRebootMenu(
-    show: Boolean,
+private fun HomeRebootOptions(
     onDismiss: () -> Unit,
     onReboot: (String) -> Unit,
     onDangerousReboot: (String) -> Unit,
 ) {
-    OverlayListPopup(
-        show = show,
-        alignment = PopupPositionProvider.Align.BottomEnd,
-        onDismissRequest = onDismiss,
-    ) {
-        ListPopupColumn {
-            PopupMenuItem(
-                icon = MiuixIcons.Reset,
-                text = stringResource(R.string.reboot),
-                onClick = {
-                    onDismiss()
-                    onReboot("")
-                },
-            )
-            PopupMenuItem(
-                icon = MiuixIcons.Refresh,
-                text = stringResource(R.string.reboot_soft),
-                onClick = {
-                    onDismiss()
-                    onReboot("soft_reboot")
-                },
-            )
-            PopupMenuItem(
-                icon = MiuixIcons.Reset,
-                text = stringResource(R.string.reboot_recovery),
-                onClick = {
-                    onDismiss()
-                    onReboot("recovery")
-                },
-            )
-            PopupMenuItem(
-                icon = MiuixIcons.Reset,
-                text = stringResource(R.string.reboot_bootloader),
-                onClick = {
-                    onDismiss()
-                    onReboot("bootloader")
-                },
-            )
-            PopupMenuItem(
-                icon = MiuixIcons.Download,
-                text = stringResource(R.string.reboot_download),
-                onClick = {
-                    onDismiss()
-                    onDangerousReboot("download")
-                },
-            )
-            PopupMenuItem(
-                icon = MiuixIcons.Import,
-                text = stringResource(R.string.reboot_edl),
-                onClick = {
-                    onDismiss()
-                    onDangerousReboot("edl")
-                },
-            )
-        }
-    }
+    PopupMenuItem(
+        icon = MiuixIcons.Reset,
+        text = stringResource(R.string.reboot),
+        onClick = {
+            onDismiss()
+            onReboot("")
+        },
+    )
+    PopupMenuItem(
+        icon = MiuixIcons.Refresh,
+        text = stringResource(R.string.reboot_soft),
+        onClick = {
+            onDismiss()
+            onReboot("soft_reboot")
+        },
+    )
+    PopupMenuItem(
+        icon = MiuixIcons.Reset,
+        text = stringResource(R.string.reboot_recovery),
+        onClick = {
+            onDismiss()
+            onReboot("recovery")
+        },
+    )
+    PopupMenuItem(
+        icon = MiuixIcons.Reset,
+        text = stringResource(R.string.reboot_bootloader),
+        onClick = {
+            onDismiss()
+            onReboot("bootloader")
+        },
+    )
+    PopupMenuItem(
+        icon = MiuixIcons.Download,
+        text = stringResource(R.string.reboot_download),
+        onClick = {
+            onDismiss()
+            onDangerousReboot("download")
+        },
+    )
+    PopupMenuItem(
+        icon = MiuixIcons.Import,
+        text = stringResource(R.string.reboot_edl),
+        onClick = {
+            onDismiss()
+            onDangerousReboot("edl")
+        },
+    )
 }
 
 @Composable
@@ -996,11 +1044,14 @@ private fun PopupMenuItem(
     text: String,
     onClick: () -> Unit,
     enabled: Boolean = true,
+    destructive: Boolean = false,
 ) {
-    val contentColor = if (enabled) {
-        MiuixTheme.colorScheme.onSurface
-    } else {
+    val contentColor = if (!enabled) {
         MiuixTheme.colorScheme.disabledOnSurface
+    } else if (destructive) {
+        MiuixTheme.colorScheme.error
+    } else {
+        MiuixTheme.colorScheme.onSurface
     }
     Row(
         modifier = Modifier
@@ -2109,10 +2160,14 @@ private fun LearnMoreCard(onClick: () -> Unit) {
 @Composable
 private fun UninstallDialog(
     show: Boolean,
+    state: HomeUiState,
     onDismiss: () -> Unit,
     onRemoveAndroidPatch: () -> Unit,
     onUninstallAll: () -> Unit,
 ) {
+    val hasRoot = state.capability.rootAccess == RootAccessProbeState.AVAILABLE
+    val canRemoveAndroidPatch = hasRoot && state.capability.androidPatch == RootLayerState.AVAILABLE
+    val canUninstallAll = hasRoot && state.capability.kernelPatch.isUsable()
     OverlayDialog(
         show = show,
         title = stringResource(R.string.home_dialog_uninstall_title),
@@ -2125,12 +2180,24 @@ private fun UninstallDialog(
         ) {
             Button(
                 onClick = onRemoveAndroidPatch,
+                enabled = canRemoveAndroidPatch,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(R.string.home_dialog_uninstall_ap_only))
             }
+            if (!canRemoveAndroidPatch || !canUninstallAll) {
+                Text(
+                    text = stringResource(
+                        if (!hasRoot) R.string.home_root_access_missing_summary
+                        else R.string.home_uninstall_unavailable,
+                    ),
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+            }
             Button(
                 onClick = onUninstallAll,
+                enabled = canUninstallAll,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     color = MiuixTheme.colorScheme.error,

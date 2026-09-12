@@ -177,8 +177,8 @@
     <string name="enable_web_debugging">啟用 WebView 偵錯</string>
     <string name="home_more_menu_feedback_or_suggestion">回饋或建議</string>
     <string name="home_more_menu_about">關於</string>
-    <string name="home_root_tools">Root 工具</string>
-    <string name="home_root_tools_summary">安裝與修補、重新啟動，以及其他管理器操作</string>
+    <string name="home_more">更多</string>
+    <string name="home_scene_working">運作正常</string>
     <string name="home_root_access_missing">Root 權限無法使用</string>
     <string name="home_root_access_missing_summary">已偵測到 KernelPatch，但管理器目前無法取得 Root 工作階段。請重新授權，或修復 Root 層後重新整理。</string>
     <string name="mode_select_page_install_inactive_slot_warning">重新啟動後，您的裝置將**強制**啟動到目前非活動插槽！
@@ -192,6 +192,8 @@
     <string name="home_new_apatch_found">新版本可用：%s，點選升級。</string>
     <string name="mode_select_page_title">安裝</string>
     <string name="home_dialog_uninstall_title">解除安裝</string>
+    <string name="home_dialog_uninstall_message">僅解除安裝系統修補會保留核心修補。完全解除安裝會先移除系統修補，再進入核心修補移除流程；完成後續流程才算完成解除安裝。</string>
+    <string name="home_uninstall_unavailable">對應修補未安裝或目前狀態不支援移除時，該選項無法使用。</string>
     <string name="home_dialog_uninstall_ap_only">僅刪除 AndroidPatch</string>
     <string name="home_dialog_uninstall_all">完全卸載</string>
     <string name="home_system_version">系統版本</string>

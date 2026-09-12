@@ -199,8 +199,8 @@
 \n确定要继续吗？</string>
     <string name="home_more_menu_feedback_or_suggestion">反馈或建议</string>
     <string name="home_more_menu_about">关于</string>
-    <string name="home_root_tools">Root 工具</string>
-    <string name="home_root_tools_summary">安装与修补、重启，以及其他管理器操作</string>
+    <string name="home_more">更多</string>
+    <string name="home_scene_working">运行正常</string>
     <string name="home_root_access_missing">Root 权限不可用</string>
     <string name="home_root_access_missing_summary">已检测到 KernelPatch，但管理器当前无法获取 Root 会话。请重新授权，或修复 Root 层后刷新。</string>
     <string name="settings_check_update">检查更新</string>
@@ -232,6 +232,8 @@
     <string name="home_system_version">系统版本</string>
     <string name="home_kpatch_version">KernelPatch 版本</string>
     <string name="home_dialog_uninstall_title">卸载</string>
+    <string name="home_dialog_uninstall_message">仅卸载系统补丁会保留内核补丁。完全卸载会先移除系统补丁，再进入内核补丁移除流程；完成后续流程才算完成卸载。</string>
+    <string name="home_uninstall_unavailable">对应补丁未安装或当前状态不支持移除时，该选项不可用。</string>
     <string name="home_dialog_uninstall_ap_only">仅卸载系统补丁</string>
     <string name="home_dialog_uninstall_all">完全卸载</string>
     <string name="home_appearance">首页外观</string>
