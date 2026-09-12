@@ -59,7 +59,7 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
-import top.yukonga.miuix.kmp.preference.RadioButtonPreference
+import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 // Hand-off channel from this screen to the Patches screen; a plain var would not
@@ -102,7 +102,6 @@ fun InstallModeSelectScreen(navigator: DestinationsNavigator) {
         if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
         val uri = result.data?.data ?: return@rememberLauncherForActivityResult
 
-        selectedMethod = InstallMethodType.SelectFile
         selectedBootImage = uri
         navigator.navigate(
             PatchesDestination(PatchesViewModel.PatchMode.PATCH_ONLY),
@@ -110,13 +109,13 @@ fun InstallModeSelectScreen(navigator: DestinationsNavigator) {
     }
 
     val onSelect: (InstallMethodType) -> Unit = { method ->
-        selectedMethod = method
         when (method) {
             InstallMethodType.SelectFile -> {
                 selectedBootImage = null
                 selectImageLauncher.launch(
                     Intent(Intent.ACTION_GET_CONTENT).apply {
-                        type = "application/octet-stream"
+                        type = "*/*"
+                        addCategory(Intent.CATEGORY_OPENABLE)
                     },
                 )
             }
@@ -189,9 +188,8 @@ fun InstallModeSelectScreen(navigator: DestinationsNavigator) {
                         insideMargin = PaddingValues(vertical = 4.dp),
                     ) {
                         modeState.methods.forEach { method ->
-                            RadioButtonPreference(
+                            ArrowPreference(
                                 title = stringResource(method.labelRes()),
-                                selected = selectedMethod == method,
                                 onClick = { onSelect(method) },
                             )
                         }

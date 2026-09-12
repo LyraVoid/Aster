@@ -52,9 +52,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -79,6 +81,7 @@ import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Add
+import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.icon.extended.File
 import top.yukonga.miuix.kmp.icon.extended.Hide
@@ -97,14 +100,17 @@ private const val LEGACY_STORAGE_REQUEST_CODE = 1001
 
 @Destination<RootGraph>
 @Composable
-fun Patches(mode: PatchesViewModel.PatchMode) {
+fun Patches(
+    mode: PatchesViewModel.PatchMode,
+    navigator: DestinationsNavigator,
+) {
     var jailbreakBlocked by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         jailbreakBlocked = withContext(Dispatchers.IO) { isJailbreakMode() }
     }
 
     if (jailbreakBlocked) {
-        Scaffold(topBar = { PatchesTopBar() }) { innerPadding ->
+        Scaffold(topBar = { PatchesTopBar(onBack = dropUnlessResumed { navigator.popBackStack() }) }) { innerPadding ->
             Box(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -133,7 +139,7 @@ fun Patches(mode: PatchesViewModel.PatchMode) {
     }
 
     Scaffold(topBar = {
-        PatchesTopBar()
+        PatchesTopBar(onBack = dropUnlessResumed { navigator.popBackStack() })
     }, floatingActionButton = {
         if (viewModel.needReboot) {
             PatchRebootAction(
@@ -156,18 +162,15 @@ fun Patches(mode: PatchesViewModel.PatchMode) {
             PatchErrorCard(viewModel.error)
             KernelPatchImageCard(viewModel.kpimgInfo)
 
-            // Consume a boot image chosen on the install-mode screen exactly once.
+            // Consume a boot image chosen on the install-mode screen
             LaunchedEffect(selectedBootImage) {
-                val bootImage = selectedBootImage
+                val bootImage = selectedBootImage ?: return@LaunchedEffect
                 if (
                     mode == PatchesViewModel.PatchMode.PATCH_ONLY &&
-                    bootImage != null &&
                     viewModel.kimgInfo.banner.isEmpty()
                 ) {
+                    selectedBootImage = null
                     viewModel.copyAndParseBootimg(bootImage)
-                    if (!viewModel.running && viewModel.kimgInfo.banner.isEmpty()) {
-                        selectedBootImage = null
-                    }
                 }
             }
 
@@ -264,8 +267,8 @@ fun Patches(mode: PatchesViewModel.PatchMode) {
             }
 
             if (!viewModel.patching && !viewModel.patchdone) {
-                if (mode != PatchesViewModel.PatchMode.UNPATCH) {
-                    val isKeyReady = !needKey || viewModel.superkey.isNotEmpty()
+                if (mode != PatchesViewModel.PatchMode.UNPATCH && viewModel.kimgInfo.banner.isNotEmpty()) {
+                    val isKeyReady = !needKey || (viewModel.superkey.isNotEmpty() && viewModel.checkSuperKeyValidation(viewModel.superkey))
                     if (isKeyReady) {
                         StartButton(
                             text = stringResource(R.string.patch_start_patch_btn),
@@ -361,26 +364,22 @@ private fun StartButton(
     icon: ImageVector,
     onClick: () -> Unit,
 ) {
-    Column(
+    Button(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.End,
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColorsPrimary(),
     ) {
-        Button(
-            onClick = onClick,
-            colors = ButtonDefaults.buttonColorsPrimary(),
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-                tint = MiuixTheme.colorScheme.onPrimary,
-            )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = text,
-                style = MiuixTheme.textStyles.button,
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = MiuixTheme.colorScheme.onPrimary,
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = text,
+            style = MiuixTheme.textStyles.button,
+        )
     }
 }
 
@@ -413,13 +412,13 @@ private fun SelectFileButton(
                     },
                 )
             },
-            colors = ButtonDefaults.buttonColorsPrimary(),
+            colors = ButtonDefaults.buttonColors(),
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
-                tint = MiuixTheme.colorScheme.onPrimary,
+                tint = MiuixTheme.colorScheme.onSecondaryVariant,
             )
             Spacer(Modifier.width(6.dp))
             Text(
@@ -545,9 +544,7 @@ private fun PatchSuperKeyToggleCard(
 @Composable
 private fun SetSuperKeyView(viewModel: PatchesViewModel) {
     var superKey by remember { mutableStateOf(viewModel.superkey) }
-    var showWarning by remember {
-        mutableStateOf(!viewModel.checkSuperKeyValidation(superKey))
-    }
+    val hasError = superKey.isNotEmpty() && !viewModel.checkSuperKeyValidation(superKey)
     var keyVisible by remember { mutableStateOf(false) }
 
     Card(
@@ -560,7 +557,7 @@ private fun SetSuperKeyView(viewModel: PatchesViewModel) {
             style = MiuixTheme.textStyles.body1,
             fontWeight = FontWeight.SemiBold,
         )
-        if (showWarning) {
+        if (hasError) {
             Spacer(Modifier.height(6.dp))
             Text(
                 text = stringResource(R.string.patch_item_set_skey_label),
@@ -575,10 +572,8 @@ private fun SetSuperKeyView(viewModel: PatchesViewModel) {
                 superKey = value
                 if (viewModel.checkSuperKeyValidation(value)) {
                     viewModel.superkey = value
-                    showWarning = false
                 } else {
                     viewModel.superkey = ""
-                    showWarning = true
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -806,6 +801,16 @@ private fun infoCardColors() = CardDefaults.defaultColors(
 )
 
 @Composable
-private fun PatchesTopBar() {
-    TopAppBar(title = stringResource(R.string.patch_config_title))
+private fun PatchesTopBar(onBack: () -> Unit) {
+    TopAppBar(
+        title = stringResource(R.string.patch_config_title),
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = MiuixIcons.Back,
+                    contentDescription = stringResource(R.string.back),
+                )
+            }
+        },
+    )
 }

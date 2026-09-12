@@ -14,6 +14,8 @@ internal object HomeStateMapper {
         environment: HomeDeviceEnvironment?,
         showBackupWarning: Boolean,
         update: HomeUpdateState,
+        apmCount: Int = 0,
+        kpmCount: Int = 0,
     ): HomeUiState {
         val conclusion = resolveConclusion(capability, environment)
         return HomeUiState(
@@ -24,6 +26,8 @@ internal object HomeStateMapper {
             deviceDensity = resolveDeviceDensity(capability, conclusion),
             showBackupWarning = showBackupWarning,
             update = update,
+            apmCount = apmCount,
+            kpmCount = kpmCount,
         )
     }
 

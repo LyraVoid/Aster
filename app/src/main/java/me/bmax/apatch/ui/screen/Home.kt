@@ -11,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,9 +45,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -54,11 +59,15 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
+import com.ramcosta.composedestinations.generated.destinations.APModuleScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.AboutScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.InstallModeSelectScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.KPModuleScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.PatchesDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.theme.LocalThemeModeState
+import me.bmax.apatch.util.Version
 import me.bmax.apatch.root.RootAccessProbeState
 import me.bmax.apatch.root.RootDetailState
 import me.bmax.apatch.root.RootLayerState
@@ -122,6 +131,7 @@ import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.LocalContentColor
+import top.yukonga.miuix.kmp.utils.PressFeedbackType
 
 @Destination<RootGraph>(start = true)
 @Composable
@@ -222,16 +232,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
         },
     ) { innerPadding ->
         Box(Modifier.fillMaxSize()) {
-            if (wallpaperState.enabled && wallpaperState.isReady) {
-                HomeWallpaperEnvironment(
-                    state = wallpaperState,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.34f)
-                        .align(Alignment.TopCenter),
-                )
-            }
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -240,36 +240,38 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                HomeStatusCard(
-                    state = state,
-                    onPrimaryAction = dropUnlessResumed {
-                        when (state.primaryAction) {
-                            HomePrimaryAction.NONE -> Unit
-                            HomePrimaryAction.RETRY_CHECK -> viewModel.refreshCapabilities()
-                            HomePrimaryAction.INSTALL_KERNEL_PATCH,
-                            HomePrimaryAction.UPDATE_KERNEL_PATCH,
-                            -> navigator.navigate(InstallModeSelectScreenDestination)
-
-                            HomePrimaryAction.INSTALL_APATCH,
-                            HomePrimaryAction.UPDATE_APATCH,
-                            -> viewModel.installApatch()
-
-                            HomePrimaryAction.REBOOT -> viewModel.reboot()
-                            HomePrimaryAction.SOFT_REBOOT -> viewModel.softReboot()
-                        }
-                    },
-                    onJailbreak = viewModel::triggerJailbreak,
-                )
-
-                state.environment?.let { environment ->
-                    DeviceIdentityCard(
-                        environment = environment,
-                        density = state.deviceDensity,
-                    )
-                }
-
                 if (state.showBackupWarning) {
                     BackupWarningCard(onDismiss = viewModel::dismissBackupWarning)
+                }
+
+                KStatusCard(
+                    state = state,
+                    onMainCardClick = dropUnlessResumed {
+                        when (state.conclusion) {
+                            HomeConclusion.NOT_INSTALLED,
+                            HomeConclusion.NEED_UPDATE -> navigator.navigate(InstallModeSelectScreenDestination)
+                            HomeConclusion.NEED_REBOOT -> viewModel.reboot()
+                            HomeConclusion.CHECK_FAILED -> viewModel.refreshCapabilities()
+                            else -> showUninstallDialog = true
+                        }
+                    },
+                    onApmClick = dropUnlessResumed {
+                        navigator.navigate(APModuleScreenDestination)
+                    },
+                    onKpmClick = dropUnlessResumed {
+                        navigator.navigate(KPModuleScreenDestination)
+                    },
+                )
+
+                if (state.conclusion != HomeConclusion.NOT_INSTALLED &&
+                    state.conclusion != HomeConclusion.CHECKING &&
+                    state.capability.androidPatch != RootLayerState.AVAILABLE
+                ) {
+                    AStatusCard(
+                        state = state,
+                        onInstall = viewModel::installApatch,
+                        onUninstall = viewModel::uninstallApatch,
+                    )
                 }
 
                 val availableUpdate = state.update as? HomeUpdateState.Available
@@ -280,19 +282,10 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     )
                 }
 
-                RuntimeStackCard(state = state)
-
-                AdvancedDetailsCard(
-                    state = state,
-                    expanded = showAdvancedDetails,
-                    onExpandedChange = { showAdvancedDetails = it },
-                    onCheckUpdates = { viewModel.checkForUpdates(force = true) },
-                    onRemoveAndroidPatch = viewModel::uninstallApatch,
-                    onUninstallAll = { showUninstallDialog = true },
-                )
+                DeviceInfoCard(state = state)
 
                 LearnMoreCard(onClick = { uriHandler.openUri("https://apatch.dev") })
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
             }
 
             HomeWallpaperSheet(
@@ -811,6 +804,341 @@ private fun WallpaperSlider(
     }
 }
 
+@Composable
+private fun KStatusCard(
+    state: HomeUiState,
+    onMainCardClick: () -> Unit,
+    onApmClick: () -> Unit,
+    onKpmClick: () -> Unit,
+) {
+    val themeMode = LocalThemeModeState.current
+    val isDark = themeMode.isDark
+    val isMonet = themeMode.isDynamicColor
+
+    val isWorking = state.conclusion == HomeConclusion.FULL_APATCH ||
+        state.conclusion == HomeConclusion.KERNEL_PATCH_ONLY
+
+    val cardBg = when {
+        isWorking -> when {
+            isMonet -> MiuixTheme.colorScheme.primaryContainer
+            isDark -> Color(0xFF1A3825)
+            else -> Color(0xFFDFFAE4)
+        }
+        state.conclusion == HomeConclusion.NEED_UPDATE -> MiuixTheme.colorScheme.secondaryContainer
+        state.conclusion == HomeConclusion.NEED_REBOOT -> MiuixTheme.colorScheme.errorContainer
+        else -> MiuixTheme.colorScheme.secondaryContainer
+    }
+
+    val decoIconColor = when {
+        isWorking -> if (isMonet) {
+            MiuixTheme.colorScheme.primary.copy(alpha = 0.8f)
+        } else {
+            Color(0xFF36D167)
+        }
+        state.conclusion == HomeConclusion.NEED_UPDATE -> MiuixTheme.colorScheme.secondary
+        state.conclusion == HomeConclusion.NEED_REBOOT -> MiuixTheme.colorScheme.error
+        else -> MiuixTheme.colorScheme.outline
+    }
+
+    val decoIcon = when {
+        state.conclusion == HomeConclusion.NEED_UPDATE -> MiuixIcons.Update
+        state.conclusion == HomeConclusion.NEED_REBOOT -> MiuixIcons.Reset
+        state.conclusion == HomeConclusion.CHECKING -> MiuixIcons.Refresh
+        else -> MiuixIcons.Help
+    }
+
+    val titleRes = when {
+        isWorking -> R.string.home_working
+        state.conclusion == HomeConclusion.NEED_UPDATE -> R.string.home_need_update
+        state.conclusion == HomeConclusion.NEED_REBOOT -> R.string.home_ap_cando_reboot
+        state.conclusion == HomeConclusion.CHECKING -> R.string.home_status_checking
+        state.conclusion == HomeConclusion.CHECK_FAILED -> R.string.home_status_check_failed
+        else -> R.string.home_not_installed
+    }
+
+    val managerVersion = remember { Version.getManagerVersion() }
+    val subtitle = when (state.conclusion) {
+        HomeConclusion.FULL_APATCH,
+        HomeConclusion.KERNEL_PATCH_ONLY -> stringResource(R.string.kpatch_version, managerVersion.first)
+        HomeConclusion.NEED_UPDATE -> "${Version.installedKPVString()} → ${Version.buildKPVString()}"
+        HomeConclusion.NOT_INSTALLED -> stringResource(R.string.home_click_to_install)
+        else -> null
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Card(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            colors = CardDefaults.defaultColors(color = cardBg),
+            onClick = onMainCardClick,
+            showIndication = true,
+            pressFeedbackType = PressFeedbackType.Tilt,
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .offset(38.dp, 45.dp),
+                    contentAlignment = Alignment.BottomEnd,
+                ) {
+                    if (isWorking) {
+                        Icon(
+                            modifier = Modifier.size(170.dp),
+                            painter = painterResource(R.drawable.status_check_circle_outline),
+                            tint = decoIconColor,
+                            contentDescription = null,
+                        )
+                    } else {
+                        Icon(
+                            modifier = Modifier.size(170.dp),
+                            imageVector = decoIcon,
+                            tint = decoIconColor,
+                            contentDescription = null,
+                        )
+                    }
+                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                ) {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = if (isWorking) {
+                            val mode = if (state.conclusion == HomeConclusion.FULL_APATCH) "<Full>" else "<Half>"
+                            "${stringResource(titleRes)} $mode"
+                        } else {
+                            stringResource(titleRes)
+                        },
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    if (subtitle != null) {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = subtitle,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        )
+                    }
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                insideMargin = PaddingValues(16.dp),
+                onClick = onApmClick,
+                showIndication = true,
+                pressFeedbackType = PressFeedbackType.Tilt,
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = stringResource(R.string.apm),
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 15.sp,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = state.apmCount.toString(),
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MiuixTheme.colorScheme.onSurface,
+                    )
+                }
+            }
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                insideMargin = PaddingValues(16.dp),
+                onClick = onKpmClick,
+                showIndication = true,
+                pressFeedbackType = PressFeedbackType.Tilt,
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = stringResource(R.string.kpm),
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 15.sp,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = state.kpmCount.toString(),
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MiuixTheme.colorScheme.onSurface,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AStatusCard(
+    state: HomeUiState,
+    onInstall: () -> Unit,
+    onUninstall: () -> Unit,
+) {
+    val apLayer = state.capability.androidPatch
+    val isInstalled = apLayer == RootLayerState.AVAILABLE
+    val needUpdate = apLayer == RootLayerState.NEED_UPDATE
+    val isBusy = apLayer == RootLayerState.BUSY
+
+    val icon = when {
+        isInstalled -> MiuixIcons.Ok
+        needUpdate -> MiuixIcons.Update
+        isBusy -> MiuixIcons.Refresh
+        else -> MiuixIcons.Close
+    }
+
+    val titleRes = when {
+        isInstalled -> R.string.home_working
+        needUpdate -> R.string.home_need_update
+        isBusy -> R.string.home_layer_busy
+        else -> R.string.home_not_installed
+    }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(28.dp),
+                tint = if (isInstalled) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.android_patch),
+                    style = MiuixTheme.textStyles.body1,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = stringResource(titleRes),
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+            }
+            Button(
+                enabled = !isBusy,
+                colors = ButtonDefaults.buttonColorsPrimary(),
+                onClick = {
+                    if (isInstalled) onUninstall() else onInstall()
+                },
+            ) {
+                Text(
+                    text = stringResource(
+                        if (isInstalled) R.string.home_ap_cando_uninstall
+                        else if (needUpdate) R.string.home_ap_cando_update
+                        else R.string.home_ap_cando_install
+                    ),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeviceInfoCard(state: HomeUiState) {
+    val env = state.environment
+    val selinuxText = when (env?.selinuxStatus) {
+        HomeSelinuxStatus.ENFORCING -> stringResource(R.string.home_selinux_status_enforcing)
+        HomeSelinuxStatus.PERMISSIVE -> stringResource(R.string.home_selinux_status_permissive)
+        HomeSelinuxStatus.DISABLED -> stringResource(R.string.home_selinux_status_disabled)
+        else -> stringResource(R.string.home_selinux_status_unknown)
+    }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            if (state.capability.details.suPath != null) {
+                InfoItem(
+                    title = stringResource(R.string.home_su_path),
+                    content = state.capability.details.suPath,
+                )
+            }
+            if (env != null) {
+                InfoItem(
+                    title = stringResource(R.string.home_device_info),
+                    content = "${env.brand.replaceFirstChar { it.uppercase() }} ${env.model}",
+                )
+                InfoItem(
+                    title = stringResource(R.string.home_kernel),
+                    content = env.kernelRelease,
+                )
+                InfoItem(
+                    title = stringResource(R.string.home_system_version),
+                    content = "${env.androidRelease} (API ${env.androidApi})",
+                )
+                InfoItem(
+                    title = stringResource(R.string.home_fingerprint),
+                    content = env.fingerprint,
+                )
+            }
+            InfoItem(
+                title = stringResource(R.string.home_selinux_status),
+                content = selinuxText,
+            )
+        }
+    }
+}
+
+@Composable
+private fun InfoItem(title: String, content: String) {
+    Column {
+        Text(
+            text = title,
+            style = MiuixTheme.textStyles.body1,
+            fontWeight = FontWeight.Medium,
+            color = MiuixTheme.colorScheme.onSurface,
+        )
+        Spacer(Modifier.height(2.dp))
+        Text(
+            text = content,
+            style = MiuixTheme.textStyles.body2,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+        )
+    }
+}
 @Composable
 private fun HomeStatusCard(
     state: HomeUiState,

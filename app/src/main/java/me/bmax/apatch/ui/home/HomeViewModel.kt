@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.bmax.apatch.APApplication
+import me.bmax.apatch.Natives
 import me.bmax.apatch.apApp
 import me.bmax.apatch.root.RootAccessProbeState
 import me.bmax.apatch.root.RootCapabilitySnapshot
@@ -24,15 +25,18 @@ import me.bmax.apatch.root.RootCapabilityRepository
 import me.bmax.apatch.util.Version
 import me.bmax.apatch.util.checkNewVersion
 import me.bmax.apatch.util.installJailbreak
+import me.bmax.apatch.util.listModules
 import me.bmax.apatch.util.migrateStockBootBackup
 import me.bmax.apatch.util.reboot
 import me.bmax.apatch.util.softReboot
+import org.json.JSONArray
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val environment = MutableStateFlow<HomeDeviceEnvironment?>(null)
     private val backupWarning = MutableStateFlow(apApp.getBackupWarningState())
     private val update = MutableStateFlow<HomeUpdateState>(HomeUpdateState.Idle)
     private val updateCheckEnabled = MutableStateFlow(true)
+    private val moduleCounts = MutableStateFlow(Pair(0, 0))
     private val mutableEvents = MutableSharedFlow<HomeEvent>(extraBufferCapacity = 1)
     private var updateJob: Job? = null
 
@@ -43,12 +47,15 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         environment,
         backupWarning,
         update,
-    ) { capability, deviceEnvironment, showBackupWarning, updateState ->
+        moduleCounts,
+    ) { capability, deviceEnvironment, showBackupWarning, updateState, counts ->
         HomeStateMapper.map(
             capability = capability,
             environment = deviceEnvironment,
             showBackupWarning = showBackupWarning,
             update = updateState,
+            apmCount = counts.first,
+            kpmCount = counts.second,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -90,10 +97,23 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             }.getOrNull()
         }
         checkForUpdates()
+        refreshCounts()
     }
 
     fun refreshCapabilities() {
         RootCapabilityRepository.refresh(force = true)
+        refreshCounts()
+    }
+
+    fun refreshCounts() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val kpm = runCatching { Natives.kernelPatchModuleNum().toInt() }.getOrDefault(0).coerceAtLeast(0)
+            val apm = runCatching {
+                val list = listModules()
+                JSONArray(list).length()
+            }.getOrDefault(0).coerceAtLeast(0)
+            moduleCounts.value = Pair(apm, kpm)
+        }
     }
 
     fun dismissBackupWarning() {

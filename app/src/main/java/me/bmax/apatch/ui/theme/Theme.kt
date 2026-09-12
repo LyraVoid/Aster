@@ -6,7 +6,10 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +56,18 @@ private fun SystemBarStyle(
 }
 
 val refreshTheme = MutableLiveData(false)
+
+/**
+ * Resolved theme facts for screens that need the manager's own dark/monet
+ * decision instead of the raw system configuration.
+ */
+@Immutable
+data class ThemeModeState(
+    val isDark: Boolean,
+    val isDynamicColor: Boolean,
+)
+
+val LocalThemeModeState = compositionLocalOf { ThemeModeState(isDark = false, isDynamicColor = true) }
 
 @Composable
 fun APatchTheme(
@@ -130,8 +145,15 @@ fun APatchTheme(
     }
 
     MiuixTheme(controller = miuixThemeController) {
-        MonetColorsProvider.UpdateCss()
-        content()
+        CompositionLocalProvider(
+            LocalThemeModeState provides ThemeModeState(
+                isDark = darkTheme,
+                isDynamicColor = dynamicColor,
+            )
+        ) {
+            MonetColorsProvider.UpdateCss()
+            content()
+        }
     }
 }
 

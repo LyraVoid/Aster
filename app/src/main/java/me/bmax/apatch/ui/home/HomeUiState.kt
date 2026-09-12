@@ -81,6 +81,8 @@ data class HomeUiState(
     val deviceDensity: HomeDeviceDensity = HomeDeviceDensity.DIAGNOSTIC,
     val showBackupWarning: Boolean = false,
     val update: HomeUpdateState = HomeUpdateState.Idle,
+    val apmCount: Int = 0,
+    val kpmCount: Int = 0,
 )
 
 sealed interface HomeEvent {
