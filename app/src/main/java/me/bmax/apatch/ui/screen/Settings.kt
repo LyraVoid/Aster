@@ -78,15 +78,26 @@ import me.bmax.apatch.util.ui.LocalSnackbarHost
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.All
+import top.yukonga.miuix.kmp.icon.extended.CloudFill
 import top.yukonga.miuix.kmp.icon.extended.Edit
+import top.yukonga.miuix.kmp.icon.extended.ExpandMore
+import top.yukonga.miuix.kmp.icon.extended.Filter
+import top.yukonga.miuix.kmp.icon.extended.Hide
 import top.yukonga.miuix.kmp.icon.extended.Layers
 import top.yukonga.miuix.kmp.icon.extended.Lock
+import top.yukonga.miuix.kmp.icon.extended.More
+import top.yukonga.miuix.kmp.icon.extended.Photos
+import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.icon.extended.Report
-import top.yukonga.miuix.kmp.icon.extended.Settings
+import top.yukonga.miuix.kmp.icon.extended.ScreenMirroring
+import top.yukonga.miuix.kmp.icon.extended.Search
+import top.yukonga.miuix.kmp.icon.extended.Sidebar
 import top.yukonga.miuix.kmp.icon.extended.Theme
+import top.yukonga.miuix.kmp.icon.extended.Timer
 import top.yukonga.miuix.kmp.icon.extended.Translate
+import top.yukonga.miuix.kmp.icon.extended.Tune
 import top.yukonga.miuix.kmp.icon.extended.Update
-import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
@@ -329,7 +340,7 @@ fun SettingScreen() {
                                 title = stringResource(R.string.settings_global_namespace_mode),
                                 summary = stringResource(R.string.settings_global_namespace_mode_summary),
                                 startAction = {
-                                    SettingsIcon(MiuixIcons.Settings)
+                                    SettingsIcon(MiuixIcons.All)
                                 },
                                 enabled = namespaceLoaded,
                             )
@@ -407,7 +418,7 @@ fun SettingScreen() {
                                 title = stringResource(R.string.enable_web_debugging),
                                 summary = stringResource(R.string.enable_web_debugging_summary),
                                 startAction = {
-                                    SettingsIcon(MiuixIcons.Edit)
+                                    SettingsIcon(MiuixIcons.Search)
                                 },
                             )
                         }
@@ -432,7 +443,7 @@ fun SettingScreen() {
                     ArrowPreference(
                         title = stringResource(R.string.global_layout_title),
                         summary = stringResource(globalLayout.label),
-                        startAction = { SettingsIcon(MiuixIcons.Theme) },
+                        startAction = { SettingsIcon(MiuixIcons.ScreenMirroring) },
                         onClick = { showGlobalLayoutDialog = true },
                     )
 
@@ -443,12 +454,13 @@ fun SettingScreen() {
                         checked = globalLayout == GlobalLayout.Panorama || floatingPreferred,
                         enabled = globalLayout == GlobalLayout.Standard,
                         onCheckedChange = { me.bmax.apatch.ui.shell.setVisualFlag("floating_navigation", it) },
+                        startAction = { SettingsIcon(MiuixIcons.Sidebar) },
                     )
                     if (globalLayout == GlobalLayout.Standard && !floatingPreferred) {
                         ArrowPreference(
                             title = stringResource(R.string.navigation_mode_title),
                             summary = stringResource(navigationMode.label),
-                            startAction = { SettingsIcon(MiuixIcons.Layers) },
+                            startAction = { SettingsIcon(MiuixIcons.More) },
                             onClick = { showNavigationModeDialog = true },
                         )
                     }
@@ -460,6 +472,7 @@ fun SettingScreen() {
                             summary = stringResource(R.string.floating_blur_summary),
                             checked = floating_blur,
                             onCheckedChange = { me.bmax.apatch.ui.shell.setVisualFlag("floating_blur", it) },
+                            startAction = { SettingsIcon(MiuixIcons.Filter) },
                         )
                         val floating_glass by me.bmax.apatch.ui.shell.rememberVisualFlag("floating_glass", true)
                         SwitchPreference(
@@ -468,6 +481,7 @@ fun SettingScreen() {
                             checked = floating_glass,
                             enabled = floating_blur && android.os.Build.VERSION.SDK_INT >= 33,
                             onCheckedChange = { me.bmax.apatch.ui.shell.setVisualFlag("floating_glass", it) },
+                            startAction = { SettingsIcon(MiuixIcons.CloudFill) },
                         )
                         val floating_auto_hide by me.bmax.apatch.ui.shell.rememberVisualFlag("floating_auto_hide", false)
                         SwitchPreference(
@@ -475,6 +489,7 @@ fun SettingScreen() {
                             summary = stringResource(R.string.floating_auto_hide_summary),
                             checked = floating_auto_hide,
                             onCheckedChange = { me.bmax.apatch.ui.shell.setVisualFlag("floating_auto_hide", it) },
+                            startAction = { SettingsIcon(MiuixIcons.Hide) },
                         )
                         val floating_scroll_hide by me.bmax.apatch.ui.shell.rememberVisualFlag("floating_scroll_hide", false)
                         SwitchPreference(
@@ -482,6 +497,7 @@ fun SettingScreen() {
                             summary = stringResource(R.string.floating_scroll_hide_summary),
                             checked = floating_scroll_hide,
                             onCheckedChange = { me.bmax.apatch.ui.shell.setVisualFlag("floating_scroll_hide", it) },
+                            startAction = { SettingsIcon(MiuixIcons.ExpandMore) },
                         )
                     }
 
@@ -495,7 +511,7 @@ fun SettingScreen() {
                         title = stringResource(R.string.settings_night_mode_follow_sys),
                         summary = stringResource(R.string.settings_night_mode_follow_sys_summary),
                         startAction = {
-                            SettingsIcon(MiuixIcons.Theme)
+                            SettingsIcon(MiuixIcons.Refresh)
                         },
                     )
 
@@ -527,7 +543,7 @@ fun SettingScreen() {
                             title = stringResource(R.string.settings_use_system_color_theme),
                             summary = stringResource(R.string.settings_use_system_color_theme_summary),
                             startAction = {
-                                SettingsIcon(MiuixIcons.Theme)
+                                SettingsIcon(MiuixIcons.Photos)
                             },
                         )
                     }
@@ -537,7 +553,7 @@ fun SettingScreen() {
                             title = stringResource(R.string.settings_custom_color_theme),
                             summary = stringResource(colorNameToString(customColor)),
                             startAction = {
-                                SettingsIcon(MiuixIcons.Theme)
+                                    SettingsIcon(MiuixIcons.Tune)
                             },
                             onClick = { showThemeChooseDialog = true },
                         )
@@ -563,7 +579,7 @@ fun SettingScreen() {
                         title = stringResource(R.string.settings_check_update),
                         summary = stringResource(R.string.settings_check_update_summary),
                         startAction = {
-                            SettingsIcon(MiuixIcons.Update)
+                            SettingsIcon(MiuixIcons.Timer)
                         },
                     )
 
