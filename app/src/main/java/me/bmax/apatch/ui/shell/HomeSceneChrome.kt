@@ -106,14 +106,32 @@ internal fun HomeSceneBackdrop(
                     )
                 )
         )
-        if (state == null) {
-            return@Box
+        if (state != null) {
+            HomeWallpaperImage(
+                state = state,
+                modifier = Modifier.fillMaxSize().blur(32.dp, edgeTreatment = BlurredEdgeTreatment.Rectangle),
+            )
+            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.24f)))
         }
-        HomeWallpaperImage(
-            state = state,
-            modifier = Modifier.fillMaxSize().blur(32.dp, edgeTreatment = BlurredEdgeTreatment.Rectangle),
+        // The rail draws white on whatever the wallpaper happens to be. Darken just the strip it
+        // sits in and let the shade dissolve towards the page, so a bright photo cannot swallow
+        // the clock and the icons, and the image stays untouched everywhere else.
+        Box(
+            Modifier
+                .fillMaxHeight()
+                .width(railWidth + 20.dp)
+                .background(
+                    Brush.horizontalGradient(
+                        // Hold the shade across the rail and dissolve it under the page card, so
+                        // the strip reads as one quiet plate instead of a soft left vignette.
+                        colorStops = arrayOf(
+                            0f to Color.Black.copy(alpha = 0.42f),
+                            0.72f to Color.Black.copy(alpha = 0.32f),
+                            1f to Color.Transparent,
+                        ),
+                    )
+                )
         )
-        Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.24f)))
     }
 }
 
