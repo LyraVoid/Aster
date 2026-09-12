@@ -425,14 +425,14 @@ internal fun navigatePrimary(
     destination: PrimaryDestination,
     isCurrentDestination: Boolean,
 ) {
-    if (isCurrentDestination) {
-        navigator.popBackStack(destination.direction, false)
-    }
+    if (isCurrentDestination) return
     navigator.navigate(destination.direction) {
-        popUpTo(NavGraphs.root) {
+        // Keep Home as the anchor. Saving the graph itself also saves Home together with
+        // the active page; restoring Home would then restore that page on top of it.
+        popUpTo(HomeScreenDestination) {
             saveState = true
         }
         launchSingleTop = true
-        restoreState = true
+        restoreState = destination != PrimaryDestination.Home
     }
 }

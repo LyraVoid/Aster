@@ -6,6 +6,7 @@ import me.bmax.apatch.root.RootLayerState
 import me.bmax.apatch.root.RootMode
 import me.bmax.apatch.root.RootCapabilitySnapshot
 import me.bmax.apatch.root.RootAccessProbeState
+import me.bmax.apatch.root.isUsable
 import me.bmax.apatch.util.LatestVersionInfo
 
 internal object HomeStateMapper {
@@ -87,6 +88,8 @@ internal object HomeStateMapper {
             HomePrimaryAction.RETRY_CHECK
 
         capability.attention.contains(RootAttention.BUSY) -> HomePrimaryAction.NONE
+        capability.kernelPatch.isUsable() &&
+            capability.rootAccess != RootAccessProbeState.AVAILABLE -> HomePrimaryAction.RETRY_CHECK
         environment?.jailbreakActive == true || capability.mode == RootMode.JAILBREAK ->
             HomePrimaryAction.SOFT_REBOOT
 
@@ -122,3 +125,8 @@ internal object HomeStateMapper {
         return if (quiet) HomeDeviceDensity.COMPACT else HomeDeviceDensity.DIAGNOSTIC
     }
 }
+
+/** A detected patch is not proof that this manager has a usable root session. */
+internal fun HomeUiState.needsRootAccess(): Boolean =
+    capability.phase == RootCheckPhase.READY && capability.kernelPatch.isUsable() &&
+        capability.rootAccess != RootAccessProbeState.AVAILABLE

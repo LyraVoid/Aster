@@ -173,6 +173,10 @@ fun FloatingBottomBar(
                 globalTouchX in 0f..totalWidthPx
             },
             onDragStarted = {},
+            onDragCancelled = {
+                animateToValue(currentSelectedIndex().toFloat())
+                animationScope.launch { offsetAnimation.animateTo(0f) }
+            },
             onDragStopped = {
                 val candidate = targetValue.fastRoundToInt().fastCoerceIn(0, tabsCount - 1)
                 val targetIndex = if (currentCanSelect(candidate)) candidate else currentSelectedIndex()

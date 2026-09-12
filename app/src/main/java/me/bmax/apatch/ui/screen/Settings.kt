@@ -9,8 +9,17 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,6 +29,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.layout.padding
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import me.bmax.apatch.ui.home.HomeViewModel
+import me.bmax.apatch.ui.home.HomeUpdateState
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -93,6 +113,65 @@ fun SettingScreen() {
     val prefs = APApplication.sharedPreferences
     val snackBarHost = LocalSnackbarHost.current
     val loadingDialog = rememberLoadingDialog()
+    val updateModel: HomeViewModel = viewModel()
+    val updateState by updateModel.uiState.collectAsStateWithLifecycle()
+    var showVersionCheck by rememberSaveable { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
+
+    if (showVersionCheck) {
+        val update = updateState.update
+        OverlayDialog(
+            show = true,
+            title = stringResource(
+                when (update) {
+                    HomeUpdateState.UpToDate -> R.string.home_update_current
+                    HomeUpdateState.Failed -> R.string.home_update_failed
+                    is HomeUpdateState.Available ->
+                        R.string.home_update_available_title
+
+                    else -> R.string.home_update_checking
+                }
+            ),
+            onDismissRequest = { showVersionCheck = false },
+        ) {
+            Column(Modifier.fillMaxWidth()) {
+                if (update is HomeUpdateState.Available) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 320.dp)
+                            .verticalScroll(rememberScrollState()),
+                    ) {
+                        Text(
+                            text = update.changelog.ifBlank {
+                                stringResource(R.string.home_update_available_summary)
+                            },
+                            style = MiuixTheme.textStyles.body2,
+                        )
+                    }
+                    Spacer(Modifier.height(18.dp))
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    TextButton(
+                        text = stringResource(android.R.string.cancel),
+                        onClick = { showVersionCheck = false },
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (update is HomeUpdateState.Available) {
+                        Button(
+                            onClick = { uriHandler.openUri(update.downloadUrl) },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(R.string.apm_update))
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     var globalNamespaceEnabled by remember { mutableStateOf(false) }
     var namespaceLoaded by remember { mutableStateOf(false) }
@@ -473,6 +552,11 @@ fun SettingScreen() {
                 SettingsSectionCard(
                     title = stringResource(R.string.settings_section_general),
                 ) {
+                    ArrowPreference(
+                        title = stringResource(R.string.home_update_check),
+                        startAction = { SettingsIcon(MiuixIcons.Update) },
+                        onClick = { showVersionCheck = true; updateModel.checkForUpdates(force = true) },
+                    )
                     SwitchPreference(
                         checked = checkUpdate,
                         onCheckedChange = { enabled ->

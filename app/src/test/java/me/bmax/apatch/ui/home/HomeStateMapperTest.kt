@@ -141,6 +141,26 @@ class HomeStateMapperTest {
         )
     }
 
+    @Test
+    fun `installed patches without a root session require access recovery`() {
+        listOf(RootAccessProbeState.UNAVAILABLE, RootAccessProbeState.BLOCKED, RootAccessProbeState.ERROR).forEach { access ->
+            val state = HomeStateMapper.map(
+                capability = readyCapability(
+                    kernelPatch = RootLayerState.AVAILABLE,
+                    androidPatch = RootLayerState.AVAILABLE,
+                    mode = RootMode.FULL_APATCH,
+                ).copy(rootAccess = access),
+                environment = environment(),
+                showBackupWarning = false,
+                update = HomeUpdateState.Idle,
+            )
+
+            assertEquals(true, state.needsRootAccess())
+            assertEquals(HomePrimaryAction.RETRY_CHECK, state.primaryAction)
+            assertEquals(false, state.copy(capability = state.capability.copy(phase = RootCheckPhase.CHECKING)).needsRootAccess())
+        }
+    }
+
     private fun readyCapability(
         kernelPatch: RootLayerState,
         androidPatch: RootLayerState,

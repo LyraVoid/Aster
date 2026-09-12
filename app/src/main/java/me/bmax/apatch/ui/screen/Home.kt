@@ -1,5 +1,8 @@
 package me.bmax.apatch.ui.screen
 
+import me.bmax.apatch.ui.home.needsRootAccess
+import top.yukonga.miuix.kmp.basic.PullToRefresh
+
 import androidx.compose.foundation.layout.widthIn
 
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -37,6 +40,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -61,6 +65,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -145,6 +150,7 @@ import top.yukonga.miuix.kmp.icon.extended.Update
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
+import top.yukonga.miuix.kmp.window.WindowBottomSheet
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.LocalContentColor
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
@@ -262,11 +268,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     showMore = false
                     onInstallClick()
                 },
-                onCheckUpdates = {
-                    showMore = false
-                    showUpdateDialog = true
-                    viewModel.checkForUpdates(force = true)
-                },
                 onFeedback = {
                     showMore = false
                     uriHandler.openUri("https://github.com/bmax121/APatch/issues/new/choose")
@@ -283,7 +284,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     showReboot = false
                     pendingDangerousReboot = reason
                 },
-                onMainCardClick = onMainCardClick,
                 onApmClick = onApmClick,
                 onKpmClick = onKpmClick,
                 onRefresh = {
@@ -301,7 +301,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 topBar = {
                     HomeTopBar(
                         canReboot = state.capability.rootAccess == RootAccessProbeState.AVAILABLE,
-                        update = state.update,
                         showMore = showMore,
                         showReboot = showReboot,
                         onShowMoreChange = { showMore = it },
@@ -310,10 +309,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                         onInstallClick = {
                             showMore = false
                             onInstallClick()
-                        },
-                        onCheckUpdates = {
-                            showMore = false
-                            viewModel.checkForUpdates(force = true)
                         },
                         onFeedback = {
                             showMore = false
@@ -426,17 +421,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
         }
 
         val update = state.update as? HomeUpdateState.Available
-        if (showUpdateDialog && update == null) {
-            val updateMessage = when (state.update) {
-                HomeUpdateState.Checking -> R.string.home_update_checking
-                HomeUpdateState.UpToDate -> R.string.home_update_current
-                HomeUpdateState.Failed -> R.string.home_update_failed
-                else -> R.string.home_update_checking
-            }
-            OverlayDialog(show = true, onDismissRequest = { showUpdateDialog = false }) {
-                Text(stringResource(updateMessage), modifier = Modifier.padding(24.dp))
-            }
-        }
         if (showUpdateDialog && update != null) {
             UpdateDialog(
                 show = true,
@@ -461,12 +445,10 @@ private fun HomeScenePanel(
     showReboot: Boolean,
     onShowRebootChange: (Boolean) -> Unit,
     onInstallClick: () -> Unit,
-    onCheckUpdates: () -> Unit,
     onFeedback: () -> Unit,
     onAbout: () -> Unit,
     onReboot: (String) -> Unit,
     onDangerousReboot: (String) -> Unit,
-    onMainCardClick: () -> Unit,
     onApmClick: () -> Unit,
     onKpmClick: () -> Unit,
     onRefresh: () -> Unit,
@@ -480,12 +462,15 @@ private fun HomeScenePanel(
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val canReboot = state.capability.rootAccess == RootAccessProbeState.AVAILABLE
     val primaryAction = {
-        when (state.conclusion) {
-            HomeConclusion.NOT_INSTALLED,
-            HomeConclusion.NEED_UPDATE -> onInstallClick()
-
-            HomeConclusion.NEED_REBOOT -> onReboot("")
-            else -> onCheckUpdates()
+        when (state.primaryAction) {
+            HomePrimaryAction.INSTALL_KERNEL_PATCH,
+            HomePrimaryAction.UPDATE_KERNEL_PATCH -> onInstallClick()
+            HomePrimaryAction.INSTALL_APATCH,
+            HomePrimaryAction.UPDATE_APATCH -> onInstallApatch()
+            HomePrimaryAction.RETRY_CHECK -> onRefresh()
+            HomePrimaryAction.REBOOT -> onShowRebootChange(true)
+            HomePrimaryAction.SOFT_REBOOT -> onDangerousReboot("soft")
+            HomePrimaryAction.NONE -> Unit
         }
     }
 
@@ -493,7 +478,7 @@ private fun HomeScenePanel(
         val sceneProgress = me.bmax.apatch.ui.shell.LocalSceneProgress.current
         val sidebarExpanded by me.bmax.apatch.ui.shell.rememberVisualFlag("scene_sidebar_expanded", true)
         val toggleSidebar = { me.bmax.apatch.ui.shell.setVisualFlag("scene_sidebar_expanded", !sidebarExpanded) }
-        val heroHeight = ((maxHeight - topInset) * if (maxHeight < 480.dp) 0.50f else 0.63f).coerceAtLeast(180.dp)
+        val heroHeight = ((maxHeight - topInset) * if (maxHeight < 480.dp) 0.50f else 0.63f).coerceAtLeast(300.dp)
 
         Box(
             Modifier
@@ -502,6 +487,12 @@ private fun HomeScenePanel(
                 .clip(RoundedCornerShape(topStart = 26.dp * sceneProgress, bottomStart = 26.dp * sceneProgress))
                 .background(MiuixTheme.colorScheme.background),
         ) {
+            PullToRefresh(
+                isRefreshing = state.conclusion == HomeConclusion.CHECKING,
+                onRefresh = onRefresh,
+                modifier = Modifier.fillMaxSize(),
+                refreshTexts = listOf(stringResource(R.string.refresh_pulling), stringResource(R.string.refresh_release), stringResource(R.string.refresh_refreshing), stringResource(R.string.refresh_complete)),
+            ) {
             Column(
                 Modifier
                     .align(Alignment.TopCenter)
@@ -567,14 +558,19 @@ private fun HomeScenePanel(
                         onClick = toggleSidebar,
                         modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
                     )
-                    SceneStatusStrip(
-                        state = state,
-                        onClick = onMainCardClick,
+                    Column(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
                             .fillMaxWidth()
                             .padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
-                    )
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        SceneRootStatus(
+                            state = state,
+                            onTools = { onShowMoreChange(true) },
+                        )
+                        SceneStatusStrip(state = state)
+                    }
                 }
 
                 Column(
@@ -596,12 +592,15 @@ private fun HomeScenePanel(
                         style = MiuixTheme.textStyles.title3,
                     )
                     Spacer(Modifier.height(18.dp))
-                    SceneActionRow(
-                        state = state,
-                        onShowMore = { onShowMoreChange(true) },
-                        onPrimary = primaryAction,
-                        onRefresh = onRefresh,
-                    )
+                    if (state.primaryAction != HomePrimaryAction.NONE) {
+                        Button(
+                            onClick = primaryAction,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColorsPrimary(),
+                        ) {
+                            Text(stringResource(state.primaryAction.labelRes()))
+                        }
+                    }
                 }
 
                 Column(
@@ -657,16 +656,15 @@ private fun HomeScenePanel(
                     Spacer(Modifier.height(bottomInset + 24.dp))
                 }
             }
+            }
         }
 
         HomeMoreMenu(
             show = showMore,
-            update = state.update,
             canReboot = canReboot,
             onDismiss = { onShowMoreChange(false) },
             onInstallClick = onInstallClick,
             onRebootRequest = { onShowRebootChange(true) },
-            onCheckUpdates = onCheckUpdates,
             onFeedback = onFeedback,
             onAbout = onAbout,
         )
@@ -682,7 +680,6 @@ private fun HomeScenePanel(
 @Composable
 private fun SceneStatusStrip(
     state: HomeUiState,
-    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val managerVersion = remember { Version.getManagerVersion() }
@@ -705,8 +702,6 @@ private fun SceneStatusStrip(
 
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
-            .clickable(role = Role.Button, onClick = onClick)
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -743,81 +738,68 @@ private fun SceneStatusColumn(
             color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             maxLines = 1,
             softWrap = false,
+            overflow = TextOverflow.Ellipsis,
         )
         Spacer(Modifier.height(3.dp))
         Text(
             text = value,
             style = MiuixTheme.textStyles.body1,
             color = MiuixTheme.colorScheme.onSurface,
-            maxLines = 1,
-            softWrap = false,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
 
 @Composable
-private fun SceneActionRow(
-    state: HomeUiState,
-    onShowMore: () -> Unit,
-    onPrimary: () -> Unit,
-    onRefresh: () -> Unit,
-) {
-    val primaryLabel = when (state.conclusion) {
-        HomeConclusion.NOT_INSTALLED -> R.string.home_ap_cando_install
-        HomeConclusion.NEED_UPDATE -> R.string.home_ap_cando_update
-        HomeConclusion.NEED_REBOOT -> R.string.home_ap_cando_reboot
-        HomeConclusion.CHECKING -> R.string.home_status_checking
-        else -> R.string.home_update_check
+private fun SceneRootStatus(state: HomeUiState, onTools: () -> Unit) {
+    val needsAccess = state.needsRootAccess()
+    val statusColor = when {
+        needsAccess || state.conclusion == HomeConclusion.CHECK_FAILED -> MiuixTheme.colorScheme.error
+        state.conclusion == HomeConclusion.FULL_APATCH ||
+            state.conclusion == HomeConclusion.KERNEL_PATCH_ONLY -> MiuixTheme.colorScheme.primary
+        else -> MiuixTheme.colorScheme.onSurface
     }
-
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        IconButton(
-            onClick = onShowMore,
-            modifier = Modifier.size(52.dp),
-            backgroundColor = MiuixTheme.colorScheme.secondaryContainer,
-            cornerRadius = 16.dp,
-            minWidth = 52.dp,
-            minHeight = 52.dp,
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(statusColor.copy(alpha = 0.10f), CircleShape),
+            contentAlignment = Alignment.Center,
         ) {
+            Icon(
+                imageVector = if (needsAccess) MiuixIcons.Lock else state.conclusion.icon(),
+                contentDescription = null,
+                modifier = Modifier.size(26.dp),
+                tint = statusColor,
+            )
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = stringResource(if (needsAccess) R.string.home_root_access_missing else state.conclusion.titleRes()),
+                style = MiuixTheme.textStyles.title4,
+                fontWeight = FontWeight.SemiBold,
+                color = MiuixTheme.colorScheme.onSurface,
+            )
+            // The two patch values below already explain the healthy state. Only exceptions
+            // need a second paragraph; never substitute a detected patch for usable root.
+            if (needsAccess || state.conclusion != HomeConclusion.FULL_APATCH) {
+                Text(
+                    text = stringResource(if (needsAccess) R.string.home_root_access_missing_summary else state.conclusion.summaryRes()),
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+            }
+        }
+        IconButton(onClick = onTools, modifier = Modifier.size(44.dp)) {
             Icon(
                 imageVector = MiuixIcons.More,
-                contentDescription = stringResource(R.string.home_more),
-                modifier = Modifier.size(22.dp),
-            )
-        }
-
-        Button(
-            onClick = onPrimary,
-            modifier = Modifier
-                .weight(1f)
-                .height(52.dp),
-            colors = ButtonDefaults.buttonColorsPrimary(),
-            enabled = state.conclusion != HomeConclusion.CHECKING,
-        ) {
-            Text(
-                text = stringResource(primaryLabel),
-                style = MiuixTheme.textStyles.button,
-                maxLines = 1,
-                softWrap = false,
-            )
-        }
-
-        IconButton(
-            onClick = onRefresh,
-            modifier = Modifier.size(52.dp),
-            backgroundColor = MiuixTheme.colorScheme.secondaryContainer,
-            cornerRadius = 16.dp,
-            minWidth = 52.dp,
-            minHeight = 52.dp,
-        ) {
-            Icon(
-                imageVector = MiuixIcons.Refresh,
-                contentDescription = stringResource(R.string.home_update_check),
-                modifier = Modifier.size(22.dp),
+                contentDescription = stringResource(R.string.home_root_tools),
+                tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             )
         }
     }
@@ -848,14 +830,12 @@ private fun sceneQuote(): String {
 @Composable
 private fun HomeTopBar(
     canReboot: Boolean,
-    update: HomeUpdateState,
     showMore: Boolean,
     showReboot: Boolean,
     onShowMoreChange: (Boolean) -> Unit,
     onShowRebootChange: (Boolean) -> Unit,
     onAppearance: () -> Unit,
     onInstallClick: () -> Unit,
-    onCheckUpdates: () -> Unit,
     onFeedback: () -> Unit,
     onAbout: () -> Unit,
     onReboot: (String) -> Unit,
@@ -881,12 +861,10 @@ private fun HomeTopBar(
 
                 HomeMoreMenu(
                     show = showMore,
-                    update = update,
                     canReboot = canReboot,
                     onDismiss = { onShowMoreChange(false) },
                     onInstallClick = onInstallClick,
                     onRebootRequest = { onShowRebootChange(true) },
-                    onCheckUpdates = onCheckUpdates,
                     onFeedback = onFeedback,
                     onAbout = onAbout,
                 )
@@ -905,18 +883,16 @@ private fun HomeTopBar(
 @Composable
 private fun HomeMoreMenu(
     show: Boolean,
-    update: HomeUpdateState,
     canReboot: Boolean,
     onDismiss: () -> Unit,
     onInstallClick: () -> Unit,
     onRebootRequest: () -> Unit,
-    onCheckUpdates: () -> Unit,
     onFeedback: () -> Unit,
     onAbout: () -> Unit,
 ) {
-    OverlayListPopup(
+    WindowBottomSheet(
         show = show,
-        alignment = PopupPositionProvider.Align.BottomEnd,
+        title = stringResource(R.string.home_root_tools),
         onDismissRequest = onDismiss,
     ) {
         ListPopupColumn {
@@ -935,15 +911,6 @@ private fun HomeMoreMenu(
                     },
                 )
             }
-            PopupMenuItem(
-                icon = MiuixIcons.Update,
-                text = when (update) {
-                    HomeUpdateState.Checking -> stringResource(R.string.home_update_checking)
-                    else -> stringResource(R.string.home_update_check)
-                },
-                enabled = update !is HomeUpdateState.Checking,
-                onClick = onCheckUpdates,
-            )
             PopupMenuItem(
                 icon = MiuixIcons.Help,
                 text = stringResource(R.string.home_more_menu_feedback_or_suggestion),

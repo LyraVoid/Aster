@@ -77,7 +77,6 @@
     <string name="home_ap_cando_update">更新</string>
     <string name="home_update_check">檢查更新</string>
     <string name="home_update_checking">正在檢查更新…</string>
-    <string name="home_status_checking">檢查中…</string>
     <string name="kpm_load_toast_failed">匯入失敗</string>
     <string name="kpm_unload">刪除</string>
     <string name="home_selinux_status_disabled">關閉</string>
@@ -178,6 +177,10 @@
     <string name="enable_web_debugging">啟用 WebView 偵錯</string>
     <string name="home_more_menu_feedback_or_suggestion">回饋或建議</string>
     <string name="home_more_menu_about">關於</string>
+    <string name="home_root_tools">Root 工具</string>
+    <string name="home_root_tools_summary">安裝與修補、重新啟動，以及其他管理器操作</string>
+    <string name="home_root_access_missing">Root 權限無法使用</string>
+    <string name="home_root_access_missing_summary">已偵測到 KernelPatch，但管理器目前無法取得 Root 工作階段。請重新授權，或修復 Root 層後重新整理。</string>
     <string name="mode_select_page_install_inactive_slot_warning">重新啟動後，您的裝置將**強制**啟動到目前非活動插槽！
 \n僅在 OTA 完成之後使用此選項。
 \n繼續？</string>
@@ -325,4 +328,34 @@
     <string name="home_refresh_requested">正在重新整理狀態</string>
     <string name="home_update_current">已是最新版本</string>
     <string name="home_update_failed">檢查更新失敗，請稍後重試</string>
+    <string name="home_status_full">Root 正在運作</string>
+    <string name="home_status_full_summary">KernelPatch 與 AndroidPatch 均已就緒。</string>
+    <string name="home_status_checking">正在檢查 Root</string>
+    <string name="home_status_checking_summary">正在確認核心補丁與系統補丁的狀態。</string>
+    <string name="home_status_check_failed">無法確認 Root 狀態</string>
+    <string name="home_status_check_failed_summary">檢查未完成，請重試；這不代表尚未安裝。</string>
+    <string name="home_status_not_installed">Root 尚未啟用</string>
+    <string name="home_status_not_installed_summary">未偵測到 KernelPatch，可選擇映像檔進行修補。</string>
+    <string name="home_status_kpatch_only">核心 Root 已啟用</string>
+    <string name="home_status_kpatch_only_summary">安裝 AndroidPatch 後可使用系統模組。</string>
+    <string name="home_status_need_update">補丁需要更新</string>
+    <string name="home_status_need_update_summary">補丁元件與目前管理器版本不符。</string>
+    <string name="home_status_need_reboot">等待重新啟動生效</string>
+    <string name="home_status_need_reboot_summary">補丁變更將在重新啟動後生效。</string>
+    <string name="home_status_busy">正在處理</string>
+    <string name="home_status_busy_summary">請等待目前操作完成。</string>
+    <string name="home_status_jailbreak">臨時 Root 已啟用</string>
+    <string name="home_status_jailbreak_summary">KernelPatch 已臨時載入，未寫入啟動映像檔。</string>
+    <string name="home_status_unknown">Root 狀態未知</string>
+    <string name="home_status_unknown_summary">請重新整理以再次檢查。</string>
+    <string name="home_action_retry">重新檢查</string>
+    <string name="home_layer_ready">已就緒</string>
+    <string name="home_layer_checking">檢查中</string>
+    <string name="home_layer_unavailable">未安裝</string>
+    <string name="home_layer_need_update">待更新</string>
+    <string name="home_layer_need_reboot">待重新啟動</string>
+    <string name="home_layer_busy">處理中</string>
+    <string name="home_layer_error">讀取失敗</string>
+    <string name="home_layer_blocked">無法使用</string>
+    <string name="home_layer_unknown">未知</string>
 </resources>
