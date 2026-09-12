@@ -610,6 +610,23 @@ private fun HomeScenePanel(
                                 )
                             )
                     )
+                    // As the hero slides under the page top it would otherwise show a sliced
+                    // photo edge. Wash its own top with the panel colour, in proportion to how
+                    // far it has scrolled, so it dissolves instead of being cut. At rest the
+                    // wash is fully transparent.
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                alpha = (scrollState.value / size.height).coerceIn(0f, 1f) * 0.95f
+                            }
+                            .background(
+                                Brush.verticalGradient(
+                                    0f to MiuixTheme.colorScheme.background,
+                                    0.42f to Color.Transparent,
+                                )
+                            )
+                    )
                     IconButton(
                         onClick = toggleSidebar,
                         modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).size(48.dp),
