@@ -93,8 +93,7 @@ import java.util.Locale
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.theme.LocalThemeModeState
 import me.bmax.apatch.ui.theme.WallpaperColorTheme
-import me.bmax.apatch.ui.theme.rememberWallpaperColorEnabled
-import me.bmax.apatch.ui.theme.rememberWallpaperColorSeed
+import me.bmax.apatch.ui.theme.rememberWallpaperColorThemeState
 import me.bmax.apatch.util.Version
 import me.bmax.apatch.root.RootAccessProbeState
 import me.bmax.apatch.root.RootDetailState
@@ -414,6 +413,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
             onChooseImage = launchWallpaperPicker,
             onRemoveImage = wallpaperViewModel::removeImage,
             onCropChange = wallpaperViewModel::saveCrop,
+            onRegenerateColor = wallpaperViewModel::regenerateColors,
         )
 
         if (showUninstallDialog) {
@@ -1224,10 +1224,12 @@ private fun HomeWallpaperSheet(
     onChooseImage: () -> Unit,
     onRemoveImage: () -> Unit,
     onCropChange: (HomeWallpaperCrop) -> Unit,
+    onRegenerateColor: () -> Unit,
 ) {
     val busy = state.phase == HomeWallpaperPhase.LOADING
-    val useWallpaperColor by rememberWallpaperColorEnabled()
-    val wallpaperColorSeed by rememberWallpaperColorSeed()
+    val wallpaperColorTheme = rememberWallpaperColorThemeState()
+    val useWallpaperColor = wallpaperColorTheme.enabled
+    val wallpaperColorSeed = wallpaperColorTheme.seed
     var zoom by remember(show, state.imagePath, state.revision, state.crop) {
         mutableFloatStateOf(state.crop.zoom)
     }
@@ -1313,8 +1315,11 @@ private fun HomeWallpaperSheet(
                 onCheckedChange = { WallpaperColorTheme.setEnabled(it) },
                 enabled = state.hasImage,
             )
-            if (wallpaperColorSeed != 0) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+
+            // The reading happens on its own, so the only thing worth showing underneath is what it
+            // came up with: the colour, or the fact that it could not find one and can try again.
+            when {
+                wallpaperColorSeed != 0 -> Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         Modifier
                             .size(20.dp)
@@ -1327,6 +1332,27 @@ private fun HomeWallpaperSheet(
                             String.format(Locale.ROOT, "#%06X", wallpaperColorSeed and 0xFFFFFF),
                         style = MiuixTheme.textStyles.footnote1,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                }
+
+                wallpaperColorTheme.deriving -> Text(
+                    text = stringResource(R.string.home_wallpaper_color_deriving),
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+
+                wallpaperColorTheme.failed && state.hasImage -> Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(R.string.home_wallpaper_color_failed),
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                    Spacer(Modifier.weight(1f))
+                    TextButton(
+                        text = stringResource(R.string.home_wallpaper_color_retry),
+                        onClick = onRegenerateColor,
                     )
                 }
             }

@@ -1,13 +1,12 @@
 package me.bmax.apatch.ui.theme
 
 import android.content.Context
-import android.content.SharedPreferences
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.collectAsState
 import androidx.core.content.edit
 import java.io.File
 import kotlin.math.PI
@@ -17,9 +16,26 @@ import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.ui.home.HomeWallpaperFiles
 import me.bmax.apatch.ui.home.HomeWallpaperState
+
+/** What the app knows about the wallpaper derived colours right now. */
+@Immutable
+internal data class WallpaperColorThemeState(
+    val enabled: Boolean = false,
+    /** The colour read out of the wallpaper, or 0 when there is none yet. */
+    val seed: Int = 0,
+    /** True while the wallpaper is being read. */
+    val deriving: Boolean = false,
+    /** True when the last attempt read nothing usable out of the wallpaper. */
+    val failed: Boolean = false,
+)
 
 /**
  * App colours derived from the Home wallpaper.
@@ -32,85 +48,131 @@ import me.bmax.apatch.ui.home.HomeWallpaperState
  * The derived seed outranks both the system colour and the preset list, because it is the most
  * specific choice the user can make. The other two stay in preferences untouched, so switching
  * this off restores whatever they had.
+ *
+ * Everything that shows or applies this lives off [state]; the preferences underneath are only the
+ * storage, so the theme and both switches can never disagree about what the current colour is.
  */
 internal object WallpaperColorTheme {
     const val EnabledKey = "use_wallpaper_color_theme"
     const val SeedKey = "wallpaper_color_seed"
     private const val SeedRevisionKey = "wallpaper_color_seed_revision"
+    private const val Tag = "WallpaperColor"
 
-    fun isEnabled(): Boolean = APApplication.sharedPreferences.getBoolean(EnabledKey, false)
+    /**
+     * Reading an image can fail for reasons that pass on their own (a decode that runs out of
+     * memory while the app is still warming up, a file that is not readable yet). A single failure
+     * used to leave the app without a colour until the next restart, so it is worth retrying.
+     */
+    private const val DeriveAttempts = 3
+    private const val DeriveRetryDelayMillis = 200L
 
-    /** Seeded colour, or 0 when no wallpaper has been analysed yet. */
-    fun seed(): Int = APApplication.sharedPreferences.getInt(SeedKey, 0)
+    private val _state = MutableStateFlow(readState())
+
+    val state: StateFlow<WallpaperColorThemeState> = _state.asStateFlow()
 
     fun setEnabled(enabled: Boolean) {
         APApplication.sharedPreferences.edit { putBoolean(EnabledKey, enabled) }
-        refreshTheme.value = true
+        _state.update { it.copy(enabled = enabled) }
     }
 
     /**
      * Keeps the derived seed in step with the stored wallpaper. Safe to call on every wallpaper
-     * state change: it only does work when the revision moved.
+     * state change: it only does work when the revision moved or the last attempt came up empty.
      */
-    fun sync(context: Context, state: HomeWallpaperState) {
-        val prefs = APApplication.sharedPreferences
-        val file = HomeWallpaperFiles
-            .resolve(context.filesDir, state.imagePath)
-            ?.takeIf { it.isFile }
-
+    suspend fun sync(context: Context, wallpaper: HomeWallpaperState) {
+        val file = wallpaperFile(context, wallpaper)
         if (file == null) {
-            if (prefs.contains(SeedKey) || prefs.contains(SeedRevisionKey)) {
-                prefs.edit {
-                    remove(SeedKey)
-                    remove(SeedRevisionKey)
-                }
-                refreshTheme.postValue(true)
+            // No wallpaper to follow any more, so there is nothing to report either.
+            clearSeed()
+            _state.update { it.copy(failed = false) }
+            return
+        }
+        val prefs = APApplication.sharedPreferences
+        val upToDate = prefs.getLong(SeedRevisionKey, -1L) == wallpaper.revision &&
+            prefs.getInt(SeedKey, 0) != 0
+        if (upToDate) {
+            _state.update { it.copy(failed = false) }
+            return
+        }
+        derive(file, wallpaper.revision)
+    }
+
+    /**
+     * Reads the wallpaper again, ignoring the revision it was last derived from. This is the way
+     * back when a derivation failed, so the user does not have to restart the app.
+     */
+    suspend fun regenerate(context: Context, wallpaper: HomeWallpaperState): Boolean {
+        val file = wallpaperFile(context, wallpaper)
+        if (file == null) {
+            clearSeed()
+            _state.update { it.copy(failed = false) }
+            return false
+        }
+        return derive(file, wallpaper.revision)
+    }
+
+    private fun wallpaperFile(context: Context, wallpaper: HomeWallpaperState): File? =
+        HomeWallpaperFiles
+            .resolve(context.filesDir, wallpaper.imagePath)
+            ?.takeIf { it.isFile && it.length() > 0L }
+
+    private suspend fun derive(file: File, revision: Long): Boolean {
+        _state.update { it.copy(deriving = true, failed = false) }
+        var derived: Int? = null
+        for (attempt in 0 until DeriveAttempts) {
+            derived = runCatching { extractSeed(file) }
+                .onFailure { Log.w(Tag, "could not read the home wallpaper (attempt ${attempt + 1})", it) }
+                .getOrNull()
+            if (derived != null) break
+            if (attempt < DeriveAttempts - 1) {
+                delay(DeriveRetryDelayMillis * (attempt + 1))
             }
-            return
         }
-        if (prefs.getLong(SeedRevisionKey, -1L) == state.revision && prefs.contains(SeedKey)) {
-            return
+
+        val seed = derived
+        if (seed == null) {
+            // The theme falls back to the next priority; the revision is deliberately not recorded,
+            // so the next launch (or a tap on retry) has another go.
+            Log.w(Tag, "no colour usable as a theme in the home wallpaper")
+            clearSeed()
+            _state.update { it.copy(deriving = false, failed = true) }
+            return false
         }
-        val seed = runCatching { extractSeed(file) }.getOrNull()
+
+        APApplication.sharedPreferences.edit {
+            putInt(SeedKey, seed)
+            putLong(SeedRevisionKey, revision)
+        }
+        _state.update { it.copy(seed = seed, deriving = false, failed = false) }
+        return true
+    }
+
+    private fun clearSeed() {
+        val prefs = APApplication.sharedPreferences
+        if (!prefs.contains(SeedKey) && !prefs.contains(SeedRevisionKey)) return
         prefs.edit {
-            if (seed == null) remove(SeedKey) else putInt(SeedKey, seed)
-            putLong(SeedRevisionKey, state.revision)
+            remove(SeedKey)
+            remove(SeedRevisionKey)
         }
-        refreshTheme.postValue(true)
+        _state.update { it.copy(seed = 0) }
+    }
+
+    private fun readState(): WallpaperColorThemeState {
+        val prefs = APApplication.sharedPreferences
+        return WallpaperColorThemeState(
+            enabled = prefs.getBoolean(EnabledKey, false),
+            seed = prefs.getInt(SeedKey, 0),
+        )
     }
 }
 
+/**
+ * The wallpaper colour choice, observed from anywhere that shows it or applies it. Not tied to a
+ * lifecycle: this is a single app wide preference, not a stream that needs pausing.
+ */
 @Composable
-internal fun rememberWallpaperColorEnabled(): State<Boolean> =
-    rememberPreference(WallpaperColorTheme.EnabledKey, false) { prefs, key, default ->
-        prefs.getBoolean(key, default)
-    }
-
-@Composable
-internal fun rememberWallpaperColorSeed(): State<Int> =
-    rememberPreference(WallpaperColorTheme.SeedKey, 0) { prefs, key, default ->
-        prefs.getInt(key, default)
-    }
-
-/** Preference backed state that also updates when the same key is written from elsewhere. */
-@Composable
-private fun <T> rememberPreference(
-    key: String,
-    default: T,
-    read: (SharedPreferences, String, T) -> T,
-): State<T> {
-    val prefs = APApplication.sharedPreferences
-    val state = remember(prefs, key) { mutableStateOf(read(prefs, key, default)) }
-    DisposableEffect(prefs, key) {
-        val listener = SharedPreferences.OnSharedPreferenceChangeListener { changed, name ->
-            if (name == key || name == null) state.value = read(changed, key, default)
-        }
-        prefs.registerOnSharedPreferenceChangeListener(listener)
-        state.value = read(prefs, key, default)
-        onDispose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
-    }
-    return state
-}
+internal fun rememberWallpaperColorThemeState(): WallpaperColorThemeState =
+    WallpaperColorTheme.state.collectAsState().value
 
 /** Long edge of the decoded sample. Everything else is thrown away before we look at colours. */
 private const val SampleEdge = 96
@@ -143,6 +205,9 @@ private fun extractSeed(file: File): Int? {
     }
     val options = BitmapFactory.Options().apply {
         inSampleSize = sampleSize(bounds.outWidth, bounds.outHeight)
+        // Half the bytes of the default ARGB_8888. The sample is small either way, but the reading
+        // happens while the app is starting and other copies of the wallpaper are being decoded.
+        inPreferredConfig = Bitmap.Config.RGB_565
     }
     val bitmap = BitmapFactory.decodeFile(file.absolutePath, options) ?: return null
     return try {

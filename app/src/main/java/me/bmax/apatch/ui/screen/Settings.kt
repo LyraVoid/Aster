@@ -69,7 +69,7 @@ import me.bmax.apatch.ui.shell.setGlobalLayout
 import me.bmax.apatch.ui.shell.setNavigationMode
 import me.bmax.apatch.ui.theme.WallpaperColorTheme
 import me.bmax.apatch.ui.theme.refreshTheme
-import me.bmax.apatch.ui.theme.rememberWallpaperColorEnabled
+import me.bmax.apatch.ui.theme.rememberWallpaperColorThemeState
 import me.bmax.apatch.util.getBugreportFile
 import me.bmax.apatch.util.getKernelVersionCode
 import me.bmax.apatch.util.isGkiKernel
@@ -213,7 +213,8 @@ fun SettingScreen() {
     var customColor by rememberSaveable {
         mutableStateOf(prefs.getString("custom_color", "blue") ?: "blue")
     }
-    val useWallpaperColor by rememberWallpaperColorEnabled()
+    val wallpaperColorTheme = rememberWallpaperColorThemeState()
+    val useWallpaperColor = wallpaperColorTheme.enabled
     val wallpaperViewModel = LocalHomeWallpaperViewModel.current
     val wallpaperState = if (wallpaperViewModel == null) {
         null
@@ -549,10 +550,13 @@ fun SettingScreen() {
                         onCheckedChange = { WallpaperColorTheme.setEnabled(it) },
                         title = stringResource(R.string.settings_wallpaper_color_theme),
                         summary = stringResource(
-                            if (hasWallpaper) {
-                                R.string.settings_wallpaper_color_theme_summary
-                            } else {
-                                R.string.settings_wallpaper_color_theme_no_wallpaper
+                            when {
+                                !hasWallpaper -> R.string.settings_wallpaper_color_theme_no_wallpaper
+                                // Worth saying out loud: the fallback theme is in charge instead.
+                                wallpaperColorTheme.failed ->
+                                    R.string.settings_wallpaper_color_theme_failed
+
+                                else -> R.string.settings_wallpaper_color_theme_summary
                             }
                         ),
                         enabled = hasWallpaper,

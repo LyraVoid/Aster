@@ -105,8 +105,9 @@ fun APatchTheme(
     // Highest priority of the three: it is the most specific choice the user can make, and the
     // system colour and the preset list below are left untouched so switching it off restores
     // whatever they had.
-    var useWallpaperColor by remember { mutableStateOf(WallpaperColorTheme.isEnabled()) }
-    var wallpaperColorSeed by remember { mutableStateOf(WallpaperColorTheme.seed()) }
+    val wallpaperColorTheme = rememberWallpaperColorThemeState()
+    val useWallpaperColor = wallpaperColorTheme.enabled
+    val wallpaperColorSeed = wallpaperColorTheme.seed
 
     val refreshThemeObserver by refreshTheme.observeAsState(false)
     if (refreshThemeObserver == true) {
@@ -117,8 +118,6 @@ fun APatchTheme(
             true
         ) else false
         customColorScheme = prefs.getString("custom_color", "blue")
-        useWallpaperColor = WallpaperColorTheme.isEnabled()
-        wallpaperColorSeed = WallpaperColorTheme.seed()
         refreshTheme.postValue(false)
     }
 

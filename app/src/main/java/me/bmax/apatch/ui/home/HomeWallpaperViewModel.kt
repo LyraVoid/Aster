@@ -45,6 +45,18 @@ class HomeWallpaperViewModel(application: Application) : AndroidViewModel(applic
         }
     }
 
+    /**
+     * Reads the wallpaper again for a fresh colour, for when the automatic attempt found nothing.
+     */
+    fun regenerateColors() {
+        val state = mutableUiState.value
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                runCatching { WallpaperColorTheme.regenerate(getApplication(), state) }
+            }
+        }
+    }
+
     fun setEnabled(enabled: Boolean) {
         if (mutableUiState.value.phase == HomeWallpaperPhase.LOADING) {
             return

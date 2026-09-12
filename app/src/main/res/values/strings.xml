@@ -316,6 +316,10 @@
     <string name="settings_wallpaper_color_theme">Wallpaper colours</string>
     <string name="settings_wallpaper_color_theme_summary">Build the app colours from your Home wallpaper. Outranks the system colour and the presets.</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">Choose a Home wallpaper first.</string>
+    <string name="settings_wallpaper_color_theme_failed">Could not read a colour from this wallpaper.</string>
+    <string name="home_wallpaper_color_deriving">Reading the wallpaper colours…</string>
+    <string name="home_wallpaper_color_failed">No colour could be read from this wallpaper.</string>
+    <string name="home_wallpaper_color_retry">Read again</string>
     <string name="home_wallpaper_color_theme">Wallpaper colours</string>
     <string name="home_wallpaper_color_theme_summary">Derive the app colours from this wallpaper.</string>
     <string name="home_wallpaper_color_seed">Derived colour</string>

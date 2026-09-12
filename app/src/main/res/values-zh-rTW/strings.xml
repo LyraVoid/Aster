@@ -208,6 +208,10 @@
     <string name="settings_wallpaper_color_theme">依桌布配色</string>
     <string name="settings_wallpaper_color_theme_summary">依照首頁桌布產生應用程式配色，優先於系統配色與自訂顏色。</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">請先在首頁選擇桌布。</string>
+    <string name="settings_wallpaper_color_theme_failed">無法從這張壁紙取色。</string>
+    <string name="home_wallpaper_color_deriving">正在讀取壁紙配色…</string>
+    <string name="home_wallpaper_color_failed">未能從這張壁紙取色。</string>
+    <string name="home_wallpaper_color_retry">重新取色</string>
     <string name="home_wallpaper_color_theme">依桌布配色</string>
     <string name="home_wallpaper_color_theme_summary">依照這張桌布產生應用程式配色。</string>
     <string name="home_wallpaper_color_seed">產生的顏色</string>
