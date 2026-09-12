@@ -62,6 +62,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -502,6 +503,7 @@ private fun HomeScenePanel(
         val sidebarExpanded by me.bmax.apatch.ui.shell.rememberVisualFlag("scene_sidebar_expanded", true)
         val toggleSidebar = { me.bmax.apatch.ui.shell.setVisualFlag("scene_sidebar_expanded", !sidebarExpanded) }
         val heroHeight = ((maxHeight - topInset) * if (maxHeight < 480.dp) 0.50f else 0.63f).coerceAtLeast(300.dp)
+        val scrollState = rememberScrollState()
 
         Box(
             Modifier
@@ -521,7 +523,7 @@ private fun HomeScenePanel(
                     .align(Alignment.TopCenter)
                     .widthIn(max = 600.dp)
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScroll(scrollState),
             ) {
                 Spacer(Modifier.height(12.dp))
 
@@ -580,9 +582,18 @@ private fun HomeScenePanel(
                             }
                         }
                     }
+                    // The photo gives a share of the scroll back, so the scene drifts instead of
+                    // sliding away with the list. The extra height keeps the crop covered while
+                    // it moves; the hero clip hides everything outside it.
                     HomeWallpaperImage(
                         state = wallpaperState,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(heroHeight * SceneParallaxOverscan)
+                            .graphicsLayer {
+                                translationY = (scrollState.value * SceneParallaxRate)
+                                    .coerceAtMost(size.height * SceneParallaxRate / SceneParallaxOverscan)
+                            },
                     )
                     Box(
                         Modifier
@@ -859,6 +870,10 @@ private fun SceneRootStatus(state: HomeUiState, onTools: () -> Unit) {
         }
     }
 }
+
+// How much taller than the hero the photo is drawn, and how much of the scroll it absorbs.
+private const val SceneParallaxOverscan = 1.35f
+private const val SceneParallaxRate = 0.35f
 
 @Composable
 private fun sceneGreeting(): String {
