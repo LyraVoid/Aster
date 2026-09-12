@@ -5,13 +5,13 @@ internal data class HomeWallpaperFileInfo(
     val height: Int,
 )
 
+/** Turns what is stored in preferences and on disk into the state of a single wallpaper slot. */
 internal object HomeWallpaperStateMapper {
     fun disabled(
         imagePath: String?,
         revision: Long,
         crop: HomeWallpaperCrop,
-    ): HomeWallpaperState = HomeWallpaperState(
-        enabled = false,
+    ): HomeWallpaperSlotState = HomeWallpaperSlotState(
         phase = HomeWallpaperPhase.DISABLED,
         imagePath = imagePath?.takeIf { it.isNotBlank() },
         revision = revision,
@@ -24,7 +24,7 @@ internal object HomeWallpaperStateMapper {
         crop: HomeWallpaperCrop,
         fileExists: Boolean,
         fileInfo: HomeWallpaperFileInfo?,
-    ): HomeWallpaperState {
+    ): HomeWallpaperSlotState {
         val normalizedPath = imagePath?.takeIf { it.isNotBlank() }
         val phase = when {
             normalizedPath == null -> HomeWallpaperPhase.MISSING
@@ -34,8 +34,7 @@ internal object HomeWallpaperStateMapper {
 
             else -> HomeWallpaperPhase.READY
         }
-        return HomeWallpaperState(
-            enabled = true,
+        return HomeWallpaperSlotState(
             phase = phase,
             imagePath = normalizedPath,
             imageWidth = fileInfo?.width?.takeIf { phase == HomeWallpaperPhase.READY } ?: 0,

@@ -14,7 +14,6 @@ class HomeWallpaperStateMapperTest {
             crop = HomeWallpaperCrop(zoom = 9f, biasX = -8f, biasY = 4f),
         )
 
-        assertFalse(state.enabled)
         assertFalse(state.isReady)
         assertEquals(HomeWallpaperPhase.DISABLED, state.phase)
         assertTrue(state.hasImage)
@@ -33,7 +32,6 @@ class HomeWallpaperStateMapperTest {
             fileInfo = null,
         )
 
-        assertTrue(state.enabled)
         assertEquals(HomeWallpaperPhase.MISSING, state.phase)
         assertFalse(state.hasImage)
     }
@@ -75,7 +73,6 @@ class HomeWallpaperStateMapperTest {
             fileInfo = HomeWallpaperFileInfo(width = 1440, height = 3120),
         )
 
-        assertTrue(state.enabled)
         assertTrue(state.isReady)
         assertEquals(HomeWallpaperPhase.READY, state.phase)
         assertEquals(1440, state.imageWidth)

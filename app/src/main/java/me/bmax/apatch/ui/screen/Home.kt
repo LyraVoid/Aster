@@ -116,6 +116,8 @@ import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
 import me.bmax.apatch.ui.home.HomeWallpaperMaxZoom
 import me.bmax.apatch.ui.home.HomeWallpaperMinZoom
 import me.bmax.apatch.ui.home.HomeWallpaperPhase
+import me.bmax.apatch.ui.home.HomeWallpaperSlot
+import me.bmax.apatch.ui.home.HomeWallpaperSlotImage
 import me.bmax.apatch.ui.home.HomeWallpaperState
 import me.bmax.apatch.ui.home.HomeWallpaperViewModel
 import me.bmax.apatch.ui.home.androidVersion
@@ -194,14 +196,18 @@ fun HomeScreen(navigator: DestinationsNavigator) {
     val jailbreakTriggeredMessage = stringResource(R.string.jailbreak_triggered)
     val wallpaperImportFailedMessage = stringResource(R.string.home_wallpaper_import_failed)
     val wallpaperChangeFailedMessage = stringResource(R.string.home_wallpaper_change_failed)
+    // The picker is shared by both themes, so it is told which wallpaper it is picking for before
+    // it opens.
+    var wallpaperPickerSlot by remember { mutableStateOf(HomeWallpaperSlot.LIGHT) }
     val wallpaperPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
     ) { uri ->
         if (uri != null) {
-            wallpaperViewModel.importImage(uri)
+            wallpaperViewModel.importImage(uri, wallpaperPickerSlot)
         }
     }
-    val launchWallpaperPicker = {
+    val launchWallpaperPicker: (HomeWallpaperSlot) -> Unit = { slot ->
+        wallpaperPickerSlot = slot
         wallpaperPicker.launch(
             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
         )
@@ -416,9 +422,10 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     if (enabled) GlobalLayout.Panorama else GlobalLayout.Standard
                 )
             },
+            onNightEnabledChange = wallpaperViewModel::setNightEnabled,
             onChooseImage = launchWallpaperPicker,
             onRemoveImage = wallpaperViewModel::removeImage,
-            onCropChange = wallpaperViewModel::saveCrop,
+            onCropChange = { slot, crop -> wallpaperViewModel.saveCrop(crop, slot) },
             onRegenerateColor = wallpaperViewModel::regenerateColors,
         )
 
@@ -1227,23 +1234,34 @@ private fun HomeWallpaperSheet(
     panoramaMode: Boolean,
     onDismissRequest: () -> Unit,
     onPanoramaChange: (Boolean) -> Unit,
-    onChooseImage: () -> Unit,
-    onRemoveImage: () -> Unit,
-    onCropChange: (HomeWallpaperCrop) -> Unit,
+    onNightEnabledChange: (Boolean) -> Unit,
+    onChooseImage: (HomeWallpaperSlot) -> Unit,
+    onRemoveImage: (HomeWallpaperSlot) -> Unit,
+    onCropChange: (HomeWallpaperSlot, HomeWallpaperCrop) -> Unit,
     onRegenerateColor: () -> Unit,
 ) {
-    val busy = state.phase == HomeWallpaperPhase.LOADING
+    // The sheet edits one wallpaper at a time. It opens on whichever theme is showing, and the
+    // buttons below move to the other one when the user asks for it.
+    var editingSlot by remember(show) { mutableStateOf(state.activeSlot) }
+    // Flipping the dark-wallpaper switch moves the editor onto the picture it just turned on, so
+    // that choice can be made without hunting for the slot buttons.
+    LaunchedEffect(state.nightEnabled) {
+        editingSlot = if (state.nightEnabled) HomeWallpaperSlot.NIGHT else HomeWallpaperSlot.LIGHT
+    }
+    val slotState = state.slot(editingSlot)
+    val hasAnyWallpaper = state.light.hasImage || state.night.hasImage
+    val busy = slotState.phase == HomeWallpaperPhase.LOADING
     val wallpaperColorTheme = rememberWallpaperColorThemeState()
     val useWallpaperColor = wallpaperColorTheme.enabled
     val wallpaperColorSeed = wallpaperColorTheme.seed
-    var zoom by remember(show, state.imagePath, state.revision, state.crop) {
-        mutableFloatStateOf(state.crop.zoom)
+    var zoom by remember(show, editingSlot, slotState.imagePath, slotState.revision, slotState.crop) {
+        mutableFloatStateOf(slotState.crop.zoom)
     }
-    var biasX by remember(show, state.imagePath, state.revision, state.crop) {
-        mutableFloatStateOf(state.crop.biasX)
+    var biasX by remember(show, editingSlot, slotState.imagePath, slotState.revision, slotState.crop) {
+        mutableFloatStateOf(slotState.crop.biasX)
     }
-    var biasY by remember(show, state.imagePath, state.revision, state.crop) {
-        mutableFloatStateOf(state.crop.biasY)
+    var biasY by remember(show, editingSlot, slotState.imagePath, slotState.revision, slotState.crop) {
+        mutableFloatStateOf(slotState.crop.biasY)
     }
     val draftCrop = HomeWallpaperCrop(
         zoom = zoom,
@@ -1319,7 +1337,7 @@ private fun HomeWallpaperSheet(
                 ),
                 checked = useWallpaperColor,
                 onCheckedChange = { WallpaperColorTheme.setEnabled(it) },
-                enabled = state.hasImage,
+                enabled = hasAnyWallpaper,
             )
 
             // The reading happens on its own, so the only thing worth showing underneath is what it
@@ -1347,7 +1365,7 @@ private fun HomeWallpaperSheet(
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
 
-                wallpaperColorTheme.failed && state.hasImage -> Row(
+                wallpaperColorTheme.failed && hasAnyWallpaper -> Row(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
@@ -1363,6 +1381,37 @@ private fun HomeWallpaperSheet(
                 }
             }
 
+            // The dark theme can carry a wallpaper of its own. Leaving this off is exactly what the
+            // app has always done, so the light picture keeps serving both themes until a second one
+            // is chosen.
+            SceneSwitchRow(
+                title = stringResource(R.string.home_wallpaper_night_switch),
+                summary = stringResource(R.string.home_wallpaper_night_switch_summary),
+                checked = state.nightEnabled,
+                onCheckedChange = onNightEnabledChange,
+                enabled = hasAnyWallpaper,
+            )
+
+            if (state.nightEnabled) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    WallpaperSlotButton(
+                        label = stringResource(R.string.home_wallpaper_slot_light),
+                        selected = editingSlot == HomeWallpaperSlot.LIGHT,
+                        onClick = { editingSlot = HomeWallpaperSlot.LIGHT },
+                        modifier = Modifier.weight(1f),
+                    )
+                    WallpaperSlotButton(
+                        label = stringResource(R.string.home_wallpaper_slot_night),
+                        selected = editingSlot == HomeWallpaperSlot.NIGHT,
+                        onClick = { editingSlot = HomeWallpaperSlot.NIGHT },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+
             when {
                 busy -> {
                     Text(
@@ -1372,7 +1421,9 @@ private fun HomeWallpaperSheet(
                     )
                 }
 
-                state.phase == HomeWallpaperPhase.MISSING -> {
+                // A slot that never held a picture is simply empty; only a picture that was recorded
+                // and has since gone missing is worth this warning.
+                slotState.phase == HomeWallpaperPhase.MISSING && slotState.imagePath != null -> {
                     Text(
                         text = stringResource(R.string.home_wallpaper_missing),
                         style = MiuixTheme.textStyles.body2,
@@ -1380,7 +1431,7 @@ private fun HomeWallpaperSheet(
                     )
                 }
 
-                state.phase == HomeWallpaperPhase.ERROR -> {
+                slotState.phase == HomeWallpaperPhase.ERROR -> {
                     Text(
                         text = stringResource(R.string.home_wallpaper_error),
                         style = MiuixTheme.textStyles.body2,
@@ -1388,7 +1439,7 @@ private fun HomeWallpaperSheet(
                     )
                 }
 
-                state.hasImage -> {
+                slotState.hasImage -> {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         insideMargin = PaddingValues(0.dp),
@@ -1399,8 +1450,8 @@ private fun HomeWallpaperSheet(
                                 .height(168.dp)
                                 .clipToBounds(),
                         ) {
-                            HomeWallpaperImage(
-                                state = state.copy(crop = draftCrop),
+                            HomeWallpaperSlotImage(
+                                slot = slotState.copy(crop = draftCrop),
                                 modifier = Modifier.fillMaxSize(),
                             )
                             Box(
@@ -1423,7 +1474,7 @@ private fun HomeWallpaperSheet(
                         valueRange = HomeWallpaperMinZoom..HomeWallpaperMaxZoom,
                         enabled = !busy,
                         onValueChange = { zoom = it },
-                        onValueChangeFinished = { onCropChange(draftCrop) },
+                        onValueChangeFinished = { onCropChange(editingSlot, draftCrop) },
                     )
                     WallpaperSlider(
                         label = stringResource(R.string.home_wallpaper_horizontal),
@@ -1431,7 +1482,7 @@ private fun HomeWallpaperSheet(
                         valueRange = -1f..1f,
                         enabled = !busy,
                         onValueChange = { biasX = it },
-                        onValueChangeFinished = { onCropChange(draftCrop) },
+                        onValueChangeFinished = { onCropChange(editingSlot, draftCrop) },
                     )
                     WallpaperSlider(
                         label = stringResource(R.string.home_wallpaper_vertical),
@@ -1439,13 +1490,19 @@ private fun HomeWallpaperSheet(
                         valueRange = -1f..1f,
                         enabled = !busy,
                         onValueChange = { biasY = it },
-                        onValueChangeFinished = { onCropChange(draftCrop) },
+                        onValueChangeFinished = { onCropChange(editingSlot, draftCrop) },
                     )
                 }
 
                 else -> {
                     Text(
-                        text = stringResource(R.string.home_wallpaper_empty),
+                        text = stringResource(
+                            if (editingSlot == HomeWallpaperSlot.NIGHT) {
+                                R.string.home_wallpaper_night_empty
+                            } else {
+                                R.string.home_wallpaper_empty
+                            }
+                        ),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     )
@@ -1457,31 +1514,57 @@ private fun HomeWallpaperSheet(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Button(
-                    onClick = onChooseImage,
+                    onClick = { onChooseImage(editingSlot) },
                     modifier = Modifier.weight(1f),
                     enabled = !busy,
                 ) {
                     Text(
                         text = stringResource(
-                            if (state.hasImage) {
-                                R.string.home_wallpaper_change
-                            } else {
-                                R.string.home_wallpaper_choose
+                            when {
+                                slotState.hasImage -> R.string.home_wallpaper_change
+                                editingSlot == HomeWallpaperSlot.NIGHT ->
+                                    R.string.home_wallpaper_night_choose
+
+                                else -> R.string.home_wallpaper_choose
                             }
                         ),
                         style = MiuixTheme.textStyles.button,
                     )
                 }
-                if (state.hasImage) {
+                if (slotState.hasImage) {
                     TextButton(
                         text = stringResource(R.string.home_wallpaper_remove),
-                        onClick = onRemoveImage,
+                        onClick = { onRemoveImage(editingSlot) },
                         modifier = Modifier.weight(1f),
                         enabled = !busy,
                     )
                 }
             }
         }
+    }
+}
+
+/** Picks which of the two wallpapers the sheet is editing. */
+@Composable
+private fun WallpaperSlotButton(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        colors = if (selected) {
+            ButtonDefaults.buttonColorsPrimary()
+        } else {
+            ButtonDefaults.buttonColors(
+                color = MiuixTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MiuixTheme.colorScheme.onSurface,
+            )
+        },
+    ) {
+        Text(text = label, style = MiuixTheme.textStyles.button)
     }
 }
 

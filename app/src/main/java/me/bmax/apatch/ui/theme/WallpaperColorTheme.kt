@@ -55,7 +55,16 @@ internal data class WallpaperColorThemeState(
 internal object WallpaperColorTheme {
     const val EnabledKey = "use_wallpaper_color_theme"
     const val SeedKey = "wallpaper_color_seed"
-    private const val SeedRevisionKey = "wallpaper_color_seed_revision"
+
+    /**
+     * Which wallpaper the stored seed was read from, as "<slot>:<revision>". Both facts matter:
+     * the same picture can be chosen for both themes, and the dark theme's picture is a different
+     * one, so a revision on its own would let a seed follow the wrong photo.
+     */
+    private const val SeedSourceKey = "wallpaper_color_source"
+
+    /** Written by an earlier version, which only knew about one wallpaper. */
+    private const val LegacySeedRevisionKey = "wallpaper_color_seed_revision"
     private const val Tag = "WallpaperColor"
 
     /**
@@ -76,25 +85,27 @@ internal object WallpaperColorTheme {
     }
 
     /**
-     * Keeps the derived seed in step with the stored wallpaper. Safe to call on every wallpaper
-     * state change: it only does work when the revision moved or the last attempt came up empty.
+     * Keeps the derived seed in step with the wallpaper that is on screen. Safe to call on every
+     * wallpaper state change: it only does work when the picture moved on or the last attempt came
+     * up empty.
      */
     suspend fun sync(context: Context, wallpaper: HomeWallpaperState) {
         val file = wallpaperFile(context, wallpaper)
-        if (file == null) {
+        val source = file?.let { wallpaperSource(wallpaper) }
+        if (source == null) {
             // No wallpaper to follow any more, so there is nothing to report either.
             clearSeed()
             _state.update { it.copy(failed = false) }
             return
         }
         val prefs = APApplication.sharedPreferences
-        val upToDate = prefs.getLong(SeedRevisionKey, -1L) == wallpaper.revision &&
+        val upToDate = prefs.getString(SeedSourceKey, null) == source &&
             prefs.getInt(SeedKey, 0) != 0
         if (upToDate) {
             _state.update { it.copy(failed = false) }
             return
         }
-        derive(file, wallpaper.revision)
+        derive(file, source)
     }
 
     /**
@@ -108,15 +119,18 @@ internal object WallpaperColorTheme {
             _state.update { it.copy(failed = false) }
             return false
         }
-        return derive(file, wallpaper.revision)
+        return derive(file, wallpaperSource(wallpaper))
     }
+
+    private fun wallpaperSource(wallpaper: HomeWallpaperState): String =
+        "${wallpaper.activeSlot.name}:${wallpaper.revision}"
 
     private fun wallpaperFile(context: Context, wallpaper: HomeWallpaperState): File? =
         HomeWallpaperFiles
             .resolve(context.filesDir, wallpaper.imagePath)
             ?.takeIf { it.isFile && it.length() > 0L }
 
-    private suspend fun derive(file: File, revision: Long): Boolean {
+    private suspend fun derive(file: File, source: String): Boolean {
         _state.update { it.copy(deriving = true, failed = false) }
         var derived: Int? = null
         for (attempt in 0 until DeriveAttempts) {
@@ -131,7 +145,7 @@ internal object WallpaperColorTheme {
 
         val seed = derived
         if (seed == null) {
-            // The theme falls back to the next priority; the revision is deliberately not recorded,
+            // The theme falls back to the next priority; the source is deliberately not recorded,
             // so the next launch (or a tap on retry) has another go.
             Log.w(Tag, "no colour usable as a theme in the home wallpaper")
             clearSeed()
@@ -141,7 +155,8 @@ internal object WallpaperColorTheme {
 
         APApplication.sharedPreferences.edit {
             putInt(SeedKey, seed)
-            putLong(SeedRevisionKey, revision)
+            putString(SeedSourceKey, source)
+            remove(LegacySeedRevisionKey)
         }
         _state.update { it.copy(seed = seed, deriving = false, failed = false) }
         return true
@@ -149,10 +164,16 @@ internal object WallpaperColorTheme {
 
     private fun clearSeed() {
         val prefs = APApplication.sharedPreferences
-        if (!prefs.contains(SeedKey) && !prefs.contains(SeedRevisionKey)) return
+        if (!prefs.contains(SeedKey) &&
+            !prefs.contains(SeedSourceKey) &&
+            !prefs.contains(LegacySeedRevisionKey)
+        ) {
+            return
+        }
         prefs.edit {
             remove(SeedKey)
-            remove(SeedRevisionKey)
+            remove(SeedSourceKey)
+            remove(LegacySeedRevisionKey)
         }
         _state.update { it.copy(seed = 0) }
     }

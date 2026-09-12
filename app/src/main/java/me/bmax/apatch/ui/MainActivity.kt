@@ -29,6 +29,7 @@ import me.bmax.apatch.ui.shell.AsterNavigationCapabilities
 import me.bmax.apatch.ui.shell.AsterNavigationTransitions
 import me.bmax.apatch.ui.shell.PrimaryDestination
 import me.bmax.apatch.ui.theme.APatchTheme
+import me.bmax.apatch.ui.theme.LocalThemeModeState
 import me.bmax.apatch.ui.viewmodel.SuperUserViewModel
 import top.yukonga.miuix.kmp.basic.SnackbarHostState
 
@@ -49,11 +50,17 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
             APatchTheme {
+                val isDark = LocalThemeModeState.current.isDark
                 val navController = rememberNavController()
                 val snackBarHostState = remember { SnackbarHostState() }
                 // Activity scoped so the shell can paint the home scene backdrop from the same
                 // wallpaper state the home screen edits.
                 val homeWallpaperViewModel: HomeWallpaperViewModel = viewModel()
+                // The wallpaper follows the theme the app actually resolved, not the raw system
+                // setting, so the manual dark mode switch moves the picture too.
+                LaunchedEffect(isDark) {
+                    homeWallpaperViewModel.setDarkTheme(isDark)
+                }
                 val primaryRoutes = remember {
                     PrimaryDestination.entries.map { it.direction.route }.toSet()
                 }

@@ -263,6 +263,12 @@
     <string name="home_wallpaper_change">更换图片</string>
     <string name="home_wallpaper_remove">移除图片</string>
     <string name="home_wallpaper_empty">选择一张图片来个性化首页，Root 诊断不会改变。</string>
+    <string name="home_wallpaper_night_switch">深色模式使用另一张壁纸</string>
+    <string name="home_wallpaper_night_switch_summary">深色模式显示下面选择的壁纸；未选择时沿用浅色壁纸。</string>
+    <string name="home_wallpaper_slot_light">浅色</string>
+    <string name="home_wallpaper_slot_night">深色</string>
+    <string name="home_wallpaper_night_choose">选择深色壁纸</string>
+    <string name="home_wallpaper_night_empty">尚未选择深色壁纸，深色模式下会沿用浅色壁纸。</string>
     <string name="home_wallpaper_missing">已保存的图片不可用，请重新选择。</string>
     <string name="home_wallpaper_error">无法读取已保存的图片，请选择其他图片。</string>
     <string name="home_wallpaper_saved">已保存的图片会在开启壁纸后显示。</string>

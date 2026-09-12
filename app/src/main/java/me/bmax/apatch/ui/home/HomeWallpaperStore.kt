@@ -17,29 +17,15 @@ internal class HomeWallpaperStore(context: Context) {
 
     fun load(): HomeWallpaperState {
         val enabled = preferences.getBoolean(KEY_ENABLED, false)
-        val imagePath = preferences.getString(KEY_FILE, null)
-        val revision = preferences.getLong(KEY_REVISION, 0L)
-        val crop = readCrop()
-
-        if (!enabled) {
-            return HomeWallpaperStateMapper.disabled(
-                imagePath = imagePath,
-                revision = revision,
-                crop = crop,
-            )
-        }
-        return resolveEnabledState(
-            imagePath = imagePath,
-            revision = revision,
-            crop = crop,
+        return HomeWallpaperState(
+            enabled = enabled,
+            light = readSlot(HomeWallpaperSlot.LIGHT, enabled),
+            night = readSlot(HomeWallpaperSlot.NIGHT, enabled),
+            nightEnabled = preferences.getBoolean(KEY_NIGHT_ENABLED, false),
         )
     }
 
     fun setEnabled(enabled: Boolean): HomeWallpaperState {
-        val imagePath = preferences.getString(KEY_FILE, null)
-        val revision = preferences.getLong(KEY_REVISION, 0L)
-        val crop = readCrop()
-
         check(
             preferences.edit()
                 .putBoolean(KEY_ENABLED, enabled)
@@ -47,30 +33,34 @@ internal class HomeWallpaperStore(context: Context) {
         ) {
             "Unable to persist Home wallpaper enabled state"
         }
-
-        if (!enabled) {
-            return HomeWallpaperStateMapper.disabled(
-                imagePath = imagePath,
-                revision = revision,
-                crop = crop,
-            )
-        }
-        return resolveEnabledState(
-            imagePath = imagePath,
-            revision = revision,
-            crop = crop,
-        )
+        return load()
     }
 
-    fun importFrom(source: Uri): HomeWallpaperState {
+    /**
+     * Switching the dark wallpaper off keeps the stored image, so the choice can be taken back
+     * without picking the picture again.
+     */
+    fun setNightEnabled(enabled: Boolean): HomeWallpaperState {
+        check(
+            preferences.edit()
+                .putBoolean(KEY_NIGHT_ENABLED, enabled)
+                .commit()
+        ) {
+            "Unable to persist the dark Home wallpaper choice"
+        }
+        return load()
+    }
+
+    fun importFrom(source: Uri, slot: HomeWallpaperSlot): HomeWallpaperState {
         check(wallpaperDirectory.exists() || wallpaperDirectory.mkdirs()) {
             "Unable to create the Home wallpaper directory"
         }
 
-        val target = File(wallpaperDirectory, FILE_NAME)
+        val keys = keys(slot)
+        val target = File(wallpaperDirectory, keys.fileName)
         val temporary = File(
             wallpaperDirectory,
-            "$FILE_NAME.${System.nanoTime()}.tmp",
+            "${keys.fileName}.${System.nanoTime()}.tmp",
         )
 
         try {
@@ -89,25 +79,23 @@ internal class HomeWallpaperStore(context: Context) {
             }
             Os.rename(temporary.absolutePath, target.absolutePath)
 
-            val revision = System.currentTimeMillis()
-            check(
-                preferences.edit()
-                    .putBoolean(KEY_ENABLED, true)
-                    .putString(KEY_FILE, RELATIVE_FILE_PATH)
-                    .putFloat(KEY_ZOOM, HomeWallpaperCrop.Default.zoom)
-                    .putFloat(KEY_BIAS_X, HomeWallpaperCrop.Default.biasX)
-                    .putFloat(KEY_BIAS_Y, HomeWallpaperCrop.Default.biasY)
-                    .putLong(KEY_REVISION, revision)
-                    .commit()
-            ) {
+            val editor = preferences.edit()
+                .putBoolean(KEY_ENABLED, true)
+                .putString(keys.fileKey, keys.relativePath)
+                .putFloat(keys.zoomKey, HomeWallpaperCrop.Default.zoom)
+                .putFloat(keys.biasXKey, HomeWallpaperCrop.Default.biasX)
+                .putFloat(keys.biasYKey, HomeWallpaperCrop.Default.biasY)
+                .putLong(keys.revisionKey, System.currentTimeMillis())
+            if (slot == HomeWallpaperSlot.NIGHT) {
+                // Choosing a picture for the dark theme says what it is for, so the feature switches
+                // itself on. The switch stays there to turn it back off.
+                editor.putBoolean(KEY_NIGHT_ENABLED, true)
+            }
+            check(editor.commit()) {
                 "Unable to persist the selected Home wallpaper"
             }
 
-            return resolveEnabledState(
-                imagePath = RELATIVE_FILE_PATH,
-                revision = revision,
-                crop = HomeWallpaperCrop.Default,
-            )
+            return load()
         } finally {
             if (temporary.exists()) {
                 temporary.delete()
@@ -115,46 +103,71 @@ internal class HomeWallpaperStore(context: Context) {
         }
     }
 
-    fun saveCrop(crop: HomeWallpaperCrop) {
+    fun saveCrop(crop: HomeWallpaperCrop, slot: HomeWallpaperSlot) {
         val normalized = crop.normalized()
+        val keys = keys(slot)
         check(
             preferences.edit()
-                .putFloat(KEY_ZOOM, normalized.zoom)
-                .putFloat(KEY_BIAS_X, normalized.biasX)
-                .putFloat(KEY_BIAS_Y, normalized.biasY)
+                .putFloat(keys.zoomKey, normalized.zoom)
+                .putFloat(keys.biasXKey, normalized.biasX)
+                .putFloat(keys.biasYKey, normalized.biasY)
                 .commit()
         ) {
             "Unable to persist the Home wallpaper crop"
         }
     }
 
-    fun remove(): HomeWallpaperState {
-        val storedFile = resolveStoredFile(preferences.getString(KEY_FILE, null))
+    /**
+     * Removing the light wallpaper removes the feature, so the dark one goes with it. Removing the
+     * dark one only puts the dark theme back on the light image.
+     */
+    fun remove(slot: HomeWallpaperSlot): HomeWallpaperState {
+        val removed = when (slot) {
+            HomeWallpaperSlot.LIGHT -> HomeWallpaperSlot.entries.toList()
+            HomeWallpaperSlot.NIGHT -> listOf(HomeWallpaperSlot.NIGHT)
+        }
+        removed.forEach(::deleteStoredFile)
+
+        val editor = preferences.edit()
+            .remove(KEY_NIGHT_ENABLED)
+        removed.forEach { removedSlot ->
+            val keys = keys(removedSlot)
+            editor.remove(keys.fileKey)
+                .remove(keys.zoomKey)
+                .remove(keys.biasXKey)
+                .remove(keys.biasYKey)
+                .remove(keys.revisionKey)
+        }
+        if (slot == HomeWallpaperSlot.LIGHT) {
+            editor.remove(KEY_ENABLED)
+        }
+        check(editor.commit()) {
+            "Unable to clear the Home wallpaper settings"
+        }
+        return load()
+    }
+
+    private fun deleteStoredFile(slot: HomeWallpaperSlot) {
+        val storedFile = resolveStoredFile(preferences.getString(keys(slot).fileKey, null))
         if (storedFile?.exists() == true) {
             check(storedFile.delete()) {
                 "Unable to remove the stored Home wallpaper"
             }
         }
-        check(
-            preferences.edit()
-                .remove(KEY_ENABLED)
-                .remove(KEY_FILE)
-                .remove(KEY_ZOOM)
-                .remove(KEY_BIAS_X)
-                .remove(KEY_BIAS_Y)
-                .remove(KEY_REVISION)
-                .commit()
-        ) {
-            "Unable to clear the Home wallpaper settings"
-        }
-        return HomeWallpaperState()
     }
 
-    private fun resolveEnabledState(
-        imagePath: String?,
-        revision: Long,
-        crop: HomeWallpaperCrop,
-    ): HomeWallpaperState {
+    private fun readSlot(slot: HomeWallpaperSlot, enabled: Boolean): HomeWallpaperSlotState {
+        val keys = keys(slot)
+        val imagePath = preferences.getString(keys.fileKey, null)
+        val revision = preferences.getLong(keys.revisionKey, 0L)
+        val crop = readCrop(slot)
+        if (!enabled) {
+            return HomeWallpaperStateMapper.disabled(
+                imagePath = imagePath,
+                revision = revision,
+                crop = crop,
+            )
+        }
         val storedFile = resolveStoredFile(imagePath)
         val exists = storedFile?.isFile == true && storedFile.length() > 0L
         val info = storedFile?.takeIf { exists }?.let(::readImageInfo)
@@ -170,11 +183,14 @@ internal class HomeWallpaperStore(context: Context) {
     private fun resolveStoredFile(path: String?): File? =
         HomeWallpaperFiles.resolve(appContext.filesDir, path)
 
-    private fun readCrop(): HomeWallpaperCrop = HomeWallpaperCrop(
-        zoom = preferences.getFloat(KEY_ZOOM, HomeWallpaperCrop.Default.zoom),
-        biasX = preferences.getFloat(KEY_BIAS_X, HomeWallpaperCrop.Default.biasX),
-        biasY = preferences.getFloat(KEY_BIAS_Y, HomeWallpaperCrop.Default.biasY),
-    ).normalized()
+    private fun readCrop(slot: HomeWallpaperSlot): HomeWallpaperCrop {
+        val keys = keys(slot)
+        return HomeWallpaperCrop(
+            zoom = preferences.getFloat(keys.zoomKey, HomeWallpaperCrop.Default.zoom),
+            biasX = preferences.getFloat(keys.biasXKey, HomeWallpaperCrop.Default.biasX),
+            biasY = preferences.getFloat(keys.biasYKey, HomeWallpaperCrop.Default.biasY),
+        ).normalized()
+    }
 
     private fun readImageInfo(file: File): HomeWallpaperFileInfo? {
         val options = BitmapFactory.Options().apply {
@@ -209,17 +225,50 @@ internal class HomeWallpaperStore(context: Context) {
         }
     }
 
+    /**
+     * The keys of the light wallpaper keep the names they have always had, so an existing selection
+     * is picked up unchanged; only the dark one is new.
+     */
+    private data class SlotKeys(
+        val fileName: String,
+        val relativePath: String,
+        val fileKey: String,
+        val zoomKey: String,
+        val biasXKey: String,
+        val biasYKey: String,
+        val revisionKey: String,
+    )
+
+    private fun keys(slot: HomeWallpaperSlot): SlotKeys = when (slot) {
+        HomeWallpaperSlot.LIGHT -> LIGHT_KEYS
+        HomeWallpaperSlot.NIGHT -> NIGHT_KEYS
+    }
+
     private companion object {
         const val DIRECTORY_NAME = "home_wallpaper"
-        const val FILE_NAME = "wallpaper.image"
-        const val RELATIVE_FILE_PATH = "$DIRECTORY_NAME/$FILE_NAME"
         const val KEY_ENABLED = "home_wallpaper_enabled"
-        const val KEY_FILE = "home_wallpaper_file"
-        const val KEY_ZOOM = "home_wallpaper_zoom"
-        const val KEY_BIAS_X = "home_wallpaper_bias_x"
-        const val KEY_BIAS_Y = "home_wallpaper_bias_y"
-        const val KEY_REVISION = "home_wallpaper_revision"
+        const val KEY_NIGHT_ENABLED = "home_wallpaper_night_enabled"
         const val COPY_BUFFER_SIZE = 64 * 1024
         const val MAX_WALLPAPER_BYTES = 64L * 1024L * 1024L
+
+        val LIGHT_KEYS = SlotKeys(
+            fileName = "wallpaper.image",
+            relativePath = "$DIRECTORY_NAME/wallpaper.image",
+            fileKey = "home_wallpaper_file",
+            zoomKey = "home_wallpaper_zoom",
+            biasXKey = "home_wallpaper_bias_x",
+            biasYKey = "home_wallpaper_bias_y",
+            revisionKey = "home_wallpaper_revision",
+        )
+
+        val NIGHT_KEYS = SlotKeys(
+            fileName = "wallpaper.night.image",
+            relativePath = "$DIRECTORY_NAME/wallpaper.night.image",
+            fileKey = "home_wallpaper_night_file",
+            zoomKey = "home_wallpaper_night_zoom",
+            biasXKey = "home_wallpaper_night_bias_x",
+            biasYKey = "home_wallpaper_night_bias_y",
+            revisionKey = "home_wallpaper_night_revision",
+        )
     }
 }

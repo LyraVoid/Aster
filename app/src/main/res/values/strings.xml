@@ -329,6 +329,12 @@
     <string name="home_wallpaper_change">Change image</string>
     <string name="home_wallpaper_remove">Remove image</string>
     <string name="home_wallpaper_empty">Choose an image to personalize Home. Root diagnostics stay unchanged.</string>
+    <string name="home_wallpaper_night_switch">Use another wallpaper in dark mode</string>
+    <string name="home_wallpaper_night_switch_summary">The dark theme shows the wallpaper chosen below. Until one is chosen, it keeps the light one.</string>
+    <string name="home_wallpaper_slot_light">Light</string>
+    <string name="home_wallpaper_slot_night">Dark</string>
+    <string name="home_wallpaper_night_choose">Choose dark wallpaper</string>
+    <string name="home_wallpaper_night_empty">No dark wallpaper chosen yet, so the dark theme uses the light one.</string>
     <string name="home_wallpaper_missing">The selected image is unavailable. Choose it again.</string>
     <string name="home_wallpaper_error">The selected image could not be read. Choose another image.</string>
     <string name="home_wallpaper_saved">A saved image is ready to use when wallpaper is enabled.</string>

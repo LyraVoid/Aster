@@ -19,6 +19,9 @@ class HomeWallpaperViewModel(application: Application) : AndroidViewModel(applic
     private val mutableUiState = MutableStateFlow(HomeWallpaperState())
     private val mutableEvents = MutableSharedFlow<HomeWallpaperEvent>(extraBufferCapacity = 1)
 
+    /** Which theme the app is in, handed in by the theme itself. */
+    private var darkTheme = false
+
     val uiState = mutableUiState.asStateFlow()
     val events = mutableEvents.asSharedFlow()
 
@@ -26,21 +29,87 @@ class HomeWallpaperViewModel(application: Application) : AndroidViewModel(applic
         viewModelScope.launch {
             val loaded = withContext(Dispatchers.IO) {
                 runCatching { store.load() }
-                    .getOrElse { HomeWallpaperState(phase = HomeWallpaperPhase.ERROR) }
+                    .getOrElse { HomeWallpaperState(light = failedSlot()) }
             }
             publish(loaded)
         }
     }
 
     /**
+     * The theme follows the system or the manual switch, and the wallpaper has to follow the theme:
+     * this is what swaps the picture when the app turns dark, and re-reads the colours of whichever
+     * photo is now on screen.
+     */
+    fun setDarkTheme(isDark: Boolean) {
+        if (darkTheme == isDark) {
+            return
+        }
+        darkTheme = isDark
+        publish(mutableUiState.value)
+    }
+
+    /**
      * A new wallpaper means the app colours derived from it are stale, so every state change goes
-     * through here. Deriving is cheap and skips work unless the wallpaper revision moved.
+     * through here. Deriving is cheap and skips work unless the wallpaper moved on.
      */
     private fun publish(state: HomeWallpaperState) {
-        mutableUiState.value = state
+        val resolved = state.copy(darkTheme = darkTheme)
+        mutableUiState.value = resolved
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                runCatching { WallpaperColorTheme.sync(getApplication(), state) }
+                runCatching { WallpaperColorTheme.sync(getApplication(), resolved) }
+            }
+        }
+    }
+
+    fun setEnabled(enabled: Boolean) {
+        if (busy()) {
+            return
+        }
+        val previous = mutableUiState.value
+        mutableUiState.value = previous.copy(enabled = enabled)
+        run(previous) { store.setEnabled(enabled) }
+    }
+
+    /** The switch for the dark theme's own wallpaper. */
+    fun setNightEnabled(enabled: Boolean) {
+        val previous = mutableUiState.value
+        mutableUiState.value = previous.copy(nightEnabled = enabled)
+        run(previous) { store.setNightEnabled(enabled) }
+    }
+
+    fun importImage(source: Uri, slot: HomeWallpaperSlot) {
+        if (busy(slot)) {
+            return
+        }
+        val previous = mutableUiState.value
+        mutableUiState.value = previous
+            .copy(
+                enabled = true,
+                nightEnabled = previous.nightEnabled || slot == HomeWallpaperSlot.NIGHT,
+            )
+            .withPhase(slot, HomeWallpaperPhase.LOADING)
+        run(previous, HomeWallpaperEvent.ImportFailed) { store.importFrom(source, slot) }
+    }
+
+    fun removeImage(slot: HomeWallpaperSlot) {
+        if (busy(slot)) {
+            return
+        }
+        val previous = mutableUiState.value
+        mutableUiState.value = previous.withPhase(slot, HomeWallpaperPhase.LOADING)
+        run(previous) { store.remove(slot) }
+    }
+
+    fun saveCrop(crop: HomeWallpaperCrop, slot: HomeWallpaperSlot) {
+        val normalized = crop.normalized()
+        mutableUiState.update { it.withCrop(slot, normalized) }
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching { store.saveCrop(normalized, slot) }
+            }
+            if (result.isFailure) {
+                mutableEvents.emit(HomeWallpaperEvent.ChangeFailed)
             }
         }
     }
@@ -57,76 +126,52 @@ class HomeWallpaperViewModel(application: Application) : AndroidViewModel(applic
         }
     }
 
-    fun setEnabled(enabled: Boolean) {
-        if (mutableUiState.value.phase == HomeWallpaperPhase.LOADING) {
-            return
-        }
-        val previous = mutableUiState.value
-        mutableUiState.update { it.copy(enabled = enabled, phase = HomeWallpaperPhase.LOADING) }
+    private fun run(
+        previous: HomeWallpaperState,
+        failure: HomeWallpaperEvent = HomeWallpaperEvent.ChangeFailed,
+        block: suspend () -> HomeWallpaperState,
+    ) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
-                runCatching { store.setEnabled(enabled) }
+                runCatching { block() }
             }
             result.fold(
                 onSuccess = { publish(it) },
                 onFailure = {
                     mutableUiState.value = previous
-                    mutableEvents.emit(HomeWallpaperEvent.ChangeFailed)
+                    mutableEvents.emit(failure)
                 },
             )
         }
     }
 
-    fun importImage(source: Uri) {
-        if (mutableUiState.value.phase == HomeWallpaperPhase.LOADING) {
-            return
-        }
-        val previous = mutableUiState.value
-        mutableUiState.update { it.copy(enabled = true, phase = HomeWallpaperPhase.LOADING) }
-        viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching { store.importFrom(source) }
-            }
-            result.fold(
-                onSuccess = { publish(it) },
-                onFailure = {
-                    mutableUiState.value = previous
-                    mutableEvents.emit(HomeWallpaperEvent.ImportFailed)
-                },
-            )
+    private fun busy(slot: HomeWallpaperSlot? = null): Boolean {
+        val state = mutableUiState.value
+        return if (slot == null) {
+            state.light.phase == HomeWallpaperPhase.LOADING ||
+                state.night.phase == HomeWallpaperPhase.LOADING
+        } else {
+            state.slot(slot).phase == HomeWallpaperPhase.LOADING
         }
     }
 
-    fun saveCrop(crop: HomeWallpaperCrop) {
-        val normalized = crop.normalized()
-        mutableUiState.update { it.copy(crop = normalized) }
-        viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching { store.saveCrop(normalized) }
-            }
-            if (result.isFailure) {
-                mutableEvents.emit(HomeWallpaperEvent.ChangeFailed)
-            }
-        }
+    private companion object {
+        fun failedSlot() = HomeWallpaperSlotState(phase = HomeWallpaperPhase.ERROR)
     }
+}
 
-    fun removeImage() {
-        if (mutableUiState.value.phase == HomeWallpaperPhase.LOADING) {
-            return
-        }
-        val previous = mutableUiState.value
-        mutableUiState.update { it.copy(phase = HomeWallpaperPhase.LOADING) }
-        viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching { store.remove() }
-            }
-            result.fold(
-                onSuccess = { publish(it) },
-                onFailure = {
-                    mutableUiState.value = previous
-                    mutableEvents.emit(HomeWallpaperEvent.ChangeFailed)
-                },
-            )
-        }
-    }
+private fun HomeWallpaperState.withPhase(
+    slot: HomeWallpaperSlot,
+    phase: HomeWallpaperPhase,
+): HomeWallpaperState = when (slot) {
+    HomeWallpaperSlot.LIGHT -> copy(light = light.copy(phase = phase))
+    HomeWallpaperSlot.NIGHT -> copy(night = night.copy(phase = phase))
+}
+
+private fun HomeWallpaperState.withCrop(
+    slot: HomeWallpaperSlot,
+    crop: HomeWallpaperCrop,
+): HomeWallpaperState = when (slot) {
+    HomeWallpaperSlot.LIGHT -> copy(light = light.copy(crop = crop))
+    HomeWallpaperSlot.NIGHT -> copy(night = night.copy(crop = crop))
 }
