@@ -1,5 +1,6 @@
 package me.bmax.apatch.ui
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -24,6 +25,7 @@ import me.bmax.apatch.root.RootCheckPhase
 import me.bmax.apatch.root.isUsable
 import me.bmax.apatch.ui.home.HomeWallpaperViewModel
 import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
+import me.bmax.apatch.ui.shell.AppDensity
 import me.bmax.apatch.ui.shell.AsterAppShell
 import me.bmax.apatch.ui.shell.AsterNavigationCapabilities
 import me.bmax.apatch.ui.shell.AsterNavigationTransitions
@@ -36,6 +38,15 @@ import top.yukonga.miuix.kmp.basic.SnackbarHostState
 class MainActivity : AppCompatActivity() {
 
     private var isLoading = true
+
+    /**
+     * The size the app draws itself in is carried on the Context, so it has to be in place before
+     * the window is: whatever the appearance page chose is applied here, and leaving it alone
+     * leaves the device's own density alone with it.
+     */
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppDensity.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
 

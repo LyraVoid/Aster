@@ -361,6 +361,10 @@
     <string name="home_layout_compact_summary">状态横跨整页，工作模式在卡片下沿。</string>
     <string name="home_layout_list">列表</string>
     <string name="home_layout_list_summary">状态排成一行，动作按钮放在行末。</string>
+    <string name="app_density_title">显示大小</string>
+    <string name="app_density_summary">只改本应用画出来的大小，系统不动。</string>
+    <string name="app_density_follow_summary">用设备给的密度（%1$d DPI）。</string>
+    <string name="app_density_value">%1$d DPI</string>
     <string name="navigation_mode_auto">自动适配</string>
     <string name="navigation_mode_bottom">底部导航</string>
     <string name="navigation_mode_sidebar">侧栏导航</string>

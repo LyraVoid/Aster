@@ -457,6 +457,10 @@
     <string name="home_layout_compact_summary">The status across the whole page, with the working mode at its foot.</string>
     <string name="home_layout_list">List</string>
     <string name="home_layout_list_summary">The status as a row, with the action it asks for at the end of it.</string>
+    <string name="app_density_title">Display size</string>
+    <string name="app_density_summary">The size this app draws itself in. The system is left alone.</string>
+    <string name="app_density_follow_summary">Whatever size the device asks for (%1$d DPI).</string>
+    <string name="app_density_value">%1$d DPI</string>
     <string name="navigation_mode_auto">Automatic</string>
     <string name="navigation_mode_bottom">Bottom navigation</string>
     <string name="navigation_mode_sidebar">Sidebar navigation</string>

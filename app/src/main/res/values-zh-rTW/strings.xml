@@ -356,6 +356,10 @@
     <string name="home_layout_compact_summary">狀態橫跨整頁，工作模式在卡片下緣。</string>
     <string name="home_layout_list">清單</string>
     <string name="home_layout_list_summary">狀態排成一列，動作按鈕放在列末。</string>
+    <string name="app_density_title">顯示大小</string>
+    <string name="app_density_summary">只改本應用程式畫出來的大小，系統不動。</string>
+    <string name="app_density_follow_summary">使用裝置給的密度（%1$d DPI）。</string>
+    <string name="app_density_value">%1$d DPI</string>
     <string name="navigation_mode_auto">自動適應</string>
     <string name="navigation_mode_bottom">底部導覽</string>
     <string name="navigation_mode_sidebar">側欄導覽</string>

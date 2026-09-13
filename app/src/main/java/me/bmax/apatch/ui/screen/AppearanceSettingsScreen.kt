@@ -1,11 +1,13 @@
 package me.bmax.apatch.ui.screen
 
 import android.os.Build
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -21,11 +23,14 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.settings.resolveSettingsFeatureAvailability
+import me.bmax.apatch.ui.shell.AppDensity
 import me.bmax.apatch.ui.shell.GlobalLayout
 import me.bmax.apatch.ui.shell.GlobalLayoutDialog
 import me.bmax.apatch.ui.shell.HomeLayoutDialog
 import me.bmax.apatch.ui.shell.LocalAsterCapabilities
 import me.bmax.apatch.ui.shell.LocalFloatingNavigationInset
+import me.bmax.apatch.ui.shell.rememberAppDensity
+import me.bmax.apatch.ui.shell.rememberDeviceDensity
 import me.bmax.apatch.ui.shell.rememberGlobalLayout
 import me.bmax.apatch.ui.shell.rememberHomeLayout
 import me.bmax.apatch.ui.theme.SystemDynamicColorKey
@@ -41,12 +46,16 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.HorizontalSplit
 import top.yukonga.miuix.kmp.icon.extended.Layers
 import top.yukonga.miuix.kmp.icon.extended.Refresh
+import top.yukonga.miuix.kmp.icon.extended.Reset
 import top.yukonga.miuix.kmp.icon.extended.ScreenMirroring
 import top.yukonga.miuix.kmp.icon.extended.Theme
+import top.yukonga.miuix.kmp.icon.extended.ZoomOut
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.SliderPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.utils.overScrollVertical
+import kotlin.math.roundToInt
 
 /**
  * What the app looks like: which family Home is drawn in, the palette it is painted with, and the
@@ -61,6 +70,20 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
     val capabilities = LocalAsterCapabilities.current
     val prefs = APApplication.sharedPreferences
     val globalLayout by rememberGlobalLayout()
+    val appDensity by rememberAppDensity()
+    val deviceDensity = rememberDeviceDensity()
+    val activity = LocalActivity.current
+    // The slider reads the density the app was told to use, and while it follows the device the
+    // number it starts from is the device's own, so letting go of the switch alone would change
+    // nothing and the drag would begin where the app already stands.
+    var densityDraft by rememberSaveable(appDensity) {
+        mutableIntStateOf(if (appDensity == AppDensity.FollowSystem) deviceDensity else appDensity)
+    }
+    val densityRange = minOf(AppDensity.Min, deviceDensity).toFloat()..
+        maxOf(AppDensity.Max, deviceDensity).toFloat()
+    // The slider moves in tens, which is finer than anyone can tell two sizes apart by and coarse
+    // enough that the number read back is a round one.
+    val densitySteps = ((densityRange.endInclusive - densityRange.start) / 10f).toInt() - 1
     val homeLayout by rememberHomeLayout()
     // Only the source of the colour is shown here; the colour itself, and how it is spread over
     // the scheme, are picked on the page this row opens.
@@ -176,6 +199,50 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
                             startAction = {
                                 SettingsIcon(MiuixIcons.Theme)
                             },
+                        )
+                    }
+                }
+            }
+
+            // How large the app draws itself is the app's own business, so the two rows that decide
+            // it stand together: leaving the size to the device, and the slider that says what the
+            // app was given instead. Neither touches the system, and both cost the Activity in use
+            // one rebuild, which is the only way a Context can be exchanged under a window.
+            item(key = "size") {
+                SettingsCard {
+                    SwitchPreference(
+                        checked = appDensity == AppDensity.FollowSystem,
+                        onCheckedChange = { follow ->
+                            AppDensity.set(
+                                if (follow) AppDensity.FollowSystem else deviceDensity,
+                            )
+                            activity?.recreate()
+                        },
+                        title = stringResource(R.string.system_default),
+                        summary = stringResource(
+                            R.string.app_density_follow_summary,
+                            deviceDensity,
+                        ),
+                        startAction = { SettingsIcon(MiuixIcons.Reset) },
+                    )
+
+                    // The slider means nothing while the device's size is the one in use, and a row
+                    // that would change nothing is left out rather than greyed, the way the rows
+                    // that wait on a switch elsewhere in these settings are.
+                    if (appDensity != AppDensity.FollowSystem) {
+                        SliderPreference(
+                            value = densityDraft.toFloat(),
+                            onValueChange = { densityDraft = it.roundToInt() },
+                            onValueChangeFinished = {
+                                AppDensity.set(densityDraft)
+                                activity?.recreate()
+                            },
+                            title = stringResource(R.string.app_density_title),
+                            summary = stringResource(R.string.app_density_summary),
+                            valueText = stringResource(R.string.app_density_value, densityDraft),
+                            startAction = { SettingsIcon(MiuixIcons.ZoomOut) },
+                            valueRange = densityRange,
+                            steps = densitySteps,
                         )
                     }
                 }
