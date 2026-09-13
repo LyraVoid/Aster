@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -32,33 +34,50 @@ import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import me.bmax.apatch.BuildConfig
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.shell.LocalFloatingNavigationInset
 import me.bmax.apatch.util.Version
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.utils.overScrollVertical
+
+// Enough room under the last card that the floating navigation bar never covers it.
+private val AboutBottomSpacing = 32.dp
 
 @Destination<RootGraph>
 @Composable
 fun AboutScreen(navigator: DestinationsNavigator) {
     val uriHandler = LocalUriHandler.current
+    val scrollBehavior = MiuixScrollBehavior()
 
     Scaffold(
         topBar = {
-            AboutTopBar(onBack = dropUnlessResumed { navigator.popBackStack() })
+            AboutTopBar(
+                onBack = dropUnlessResumed { navigator.popBackStack() },
+                scrollBehavior = scrollBehavior,
+            )
         }
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
+                .fillMaxSize()
+                .overScrollVertical()
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                .verticalScroll(rememberScrollState())
+                .padding(top = innerPadding.calculateTopPadding())
+                .padding(
+                    bottom = innerPadding.calculateBottomPadding() +
+                        LocalFloatingNavigationInset.current + AboutBottomSpacing,
+                ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(20.dp))
@@ -137,7 +156,7 @@ fun AboutScreen(navigator: DestinationsNavigator) {
             }
 
             Card(
-                modifier = Modifier.padding(vertical = 30.dp, horizontal = 20.dp),
+                modifier = Modifier.padding(top = 30.dp, bottom = 4.dp, start = 20.dp, end = 20.dp),
                 insideMargin = PaddingValues(16.dp),
             ) {
                 Text(
@@ -151,9 +170,10 @@ fun AboutScreen(navigator: DestinationsNavigator) {
 }
 
 @Composable
-private fun AboutTopBar(onBack: () -> Unit) {
+private fun AboutTopBar(onBack: () -> Unit, scrollBehavior: ScrollBehavior) {
     TopAppBar(
         title = stringResource(R.string.about),
+        scrollBehavior = scrollBehavior,
         navigationIcon = {
             IconButton(onClick = onBack) {
                 Icon(

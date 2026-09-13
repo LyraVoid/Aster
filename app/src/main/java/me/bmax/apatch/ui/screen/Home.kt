@@ -1,28 +1,19 @@
 package me.bmax.apatch.ui.screen
 
-import me.bmax.apatch.ui.home.canUninstallAnything
-import me.bmax.apatch.ui.home.needsRootAccess
-import top.yukonga.miuix.kmp.basic.PullToRefresh
-
-import androidx.compose.foundation.layout.widthIn
-
-import androidx.compose.foundation.gestures.detectTapGestures
-
-import androidx.compose.ui.input.pointer.pointerInput
-
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -44,9 +35,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -62,14 +54,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -87,14 +81,7 @@ import com.ramcosta.composedestinations.generated.destinations.InstallModeSelect
 import com.ramcosta.composedestinations.generated.destinations.KPModuleScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.PatchesDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import java.time.LocalDate
-import java.time.LocalTime
-import java.util.Locale
 import me.bmax.apatch.R
-import me.bmax.apatch.ui.theme.LocalThemeModeState
-import me.bmax.apatch.ui.theme.WallpaperColorTheme
-import me.bmax.apatch.ui.theme.rememberWallpaperColorThemeState
-import me.bmax.apatch.util.Version
 import me.bmax.apatch.root.RootAccessProbeState
 import me.bmax.apatch.root.RootDetailState
 import me.bmax.apatch.root.RootLayerState
@@ -112,7 +99,6 @@ import me.bmax.apatch.ui.home.HomeViewModel
 import me.bmax.apatch.ui.home.HomeWallpaperCrop
 import me.bmax.apatch.ui.home.HomeWallpaperEvent
 import me.bmax.apatch.ui.home.HomeWallpaperImage
-import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
 import me.bmax.apatch.ui.home.HomeWallpaperMaxZoom
 import me.bmax.apatch.ui.home.HomeWallpaperMinZoom
 import me.bmax.apatch.ui.home.HomeWallpaperPhase
@@ -120,13 +106,20 @@ import me.bmax.apatch.ui.home.HomeWallpaperSlot
 import me.bmax.apatch.ui.home.HomeWallpaperSlotImage
 import me.bmax.apatch.ui.home.HomeWallpaperState
 import me.bmax.apatch.ui.home.HomeWallpaperViewModel
+import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
 import me.bmax.apatch.ui.home.androidVersion
+import me.bmax.apatch.ui.home.canUninstallAnything
 import me.bmax.apatch.ui.home.displayName
+import me.bmax.apatch.ui.home.needsRootAccess
 import me.bmax.apatch.ui.shell.GlobalLayout
 import me.bmax.apatch.ui.shell.GlobalLayoutDialog
 import me.bmax.apatch.ui.shell.LocalHomeSceneHostState
 import me.bmax.apatch.ui.shell.rememberGlobalLayout
+import me.bmax.apatch.ui.theme.LocalThemeModeState
+import me.bmax.apatch.ui.theme.WallpaperColorTheme
+import me.bmax.apatch.ui.theme.rememberWallpaperColorThemeState
 import me.bmax.apatch.ui.viewmodel.PatchesViewModel
+import me.bmax.apatch.util.Version
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -134,12 +127,15 @@ import top.yukonga.miuix.kmp.basic.CardColors
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.Slider
-import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.basic.ArrowRight
 import top.yukonga.miuix.kmp.icon.extended.Back
@@ -165,10 +161,14 @@ import top.yukonga.miuix.kmp.icon.extended.Update
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
-import top.yukonga.miuix.kmp.window.WindowBottomSheet
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.LocalContentColor
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
+import top.yukonga.miuix.kmp.utils.overScrollVertical
+import top.yukonga.miuix.kmp.window.WindowBottomSheet
+import java.time.LocalDate
+import java.time.LocalTime
+import java.util.Locale
 
 @Destination<RootGraph>(start = true)
 @Composable
@@ -333,9 +333,12 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 onAppearance = { showWallpaperSheet = true },
             )
         } else {
+            val scrollBehavior = MiuixScrollBehavior()
+
             Scaffold(
                 topBar = {
                     HomeTopBar(
+                        scrollBehavior = scrollBehavior,
                         canReboot = state.capability.rootAccess == RootAccessProbeState.AVAILABLE,
                         canUninstall = canUninstall,
                         showMore = showMore,
@@ -371,6 +374,8 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
+                        .overScrollVertical()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection)
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 16.dp, vertical = 12.dp)
                         .padding(bottom = me.bmax.apatch.ui.shell.LocalFloatingNavigationInset.current),
@@ -930,6 +935,7 @@ private fun sceneQuote(): String {
 
 @Composable
 private fun HomeTopBar(
+    scrollBehavior: ScrollBehavior,
     canReboot: Boolean,
     canUninstall: Boolean,
     showMore: Boolean,
@@ -944,8 +950,9 @@ private fun HomeTopBar(
     onReboot: (String) -> Unit,
     onDangerousReboot: (String) -> Unit,
 ) {
-    SmallTopAppBar(
+    TopAppBar(
         title = stringResource(R.string.app_name),
+        scrollBehavior = scrollBehavior,
         actions = {
             IconButton(onClick = onAppearance) {
                 Icon(

@@ -40,6 +40,7 @@ import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
 import me.bmax.apatch.ui.shell.GlobalLayout
+import me.bmax.apatch.ui.shell.LocalFloatingNavigationInset
 import me.bmax.apatch.ui.shell.rememberGlobalLayout
 import me.bmax.apatch.ui.theme.DefaultPresetColor
 import me.bmax.apatch.ui.theme.LocalThemeModeState
@@ -168,9 +169,12 @@ fun ThemeColorScreen(navigator: DestinationsNavigator) {
             modifier = Modifier
                 .fillMaxSize()
                 .overScrollVertical()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .padding(innerPadding),
-            contentPadding = PaddingValues(top = 12.dp, bottom = 24.dp),
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            contentPadding = PaddingValues(
+                top = innerPadding.calculateTopPadding() + 12.dp,
+                bottom = innerPadding.calculateBottomPadding() +
+                    LocalFloatingNavigationInset.current + 32.dp,
+            ),
         ) {
             item(key = "preview") {
                 SmallTitle(text = stringResource(R.string.theme_color_preview))
