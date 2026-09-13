@@ -109,6 +109,10 @@ import me.bmax.apatch.ui.home.HomeWallpaperPhase
 import me.bmax.apatch.ui.home.HomeWallpaperSlot
 import me.bmax.apatch.ui.home.HomeWallpaperSlotImage
 import me.bmax.apatch.ui.home.HomeWallpaperState
+import me.bmax.apatch.ui.shell.LocalAsterCapabilities
+import me.bmax.apatch.ui.shell.LocalMainPagerState
+import me.bmax.apatch.ui.shell.PrimaryDestination
+import me.bmax.apatch.ui.shell.visiblePrimaryDestinations
 import me.bmax.apatch.ui.home.HomeWallpaperViewModel
 import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
 import me.bmax.apatch.ui.home.androidVersion
@@ -179,7 +183,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.util.Locale
 
-@Destination<RootGraph>(start = true)
+@Destination<RootGraph>
 @Composable
 fun HomeScreen(navigator: DestinationsNavigator) {
     val viewModel: HomeViewModel = viewModel()
@@ -192,6 +196,9 @@ fun HomeScreen(navigator: DestinationsNavigator) {
     val globalLayout by rememberGlobalLayout()
     val homeLayout by rememberHomeLayout()
     val sceneMode = globalLayout == GlobalLayout.Panorama
+    val mainPagerState = LocalMainPagerState.current
+    val capabilities = LocalAsterCapabilities.current
+    val visibleDestinations = remember(capabilities) { visiblePrimaryDestinations(capabilities) }
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val sceneHostState = LocalHomeSceneHostState.current
@@ -273,10 +280,18 @@ fun HomeScreen(navigator: DestinationsNavigator) {
         navigator.navigate(InstallModeSelectScreenDestination)
     }
     val onApmClick = dropUnlessResumed {
-        navigator.navigate(APModuleScreenDestination)
+        if (mainPagerState != null) {
+            mainPagerState.animateToDestination(PrimaryDestination.AModule, visibleDestinations)
+        } else {
+            navigator.navigate(APModuleScreenDestination)
+        }
     }
     val onKpmClick = dropUnlessResumed {
-        navigator.navigate(KPModuleScreenDestination)
+        if (mainPagerState != null) {
+            mainPagerState.animateToDestination(PrimaryDestination.KModule, visibleDestinations)
+        } else {
+            navigator.navigate(KPModuleScreenDestination)
+        }
     }
     val onUninstallClick = {
         showMore = false

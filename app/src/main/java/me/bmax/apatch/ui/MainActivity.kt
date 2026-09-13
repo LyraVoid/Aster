@@ -17,6 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
+import com.ramcosta.composedestinations.generated.destinations.MainScreenDestination
 import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.generated.NavGraphs
 import com.ramcosta.composedestinations.rememberNavHostEngine
@@ -73,7 +74,7 @@ class MainActivity : AppCompatActivity() {
                     homeWallpaperViewModel.setDarkTheme(isDark)
                 }
                 val primaryRoutes = remember {
-                    PrimaryDestination.entries.map { it.direction.route }.toSet()
+                    PrimaryDestination.entries.map { it.direction.route }.toSet() + MainScreenDestination.route
                 }
                 val rootCapability by RootCapabilityRepository.snapshot.collectAsStateWithLifecycle()
                 val capabilities = AsterNavigationCapabilities(

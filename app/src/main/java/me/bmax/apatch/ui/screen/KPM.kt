@@ -1,5 +1,6 @@
 package me.bmax.apatch.ui.screen
 
+import me.bmax.apatch.ui.shell.LocalMainPagerState
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.net.Uri
@@ -113,11 +114,15 @@ private data class UninstallResult(
 @Destination<RootGraph>
 @Composable
 fun KPModuleScreen(navigator: DestinationsNavigator) {
+    val mainPagerState = LocalMainPagerState.current
     if (!LocalAsterCapabilities.current.kernelPatchReady) {
         MissingLayerNotice(
             title = stringResource(R.string.su_kernel_patch_required_title),
             description = stringResource(R.string.capability_kernel_patch_required_desc),
-            onBackToHome = { navigator.navigate(HomeScreenDestination) },
+            onBackToHome = {
+                if (mainPagerState != null) mainPagerState.animateToPage(0)
+                else navigator.navigate(HomeScreenDestination)
+            },
         )
         return
     }

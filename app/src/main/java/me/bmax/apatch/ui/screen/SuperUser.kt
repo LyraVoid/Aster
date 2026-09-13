@@ -47,6 +47,7 @@ import coil3.request.crossfade
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestination
+import me.bmax.apatch.ui.shell.LocalMainPagerState
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.component.CapabilityNotice
@@ -87,6 +88,7 @@ import top.yukonga.miuix.kmp.utils.overScrollVertical
 @Destination<RootGraph>
 @Composable
 fun SuperUserScreen(navigator: DestinationsNavigator) {
+    val mainPagerState = LocalMainPagerState.current
     val viewModel = viewModel<SuperUserViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollBehavior = MiuixScrollBehavior()
@@ -148,7 +150,10 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                             title = stringResource(R.string.su_kernel_patch_required_title),
                             description = stringResource(R.string.su_kernel_patch_required_desc),
                             actionLabel = stringResource(R.string.su_back_to_home),
-                            onAction = { navigator.navigate(HomeScreenDestination) },
+                            onAction = {
+                                if (mainPagerState != null) mainPagerState.animateToPage(0)
+                                else navigator.navigate(HomeScreenDestination)
+                            },
                         )
                     }
                 }

@@ -20,6 +20,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.runtime.rememberCoroutineScope
 import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
@@ -70,6 +72,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavHostController
 import com.ramcosta.composedestinations.generated.NavGraphs
 import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.MainScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
 import me.bmax.apatch.R
@@ -106,7 +109,29 @@ fun AsterAppShell(
         it.uiState.collectAsStateWithLifecycle().value
     }
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val onHome = backStackEntry?.destination?.route == HomeScreenDestination.route
+    val visibleDestinations = remember(capabilities) { visiblePrimaryDestinations(capabilities) }
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { visibleDestinations.size },
+    )
+    val coroutineScope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    val mainPagerState = remember(pagerState, coroutineScope, density) {
+        MainPagerState(pagerState, coroutineScope, density)
+    }
+
+    val currentRoute = backStackEntry?.destination?.route
+    val isMainScreen = currentRoute == MainScreenDestination.route || currentRoute == null
+    val currentDestination = if (isMainScreen) {
+        visibleDestinations.getOrNull(mainPagerState.selectedPage) ?: PrimaryDestination.Home
+    } else {
+        PrimaryDestination.entries.firstOrNull { it.direction.route == currentRoute }
+    }
+    val onHome = if (isMainScreen) {
+        currentDestination == PrimaryDestination.Home
+    } else {
+        currentRoute == HomeScreenDestination.route
+    }
     // Panorama mode owns its chrome: the wallpaper scene on Home, floating navigation everywhere
     // else. Standard mode keeps the classic shell untouched.
     val sceneActive = panorama && onHome
@@ -121,8 +146,7 @@ fun AsterAppShell(
             controller?.isAppearanceLightNavigationBars = !darkTheme
         }
     }
-    val primaryPage = PrimaryDestination.entries.any { it.direction.route == backStackEntry?.destination?.route }
-    val visibleDestinations = visiblePrimaryDestinations(capabilities)
+    val primaryPage = isMainScreen || PrimaryDestination.entries.any { it.direction.route == currentRoute }
     // Capabilities can arrive after the user is already on a page: sending them home beats leaving
     // a screen the navigation no longer offers.
     LaunchedEffect(visibleDestinations, backStackEntry) {
@@ -130,12 +154,25 @@ fun AsterAppShell(
         val current = PrimaryDestination.entries.firstOrNull { it.direction.route == route }
             ?: return@LaunchedEffect
         if (current !in visibleDestinations) {
-            navController.navigate(PrimaryDestination.Home.direction) {
-                popUpTo(HomeScreenDestination) { saveState = false }
+            navController.navigate(MainScreenDestination.route) {
+                popUpTo(MainScreenDestination.route) { saveState = false }
                 launchSingleTop = true
             }
         }
     }
+
+    var interaction by remember { mutableIntStateOf(0) }
+
+    val onSelectDestination: (PrimaryDestination) -> Unit = { destination ->
+        interaction++
+        if (isMainScreen) {
+            mainPagerState.animateToDestination(destination, visibleDestinations)
+        } else {
+            navController.popBackStack(MainScreenDestination.route, false)
+            mainPagerState.animateToDestination(destination, visibleDestinations)
+        }
+    }
+
     val floatingPreferred by rememberVisualFlag("floating_navigation", false)
     val floatingShell = panorama || floatingPreferred
     val floatingNavigation = floatingShell && primaryPage && !sceneActive
@@ -144,7 +181,6 @@ fun AsterAppShell(
     val autoHide by rememberVisualFlag("floating_auto_hide", false)
     val scrollHide by rememberVisualFlag("floating_scroll_hide", false)
     val sceneExpanded by rememberVisualFlag("scene_sidebar_expanded", true)
-    var interaction by remember { mutableIntStateOf(0) }
     var hidden by remember { mutableStateOf(false) }
     LaunchedEffect(interaction, backStackEntry, floatingNavigation, autoHide, scrollHide) {
         hidden = false
@@ -194,7 +230,6 @@ fun AsterAppShell(
         BoxWithConstraints(
             modifier = Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface),
         ) {
-            val density = LocalDensity.current
             val useBottomNavigation = navigationMode.usesBottomNavigation(maxWidth.value)
             val bottomBarVisible = !floatingShell && useBottomNavigation
             SideEffect {
@@ -207,10 +242,13 @@ fun AsterAppShell(
             val useCompactShell = maxWidth < CompactNavigationBreakpoint
             val railState = rememberNavigationRailState()
             val sceneRailWidth = (maxWidth * 0.25f - 28.dp).coerceIn(56.dp, 80.dp)
+            val homePageDistance = kotlin.math.abs(pagerState.currentPage + pagerState.currentPageOffsetFraction)
+            val homeVisibility = (1f - homePageDistance).coerceIn(0f, 1f)
             val sceneProgress by animateFloatAsState(
-                if (sceneActive && sceneExpanded) 1f else 0f,
+                if (sceneActive && sceneExpanded && homeVisibility > 0.01f) 1f else 0f,
                 tween(360, easing = FastOutSlowInEasing), label = "scene_sidebar",
             )
+            val effectiveSceneProgress = sceneProgress * homeVisibility
             val homeSceneHost = remember { HomeSceneHostState() }
 
             LaunchedEffect(useBottomNavigation, useCompactShell, panorama) {
@@ -221,7 +259,7 @@ fun AsterAppShell(
                 railState.collapse()
             }
 
-            if (sceneActive) {
+            if (panorama && effectiveSceneProgress > 0.01f) {
                 HomeSceneBackdrop(
                     state = wallpaperState,
                     railWidth = sceneRailWidth,
@@ -229,12 +267,15 @@ fun AsterAppShell(
                 )
             }
 
-            if (sceneActive && sceneProgress > 0.01f) {
-                HomeSceneRail(navController, capabilities,
+            if (panorama && effectiveSceneProgress > 0.01f) {
+                HomeSceneRail(
+                    capabilities = capabilities,
+                    currentDestination = currentDestination,
+                    onSelectDestination = onSelectDestination,
                     onAppearance = { homeSceneHost.openAppearance?.invoke() },
                     modifier = Modifier.width(sceneRailWidth).fillMaxHeight().zIndex(1f).graphicsLayer {
-                        alpha = sceneProgress
-                        translationX = -size.width * (1f - sceneProgress)
+                        alpha = effectiveSceneProgress
+                        translationX = -size.width * (1f - effectiveSceneProgress)
                     })
             }
             // Keep the host in a stable slot; the scene decor sits behind the page.
@@ -248,20 +289,29 @@ fun AsterAppShell(
                     } else Modifier)) {
                 Row(Modifier.weight(1f).fillMaxWidth()) {
                     if (!floatingShell && !useBottomNavigation && !useCompactShell) {
-                        AsterNavigationRail(navController, capabilities, railState, collapseAfterNavigation = false)
+                        AsterNavigationRail(
+                            destinations = visibleDestinations,
+                            currentDestination = currentDestination,
+                            state = railState,
+                            onSelectDestination = onSelectDestination,
+                            collapseAfterNavigation = false,
+                        )
                     }
                     Box(Modifier.weight(1f).fillMaxHeight()) {
                         CompositionLocalProvider(
                             LocalSnackbarHost provides snackbarHostState,
                             LocalFloatingNavigationInset provides reservedContentBottom,
-                            LocalSceneProgress provides sceneProgress,
+                            LocalSceneProgress provides effectiveSceneProgress,
+                            LocalSceneRailWidth provides sceneRailWidth,
+                            LocalSceneActive provides (panorama && effectiveSceneProgress > 0.01f),
                             LocalHomeSceneHostState provides homeSceneHost,
+                            LocalMainPagerState provides mainPagerState,
                             LocalAsterCapabilities provides capabilities,
                         ) {
                             content(
                                 Modifier.fillMaxSize()
                                     .padding(
-                                        start = if (sceneActive) sceneRailWidth * sceneProgress else if (!floatingShell && !useBottomNavigation && useCompactShell) {
+                                        start = if (!floatingShell && !useBottomNavigation && useCompactShell) {
                                             NavigationRailDefaults.MinWidth
                                         } else {
                                             0.dp
@@ -279,7 +329,10 @@ fun AsterAppShell(
                         )
                         if (!floatingShell && !useBottomNavigation && useCompactShell) {
                             AsterNavigationRail(
-                                navController, capabilities, railState,
+                                destinations = visibleDestinations,
+                                currentDestination = currentDestination,
+                                state = railState,
+                                onSelectDestination = onSelectDestination,
                                 modifier = Modifier.align(Alignment.CenterStart),
                                 collapseAfterNavigation = true,
                             )
@@ -294,18 +347,23 @@ fun AsterAppShell(
                     enter = fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
                     exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom),
                 ) {
-                    AsterBottomNavigation(navController, visibleDestinations)
+                    AsterBottomNavigation(
+                        destinations = visibleDestinations,
+                        currentDestination = currentDestination,
+                        onSelectDestination = onSelectDestination,
+                    )
                 }
             }
 
             AnimatedVisibility(visible = floatingNavigation && !hidden,
                 modifier = Modifier.align(Alignment.BottomCenter), enter = fadeIn(), exit = fadeOut()) {
                 AsterFloatingNavigation(
-                    navController = navController,
                     destinations = visibleDestinations,
+                    currentDestination = currentDestination,
                     backdrop = backdrop,
                     blurEnabled = blurEnabled && Build.VERSION.SDK_INT >= 31,
                     glassEnabled = blurEnabled && glassEnabled && Build.VERSION.SDK_INT >= 33,
+                    onSelectDestination = onSelectDestination,
                     modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)).padding(horizontal = 12.dp, vertical = 12.dp),
                 )
             }
@@ -331,19 +389,19 @@ private fun NavigationScrim(visible: Boolean, onDismiss: () -> Unit) {
 
 @Composable
 private fun AsterBottomNavigation(
-    navController: NavHostController,
     destinations: List<PrimaryDestination>,
+    currentDestination: PrimaryDestination?,
+    onSelectDestination: (PrimaryDestination) -> Unit,
 ) {
-    val navigator = navController.rememberDestinationsNavigator()
     NavigationBar(
         modifier = Modifier.background(MiuixTheme.colorScheme.surface)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
     ) {
         destinations.forEach { destination ->
-            val selected = navController.isCurrentPrimaryDestination(destination)
+            val selected = currentDestination == destination
             NavigationBarItem(
                 selected = selected,
-                onClick = { navigatePrimary(navigator, destination, selected) },
+                onClick = { onSelectDestination(destination) },
                 icon = destination.icon,
                 label = stringResource(destination.label),
             )
@@ -353,28 +411,24 @@ private fun AsterBottomNavigation(
 
 @Composable
 private fun AsterFloatingNavigation(
-    navController: NavHostController,
     destinations: List<PrimaryDestination>,
+    currentDestination: PrimaryDestination?,
     backdrop: Backdrop,
     blurEnabled: Boolean,
     glassEnabled: Boolean,
+    onSelectDestination: (PrimaryDestination) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val navigator = navController.rememberDestinationsNavigator()
-    val entry by navController.currentBackStackEntryAsState()
-    val selected = destinations.indexOfFirst { it.direction.route == entry?.destination?.route }
-        .coerceAtLeast(0)
-    val select: (Int) -> Unit = { index ->
-        navigatePrimary(navigator, destinations[index], selected == index)
-    }
+    val selected = destinations.indexOf(currentDestination).coerceAtLeast(0)
     FloatingBottomBar(
         modifier = modifier.widthIn(max = 440.dp).fillMaxWidth(),
-        selectedIndex = { selected }, onSelected = select,
+        selectedIndex = { selected },
+        onSelected = { index -> onSelectDestination(destinations[index]) },
         backdrop = backdrop, tabsCount = destinations.size,
         isBackdropBlurEnabled = blurEnabled, isLiquidGlassEnabled = glassEnabled,
     ) {
         destinations.forEachIndexed { index, destination ->
-            FloatingBottomBarItem(onClick = { select(index) }) {
+            FloatingBottomBarItem(onClick = { onSelectDestination(destination) }) {
                 Icon(destination.icon, stringResource(destination.label), modifier = Modifier.size(24.dp))
                 Text(stringResource(destination.label), fontSize = 10.sp, maxLines = 1)
             }
@@ -384,14 +438,13 @@ private fun AsterFloatingNavigation(
 
 @Composable
 private fun AsterNavigationRail(
-    navController: NavHostController,
-    capabilities: AsterNavigationCapabilities,
+    destinations: List<PrimaryDestination>,
+    currentDestination: PrimaryDestination?,
     state: NavigationRailState,
+    onSelectDestination: (PrimaryDestination) -> Unit,
     modifier: Modifier = Modifier,
     collapseAfterNavigation: Boolean,
 ) {
-    val navigator = navController.rememberDestinationsNavigator()
-
     NavigationRail(
         modifier = modifier,
         state = state,
@@ -400,20 +453,14 @@ private fun AsterNavigationRail(
         expandContentDescription = stringResource(R.string.navigation_expand),
         collapseContentDescription = stringResource(R.string.navigation_collapse),
     ) {
-        visiblePrimaryDestinations(capabilities).forEach { destination ->
-            val isCurrentDestination = navController.isCurrentPrimaryDestination(destination)
+        destinations.forEach { destination ->
+            val isCurrentDestination = currentDestination == destination
 
             NavigationRailItem(
                 selected = isCurrentDestination,
                 onClick = {
-                    navigatePrimary(
-                        navigator = navigator,
-                        destination = destination,
-                        isCurrentDestination = isCurrentDestination,
-                    )
-                    if (collapseAfterNavigation) {
-                        state.collapse()
-                    }
+                    onSelectDestination(destination)
+                    if (collapseAfterNavigation) state.collapse()
                 },
                 icon = destination.icon,
                 label = stringResource(destination.label),

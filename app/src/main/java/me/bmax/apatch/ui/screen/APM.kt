@@ -1,5 +1,6 @@
 package me.bmax.apatch.ui.screen
 
+import me.bmax.apatch.ui.shell.LocalMainPagerState
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.net.Uri
@@ -112,11 +113,15 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
     val snackBarHost = LocalSnackbarHost.current
     val context = LocalContext.current
     val capabilities = LocalAsterCapabilities.current
+    val mainPagerState = LocalMainPagerState.current
     if (!capabilities.kernelPatchReady) {
         MissingLayerNotice(
             title = stringResource(R.string.su_kernel_patch_required_title),
             description = stringResource(R.string.capability_kernel_patch_required_desc),
-            onBackToHome = { navigator.navigate(HomeScreenDestination) },
+            onBackToHome = {
+                if (mainPagerState != null) mainPagerState.animateToPage(0)
+                else navigator.navigate(HomeScreenDestination)
+            },
         )
         return
     }
@@ -124,7 +129,10 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
         MissingLayerNotice(
             title = stringResource(R.string.apm_not_installed),
             description = stringResource(R.string.capability_android_patch_required_desc),
-            onBackToHome = { navigator.navigate(HomeScreenDestination) },
+            onBackToHome = {
+                if (mainPagerState != null) mainPagerState.animateToPage(0)
+                else navigator.navigate(HomeScreenDestination)
+            },
         )
         return
     }

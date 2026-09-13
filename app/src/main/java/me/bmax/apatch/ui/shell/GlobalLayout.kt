@@ -102,6 +102,8 @@ fun setVisualChoice(key: String, value: String) {
 }
 val LocalFloatingNavigationInset = androidx.compose.runtime.compositionLocalOf { androidx.compose.ui.unit.Dp(0f) }
 val LocalSceneProgress = androidx.compose.runtime.compositionLocalOf { 1f }
+val LocalSceneRailWidth = androidx.compose.runtime.compositionLocalOf { androidx.compose.ui.unit.Dp(0f) }
+val LocalSceneActive = androidx.compose.runtime.compositionLocalOf { false }
 
 /**
  * The families Home can be drawn in, offered as one either-or choice. Settings and the Home

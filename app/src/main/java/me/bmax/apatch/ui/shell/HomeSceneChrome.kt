@@ -246,13 +246,12 @@ internal fun HomeSceneBackdrop(
 
 @Composable
 internal fun HomeSceneRail(
-    navController: NavHostController,
     capabilities: AsterNavigationCapabilities,
+    currentDestination: PrimaryDestination?,
+    onSelectDestination: (PrimaryDestination) -> Unit,
     onAppearance: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val navigator = navController.rememberDestinationsNavigator()
-
     Column(
         modifier = modifier.windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top)).verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -273,19 +272,13 @@ internal fun HomeSceneRail(
         visiblePrimaryDestinations(capabilities)
             .filter { it != PrimaryDestination.Home }
             .forEach { destination ->
-                val selected = navController.isCurrentPrimaryDestination(destination)
+                val selected = currentDestination == destination
                 SceneRailItem(
                     selected = selected,
                     icon = destination.icon,
                     label = stringResource(destination.label),
                     showLabel = showLabels,
-                    onClick = {
-                        navigatePrimary(
-                            navigator = navigator,
-                            destination = destination,
-                            isCurrentDestination = selected,
-                        )
-                    },
+                    onClick = { onSelectDestination(destination) },
                 )
             }
         Spacer(Modifier.height(12.dp))
