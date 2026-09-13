@@ -23,9 +23,7 @@ import me.bmax.apatch.APApplication
 import me.bmax.apatch.ui.webui.MonetColorsProvider
 import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import top.yukonga.miuix.kmp.theme.ThemeColorSpec
 import top.yukonga.miuix.kmp.theme.ThemeController
-import top.yukonga.miuix.kmp.theme.ThemePaletteStyle
 
 @Composable
 private fun SystemBarStyle(
@@ -108,6 +106,7 @@ fun APatchTheme(
     val wallpaperColorTheme = rememberWallpaperColorThemeState()
     val useWallpaperColor = wallpaperColorTheme.enabled
     val wallpaperColorSeed = wallpaperColorTheme.seed
+    val themeColorScheme = rememberThemeColorSchemeState()
 
     val refreshThemeObserver by refreshTheme.observeAsState(false)
     if (refreshThemeObserver == true) {
@@ -136,17 +135,34 @@ fun APatchTheme(
         darkTheme -> ColorSchemeMode.MonetDark
         else -> ColorSchemeMode.MonetLight
     }
-    val miuixKeyColor = when {
-        useWallpaperColor && wallpaperColorSeed != 0 -> Color(wallpaperColorSeed)
-        dynamicColor -> null
-        else -> LegacyMiuixThemeSeeds[customColorScheme] ?: LegacyMiuixThemeSeeds.getValue("blue")
-    }
-    val miuixThemeController = remember(miuixColorSchemeMode, miuixKeyColor) {
+    // A palette of the reader's own only means anything when it is built from a seed of the
+    // reader's own, so the system seed is read only once they have chosen one. Left alone, the key
+    // colour below stays null and Miuix draws the platform's colours as they are, down to the
+    // style and the spec — the palette this app had before the choice existed.
+    val paletteChosen = !themeColorScheme.isDefaultPalette()
+    val systemColorSeed = rememberSystemPaletteSeed(enabled = dynamicColor && paletteChosen)
+    val themeColorChoice = resolveThemeColorChoice(
+        wallpaperEnabled = useWallpaperColor,
+        wallpaperSeed = wallpaperColorSeed,
+        systemDynamicEnabled = dynamicColor,
+        systemSeed = systemColorSeed,
+        paletteChosen = paletteChosen,
+        presetSeed = presetThemeSeed(customColorScheme),
+    )
+    // Seed zero is how the resolver says "let the platform decide"; a real one is the colour the
+    // style and the spec are applied to.
+    val miuixKeyColor = themeColorChoice.seed.takeIf { it != 0 }?.let { argb -> Color(argb) }
+    val miuixThemeController = remember(
+        miuixColorSchemeMode,
+        miuixKeyColor,
+        themeColorScheme.style,
+        themeColorScheme.spec,
+    ) {
         ThemeController(
             colorSchemeMode = miuixColorSchemeMode,
             keyColor = miuixKeyColor,
-            colorSpec = ThemeColorSpec.Spec2021,
-            paletteStyle = ThemePaletteStyle.TonalSpot,
+            colorSpec = themeColorScheme.spec,
+            paletteStyle = themeColorScheme.style,
         )
     }
 
@@ -162,6 +178,10 @@ fun APatchTheme(
         }
     }
 }
+
+/** The preset colour as a seed, and the last resort when no other source can offer one. */
+internal fun presetThemeSeed(colorName: String?): Int =
+    (LegacyMiuixThemeSeeds[colorName] ?: LegacyMiuixThemeSeeds.getValue("blue")).toArgb()
 
 private val LegacyMiuixThemeSeeds = mapOf(
     "amber" to Color(0xFFFFC107),

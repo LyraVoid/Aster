@@ -48,7 +48,9 @@ import androidx.core.content.FileProvider
 import androidx.core.content.edit
 import androidx.core.os.LocaleListCompat
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.generated.destinations.ThemeColorScreenDestination
 import com.ramcosta.composedestinations.annotation.RootGraph
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -68,7 +70,9 @@ import me.bmax.apatch.ui.shell.rememberNavigationMode
 import me.bmax.apatch.ui.shell.setGlobalLayout
 import me.bmax.apatch.ui.shell.setNavigationMode
 import me.bmax.apatch.ui.theme.WallpaperColorTheme
+import me.bmax.apatch.ui.theme.label
 import me.bmax.apatch.ui.theme.refreshTheme
+import me.bmax.apatch.ui.theme.rememberThemeColorSchemeState
 import me.bmax.apatch.ui.theme.rememberWallpaperColorThemeState
 import me.bmax.apatch.util.getBugreportFile
 import me.bmax.apatch.util.getKernelVersionCode
@@ -112,7 +116,7 @@ private data class KernelRuntimeInfo(
 
 @Destination<RootGraph>
 @Composable
-fun SettingScreen() {
+fun SettingScreen(navigator: DestinationsNavigator) {
     // Same source the navigation gates itself on: gating the settings section on the older
     // APApplication state machine let the two disagree, so a row could survive next to a hidden
     // page that needed exactly the layer it claimed was missing.
@@ -215,6 +219,7 @@ fun SettingScreen() {
     }
     val wallpaperColorTheme = rememberWallpaperColorThemeState()
     val useWallpaperColor = wallpaperColorTheme.enabled
+    val themeColorScheme = rememberThemeColorSchemeState()
     val wallpaperViewModel = LocalHomeWallpaperViewModel.current
     val wallpaperState = if (wallpaperViewModel == null) {
         null
@@ -595,6 +600,19 @@ fun SettingScreen() {
                             onClick = { showThemeChooseDialog = true },
                         )
                     }
+
+                    // How that colour is spread over the scheme is a separate choice, and it
+                    // outlives all three sources above: it is still in force if the reader stops
+                    // using dynamic colour entirely.
+                    ArrowPreference(
+                        title = stringResource(R.string.theme_color_title),
+                        summary = stringResource(themeColorScheme.style.label) +
+                            " · " + stringResource(themeColorScheme.spec.label),
+                        startAction = {
+                            SettingsIcon(MiuixIcons.Layers)
+                        },
+                        onClick = { navigator.navigate(ThemeColorScreenDestination) },
+                    )
                 }
             }
 
