@@ -302,10 +302,11 @@ private fun APModuleTopBar(
                     onDismissRequest = { onShowSortPriorityMenuChange(false) },
                 ) {
                     ListPopupColumn {
-                        ModuleSortPriorityHeading(
-                            title = stringResource(R.string.apm_sort_priority),
-                            summary = stringResource(R.string.apm_sort_priority_summary),
-                        )
+                        // Nothing above the rows. A heading written in the same shape as the rows
+                        // is read as one of them, and the button that opened this is the whole of
+                        // what it is. What the rows set is a priority, not a filter: a kind left
+                        // unticked does not leave the list, it only stops being lifted above the
+                        // alphabet.
                         ModuleSortPriorityGroups.forEach { group ->
                             ModuleSortPriorityMenuItem(
                                 group = group,
@@ -342,26 +343,6 @@ private fun APModuleTopBar(
             )
         },
     )
-}
-
-/**
- * What the top-right button opens. What it sets is a priority, not a filter: a kind left unticked
- * does not leave the list, it only stops being lifted above the alphabet.
- */
-@Composable
-private fun ModuleSortPriorityHeading(title: String, summary: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-    ) {
-        Text(text = title, color = MiuixTheme.colorScheme.onSurface)
-        Text(
-            text = summary,
-            style = MiuixTheme.textStyles.body2,
-            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-        )
-    }
 }
 
 @Composable

@@ -139,7 +139,6 @@
     <string name="apm_author">作者</string>
     <string name="apm_not_installed">尚未注入系统补丁</string>
     <string name="apm_sort_priority">排序优先级</string>
-    <string name="apm_sort_priority_summary">勾选的类别排在前面，其余按模块 ID 排在后面。</string>
     <string name="apm_sort_group_metamodule">元模块</string>
     <string name="apm_sort_group_metamodule_summary">其他模块挂在它下面。</string>
     <string name="apm_sort_group_zygisk">Zygisk 实现</string>

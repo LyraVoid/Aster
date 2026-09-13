@@ -232,7 +232,6 @@
     <string name="apm_start_downloading">Start downloading: %s</string>
     <string name="apm_new_version_available">New version %s is available, click to upgrade.</string>
     <string name="apm_sort_priority">Sort priority</string>
-    <string name="apm_sort_priority_summary">The kinds you tick come first; the rest follow in the alphabet.</string>
     <string name="apm_sort_group_metamodule">Meta module</string>
     <string name="apm_sort_group_metamodule_summary">The module the others hang off.</string>
     <string name="apm_sort_group_zygisk">Zygisk implementation</string>
