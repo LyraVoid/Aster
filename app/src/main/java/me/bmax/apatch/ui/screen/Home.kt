@@ -122,10 +122,10 @@ import me.bmax.apatch.ui.home.HomeWallpaperState
 import me.bmax.apatch.ui.home.HomeWallpaperViewModel
 import me.bmax.apatch.ui.home.androidVersion
 import me.bmax.apatch.ui.home.displayName
-import me.bmax.apatch.ui.shell.LocalHomeSceneHostState
 import me.bmax.apatch.ui.shell.GlobalLayout
+import me.bmax.apatch.ui.shell.GlobalLayoutDialog
+import me.bmax.apatch.ui.shell.LocalHomeSceneHostState
 import me.bmax.apatch.ui.shell.rememberGlobalLayout
-import me.bmax.apatch.ui.shell.setGlobalLayout
 import me.bmax.apatch.ui.viewmodel.PatchesViewModel
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -417,13 +417,8 @@ fun HomeScreen(navigator: DestinationsNavigator) {
         HomeWallpaperSheet(
             show = showWallpaperSheet,
             state = wallpaperState,
-            panoramaMode = sceneMode,
+            homeLayout = globalLayout,
             onDismissRequest = { showWallpaperSheet = false },
-            onPanoramaChange = { enabled ->
-                setGlobalLayout(
-                    if (enabled) GlobalLayout.Panorama else GlobalLayout.Standard
-                )
-            },
             onNightEnabledChange = wallpaperViewModel::setNightEnabled,
             onChooseImage = launchWallpaperPicker,
             onRemoveImage = wallpaperViewModel::removeImage,
@@ -1268,9 +1263,8 @@ private fun SceneChoiceRow(
 private fun HomeWallpaperSheet(
     show: Boolean,
     state: HomeWallpaperState,
-    panoramaMode: Boolean,
+    homeLayout: GlobalLayout,
     onDismissRequest: () -> Unit,
-    onPanoramaChange: (Boolean) -> Unit,
     onNightEnabledChange: (Boolean) -> Unit,
     onChooseImage: (HomeWallpaperSlot) -> Unit,
     onRemoveImage: (HomeWallpaperSlot) -> Unit,
@@ -1319,16 +1313,24 @@ private fun HomeWallpaperSheet(
                 .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            SceneSwitchRow(
-                title = stringResource(R.string.home_panorama_switch),
-                summary = stringResource(R.string.home_panorama_switch_summary),
-                checked = panoramaMode,
-                onCheckedChange = onPanoramaChange,
+            // Which family Home is drawn in is one choice with as many answers as there are
+            // families, so it is offered as a list rather than as a switch, and the same list the
+            // Settings row opens.
+            var choosingLayout by remember { mutableStateOf(false) }
+            SceneChoiceRow(
+                title = stringResource(R.string.global_layout_title),
+                value = stringResource(homeLayout.label),
+                onClick = { choosingLayout = true },
+            )
+            GlobalLayoutDialog(
+                show = choosingLayout,
+                selected = homeLayout,
+                onDismissRequest = { choosingLayout = false },
             )
 
             // The rail extras only exist in panorama mode, so their switches travel with the mode
             // they belong to.
-            if (panoramaMode) {
+            if (homeLayout == GlobalLayout.Panorama) {
                 val showSceneClock by me.bmax.apatch.ui.shell.rememberVisualFlag(
                     me.bmax.apatch.ui.shell.SceneRailClockFlag,
                     true,

@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -57,8 +58,8 @@ import me.bmax.apatch.ui.theme.rememberWallpaperColorThemeState
 import me.bmax.apatch.ui.theme.resolveThemeColorChoice
 import me.bmax.apatch.ui.theme.selectPresetColor
 import me.bmax.apatch.ui.theme.selectThemeColorSource
-import me.bmax.apatch.ui.theme.supportsSpec2025
 import me.bmax.apatch.ui.theme.summary
+import me.bmax.apatch.ui.theme.supportsSpec2025
 import me.bmax.apatch.ui.theme.themeColorSourceOf
 import me.bmax.apatch.ui.theme.themeColorSourcesOffered
 import top.yukonga.miuix.kmp.basic.Button
@@ -66,15 +67,12 @@ import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
-import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.Background
 import top.yukonga.miuix.kmp.icon.extended.GridView
 import top.yukonga.miuix.kmp.icon.extended.Photos
@@ -155,18 +153,14 @@ fun ThemeColorScreen(navigator: DestinationsNavigator) {
     // platform's own seed even while the app itself is leaving the palette to the platform.
     val previewSeed = colorChoice.seed.takeIf { it != 0 } ?: systemSeed ?: presetSeed
 
+    val scrollBehavior = MiuixScrollBehavior()
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = stringResource(R.string.theme_color_title),
-                navigationIcon = {
-                    IconButton(onClick = { navigator.popBackStack() }) {
-                        Icon(
-                            imageVector = MiuixIcons.Back,
-                            contentDescription = stringResource(R.string.back),
-                        )
-                    }
-                },
+            SettingsTopBar(
+                title = R.string.theme_color_title,
+                scrollBehavior = scrollBehavior,
+                navigator = navigator,
             )
         },
     ) { innerPadding ->
@@ -174,6 +168,7 @@ fun ThemeColorScreen(navigator: DestinationsNavigator) {
             modifier = Modifier
                 .fillMaxSize()
                 .overScrollVertical()
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .padding(innerPadding),
             contentPadding = PaddingValues(top = 12.dp, bottom = 24.dp),
         ) {

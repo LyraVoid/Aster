@@ -7,17 +7,27 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.edit
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 
 /**
  * Top level layout family. [Panorama] owns its chrome (wallpaper scene on Home, floating
  * navigation elsewhere); [Standard] keeps the classic bottom bar or sidebar shell.
+ *
+ * The label names the family and the summary says what living in it means, so the list of them can
+ * be offered wherever the choice is made, the way a destination carries its own label.
  */
-enum class GlobalLayout(val value: String, @param:StringRes val label: Int) {
-    Panorama("panorama", R.string.global_layout_panorama),
-    Standard("standard", R.string.global_layout_standard);
+enum class GlobalLayout(
+    val value: String,
+    @param:StringRes val label: Int,
+    @param:StringRes val summary: Int,
+) {
+    Panorama("panorama", R.string.global_layout_panorama, R.string.global_layout_panorama_summary),
+    Standard("standard", R.string.global_layout_standard, R.string.global_layout_standard_summary);
 
     companion object {
         fun fromValue(value: String?): GlobalLayout =
@@ -92,3 +102,33 @@ fun setVisualChoice(key: String, value: String) {
 }
 val LocalFloatingNavigationInset = androidx.compose.runtime.compositionLocalOf { androidx.compose.ui.unit.Dp(0f) }
 val LocalSceneProgress = androidx.compose.runtime.compositionLocalOf { 1f }
+
+/**
+ * The families Home can be drawn in, offered as one either-or choice. Settings and the Home
+ * appearance sheet both open this dialog, so the two entry points cannot drift apart when another
+ * family is added.
+ */
+@Composable
+fun GlobalLayoutDialog(
+    show: Boolean,
+    selected: GlobalLayout,
+    onDismissRequest: () -> Unit,
+) {
+    OverlayDialog(
+        show = show,
+        title = stringResource(R.string.global_layout_title),
+        onDismissRequest = onDismissRequest,
+    ) {
+        GlobalLayout.entries.forEach { layout ->
+            RadioButtonPreference(
+                title = stringResource(layout.label),
+                summary = stringResource(layout.summary),
+                selected = selected == layout,
+                onClick = {
+                    onDismissRequest()
+                    setGlobalLayout(layout)
+                },
+            )
+        }
+    }
+}

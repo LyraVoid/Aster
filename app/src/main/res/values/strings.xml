@@ -29,8 +29,9 @@
     <string name="reboot_edl_confirm">Reboot into EDL (Emergency Download) mode? The screen will stay black and the device can only be recovered with a deep flash tool.</string>
     <string name="about">About</string>
     <string name="settings_app_language">Language</string>
-    <string name="settings_section_root">Root &amp; compatibility</string>
     <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_section_navigation">Navigation &amp; shell</string>
+    <string name="settings_section_kernel">Kernel</string>
     <string name="settings_section_general">General</string>
     <string name="settings_section_diagnostics">Diagnostics</string>
     <string name="system_default">System default</string>
@@ -324,8 +325,6 @@
     <string name="home_security_actions">Security actions</string>
     <string name="home_remove_android_patch">Remove AndroidPatch</string>
     <string name="home_appearance">Home appearance</string>
-    <string name="home_panorama_switch">Panorama mode</string>
-    <string name="home_panorama_switch_summary">Home becomes a wallpaper scene; other pages use floating navigation.</string>
     <string name="home_scene_labels_switch">Rail labels</string>
     <string name="home_scene_labels_switch_summary">Show a label under each rail icon.</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">Choose a Home wallpaper first.</string>
@@ -445,10 +444,10 @@
     <string name="navigation_collapse">Collapse navigation</string>
 
     <string name="navigation_mode_title">Navigation layout</string>
-    <string name="global_layout_title">Global layout</string>
-    <string name="global_layout_panorama">Panorama mode</string>
+    <string name="global_layout_title">Home style</string>
+    <string name="global_layout_panorama">Panorama</string>
     <string name="global_layout_panorama_summary">Wallpaper scene on Home, floating navigation on other pages.</string>
-    <string name="global_layout_standard">Standard mode</string>
+    <string name="global_layout_standard">Standard</string>
     <string name="global_layout_standard_summary">Classic bottom bar or sidebar layout on every page.</string>
     <string name="navigation_mode_auto">Automatic</string>
     <string name="navigation_mode_bottom">Bottom navigation</string>

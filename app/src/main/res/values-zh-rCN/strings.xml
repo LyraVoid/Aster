@@ -159,8 +159,9 @@
     <string name="apm_retry">重试</string>
     <string name="system_default">系统默认</string>
     <string name="settings_app_language">语言</string>
-    <string name="settings_section_root">Root 与兼容性</string>
     <string name="settings_section_appearance">外观</string>
+    <string name="settings_section_navigation">导航与外壳</string>
+    <string name="settings_section_kernel">内核</string>
     <string name="settings_section_general">通用</string>
     <string name="settings_section_diagnostics">诊断</string>
     <string name="patch">修补内核镜像</string>
@@ -258,8 +259,6 @@
     <string name="home_dialog_uninstall_ap_only">仅卸载系统补丁</string>
     <string name="home_dialog_uninstall_all">完全卸载</string>
     <string name="home_appearance">首页外观</string>
-    <string name="home_panorama_switch">全景模式</string>
-    <string name="home_panorama_switch_summary">首页变成壁纸场景，其他页面使用悬浮导航。</string>
     <string name="home_scene_labels_switch">侧栏文字标签</string>
     <string name="home_scene_labels_switch_summary">在每个侧栏图标下显示文字。</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">请先在首页选择壁纸。</string>
@@ -349,10 +348,10 @@
     <string name="navigation_collapse">收起导航</string>
 
     <string name="navigation_mode_title">导航布局</string>
-    <string name="global_layout_title">全局布局</string>
-    <string name="global_layout_panorama">全景模式</string>
+    <string name="global_layout_title">首页风格</string>
+    <string name="global_layout_panorama">全景首页</string>
     <string name="global_layout_panorama_summary">首页是壁纸场景，其他页面使用悬浮导航。</string>
-    <string name="global_layout_standard">标准模式</string>
+    <string name="global_layout_standard">标准首页</string>
     <string name="global_layout_standard_summary">所有页面使用传统的底部导航或侧栏导航。</string>
     <string name="navigation_mode_auto">自动适配</string>
     <string name="navigation_mode_bottom">底部导航</string>

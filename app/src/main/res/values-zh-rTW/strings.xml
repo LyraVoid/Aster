@@ -135,8 +135,9 @@
     <string name="apm_not_installed">AndroidPatch 尚未安裝</string>
     <string name="system_default">系統預設</string>
     <string name="settings_app_language">語言</string>
-    <string name="settings_section_root">Root 與相容性</string>
     <string name="settings_section_appearance">外觀</string>
+    <string name="settings_section_navigation">導覽與外殼</string>
+    <string name="settings_section_kernel">核心</string>
     <string name="settings_section_general">一般</string>
     <string name="settings_section_diagnostics">診斷</string>
     <string name="patch">修補</string>
@@ -216,8 +217,6 @@
     <string name="home_system_version">系統版本</string>
     <string name="home_kpatch_version">KernelPatch 版本</string>
     <string name="home_appearance">首頁外觀</string>
-    <string name="home_panorama_switch">全景模式</string>
-    <string name="home_panorama_switch_summary">首頁變成壁紙場景，其他頁面使用懸浮導覽。</string>
     <string name="home_scene_labels_switch">側欄文字標籤</string>
     <string name="home_scene_labels_switch_summary">在每個側欄圖示下顯示文字。</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">請先在首頁選擇桌布。</string>
@@ -344,10 +343,10 @@
     <string name="navigation_collapse">收合導覽</string>
 
     <string name="navigation_mode_title">導覽配置</string>
-    <string name="global_layout_title">全域佈局</string>
-    <string name="global_layout_panorama">全景模式</string>
+    <string name="global_layout_title">首頁風格</string>
+    <string name="global_layout_panorama">全景首頁</string>
     <string name="global_layout_panorama_summary">首頁是壁紙場景，其他頁面使用懸浮導覽。</string>
-    <string name="global_layout_standard">標準模式</string>
+    <string name="global_layout_standard">標準首頁</string>
     <string name="global_layout_standard_summary">所有頁面使用傳統的底部導覽或側欄導覽。</string>
     <string name="navigation_mode_auto">自動適應</string>
     <string name="navigation_mode_bottom">底部導覽</string>
