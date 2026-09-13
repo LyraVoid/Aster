@@ -208,7 +208,6 @@
     <string name="setting_reset_su_path">I-reset ang su path</string>
     <string name="settings_check_update">Suriin ang mga update</string>
     <string name="settings_check_update_summary">Awtomatikong suriin ang mga update kapag binuksan ang app</string>
-    <string name="settings_custom_color_theme">Tema ng kulay</string>
     <string name="settings_night_mode_follow_sys">Sundin ang dark theme ng system</string>
     <string name="settings_night_mode_follow_sys_summary">Awtomatikong lumipat sa dark theme batay sa mga setting ng system</string>
     <string name="settings_night_theme_enabled">Paganahin ang dark theme</string>
@@ -219,8 +218,6 @@
     <string name="settings_selinux_hide_warning_title">Babala</string>
     <string name="settings_selinux_hide_warning_below_5_10">Ang feature na ito ay nasubok lamang sa kernel 5.10 pataas at maaaring hindi matatag sa mas mababang bersyon ng kernel.</string>
     <string name="settings_selinux_hide_warning_non_gki">Ang mga hindi GKI na kernel ay may mas malaking panganib at maaaring magdulot ng pagkabigo sa pag-boot. Siguraduhing naka-backup ang iyong data.</string>
-    <string name="settings_use_system_color_theme">Tema ng kulay ng system</string>
-    <string name="settings_use_system_color_theme_summary">Gumamit ng tema ng kulay na binuo ng system batay sa kasalukuyang wallpaper</string>
     <string name="teal_theme">Teal</string>
     <string name="warning_of_meta_module_summary">Ang module na ito ay nais i-mount ang /system, ang meta module ang hahawak niyan. Kung hindi, maaaring hindi ito gumana.</string>
     <string name="warning_of_meta_module_title">Kinakailangan ang Meta module</string>

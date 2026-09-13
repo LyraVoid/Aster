@@ -107,37 +107,6 @@ internal fun colorNameToString(colorName: String): Int =
     colorsList().firstOrNull { it.name == colorName }?.nameId ?: R.string.blue_theme
 
 @Composable
-internal fun ThemeChooseDialog(
-    show: Boolean,
-    selectedColor: String,
-    onDismiss: () -> Unit,
-    onSelect: (String) -> Unit,
-) {
-    OverlayDialog(
-        show = show,
-        title = stringResource(R.string.settings_custom_color_theme),
-        onDismissRequest = onDismiss,
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 440.dp),
-        ) {
-            items(
-                items = colorsList(),
-                key = APColor::name,
-            ) { color ->
-                RadioButtonPreference(
-                    title = stringResource(color.nameId),
-                    selected = color.name == selectedColor,
-                    onClick = { onSelect(color.name) },
-                )
-            }
-        }
-    }
-}
-
-@Composable
 internal fun LanguageDialog(
     show: Boolean,
     onDismiss: () -> Unit,

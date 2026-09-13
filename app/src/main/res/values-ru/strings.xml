@@ -166,9 +166,6 @@
     <string name="kpm_control_outMsg">Сообщение</string>
     <string name="kpm_control_failed">Операция не удалась!</string>
     <string name="settings_night_mode_follow_sys">Придерживаться тёмной темы системы</string>
-    <string name="settings_use_system_color_theme">Системная цветовая тема</string>
-    <string name="settings_use_system_color_theme_summary">Использовать цветовую тему, созданную системой на основе текущих обоев</string>
-    <string name="settings_custom_color_theme">Цветовая тема</string>
     <string name="deep_orange_theme">Тёмно-оранжевая</string>
     <string name="deep_purple_theme">Тёмно-фиолетовая</string>
     <string name="light_blue_theme">Голубая</string>

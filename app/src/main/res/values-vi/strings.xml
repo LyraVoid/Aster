@@ -101,8 +101,6 @@
     <string name="kpm_control_paramters">Thông số</string>
     <string name="kpm_control_failed">Lỗi hệ thống!</string>
     <string name="settings_night_mode_follow_sys_summary">Tự động chuyển sang chủ đề tối theo thiết đặt của hệ thống</string>
-    <string name="settings_use_system_color_theme_summary">Sử dụng chủ đề màu do hệ thống tạo với hình nền hiện tại</string>
-    <string name="settings_custom_color_theme">Chủ đề màu sắc</string>
     <string name="blue_grey_theme">Chủ đề BlueGrey</string>
     <string name="brown_theme">Chủ đề màu nâu</string>
     <string name="deep_purple_theme">Chủ đề màu tím đậm</string>
@@ -186,7 +184,6 @@
     <string name="home_dialog_uninstall_ap_only">Gỡ cài đặt AndroidPatch</string>
     <string name="kpm_control_outMsg">Tin nhắn</string>
     <string name="kpm_control_ok">Hoạt động đã thành công!</string>
-    <string name="settings_use_system_color_theme">Chủ đề màu hệ thống</string>
     <string name="amber_theme">Chủ đề hổ phách</string>
     <string name="light_blue_theme">Chủ đề màu xanh nhạt</string>
     <string name="light_green_theme">Chủ đề màu xanh nhạt</string>

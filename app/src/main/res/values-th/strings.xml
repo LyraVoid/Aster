@@ -136,7 +136,6 @@
     <string name="settings_night_mode_follow_sys">ใช้งานธีมมืดของระบบ</string>
     <string name="settings_night_mode_follow_sys_summary">สลับไปใช้ธีมมืดโดยอัตโนมัติด้วยการตั้งค่าของระบบ</string>
     <string name="settings_night_theme_enabled">เปิดใช้งานธีมมืด</string>
-    <string name="settings_use_system_color_theme">ธีมสีของระบบ</string>
     <string name="cyan_theme">ธีมสีฟ้า</string>
     <string name="light_blue_theme">ธีมสีฟ้าอ่อน</string>
     <string name="about_telegram_channel">ช่องทางเทเลอกรม</string>
@@ -196,8 +195,6 @@
     <string name="enable_web_debugging">เปิดใช้งานการดีบักเว็บวิว</string>
     <string name="mode_select_page_install_inactive_slot">ติดตั้งลงในพื้นที่ที่ไม่ได้ใช้งาน (หลัง OTA)</string>
     <string name="mode_select_page_install_inactive_slot_warning">อุปกรณ์ของคุณจะถูก **บังคับ** ให้รีเซ็ตไปยังพื้นที่ไม่ได้ใช้งานปัจจุบันหลังจากรีเซ็ต!\n\nใช้ตัวเลือกนี้เฉพาะหลังจาก OTA เสร็จสิ้นเท่านั้น\n\nดำเนินการต่อหรือไม่</string>
-    <string name="settings_use_system_color_theme_summary">ใช้ธีมสีที่สร้างโดยระบบด้วยวอลเปเปอร์ปัจจุบัน</string>
-    <string name="settings_custom_color_theme">ธีมสี</string>
     <string name="amber_theme">ธีมสีเหลือง</string>
     <string name="deep_orange_theme">ธีมสีส้มเข้ม</string>
     <string name="about_github" translatable="false">GitHub</string>

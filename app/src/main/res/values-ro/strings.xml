@@ -149,7 +149,6 @@
     <string name="brown_theme">Tema maro</string>
     <string name="deep_orange_theme">Tema portocaliu adânc</string>
     <string name="apm_action">Actiune</string>
-    <string name="settings_custom_color_theme">Tema de culoare</string>
     <string name="blue_theme">Tema albastru</string>
     <string name="deep_purple_theme">Tema mov adânc</string>
     <string name="green_theme">Verde</string>
@@ -160,7 +159,6 @@
     <string name="orange_theme">Portocaliu</string>
     <string name="pink_theme">Roz</string>
     <string name="apm_webui_open">Deschis</string>
-    <string name="settings_use_system_color_theme_summary">Utilizați o temă de culoare generată de sistem bazat pe fundalul actual</string>
     <string name="home_device_info">Dispozitiv</string>
     <string name="kpm_add_kpm">Adaugă KPM</string>
     <string name="kpm_install">Instalează</string>
@@ -174,7 +172,6 @@
     <string name="kpm_control_failed">Operațiune ieșuată!</string>
     <string name="settings_night_mode_follow_sys_summary">Schimbați automat la tema întunecată bazat pe setările sistemului</string>
     <string name="settings_night_theme_enabled">&quot;Activează tema Întunecată &quot;</string>
-    <string name="settings_use_system_color_theme">Tema de culoare a sistemului</string>
     <string name="patch_item_existed_extra_kpm">Existent</string>
     <string name="patch_item_extra_kpm_license">Licență:</string>
     <string name="patch_item_extra_kpm_desciption">Descripție:</string>

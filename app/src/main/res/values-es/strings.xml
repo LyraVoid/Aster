@@ -157,10 +157,7 @@
     <string name="enable_web_debugging_summary">Se puede utilizar para depurar WebUI, actívalo solo si se necesita de verdad.</string>
     <string name="patch_mode_install_to_next_slot">Modo: Instalar en el «slot» inactivo (tras OTA)</string>
     <string name="home_new_apatch_found">Nueva versión disponible: %s, toca para actualizar.</string>
-    <string name="settings_use_system_color_theme">Utilizar colores del sistema</string>
     <string name="kpm_control_dialog_title">Control de KPModule</string>
-    <string name="settings_use_system_color_theme_summary">Utiliza un esquema de colores generado por el sistema basado en el fondo de pantalla actual</string>
-    <string name="settings_custom_color_theme">Esquema de colores</string>
     <string name="deep_orange_theme">Naranja oscuro</string>
     <string name="deep_purple_theme">Morado oscuro</string>
     <string name="green_theme">Verde</string>

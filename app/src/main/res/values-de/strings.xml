@@ -165,7 +165,6 @@
     <string name="settings_night_mode_follow_sys">Dunklem Schema des Systems folgen</string>
     <string name="settings_night_mode_follow_sys_summary">Automatischer Wechsel zu einem dunklen Schema basierend auf den Systemeinstellungen</string>
     <string name="settings_night_theme_enabled">Dunkles Schema aktivieren</string>
-    <string name="settings_use_system_color_theme">Systemfarbschema</string>
     <string name="patch_mode_install_to_next_slot">Modus: In inaktivem Slot installieren (Nach OTA)</string>
     <string name="setting_reset_su_path">su-Pfad zurücksetzen</string>
     <string name="hide_apatch_manager_failure">Verstecken fehlgeschlagen. Bitte melde den Fehler!</string>
@@ -177,7 +176,6 @@
     <string name="mode_select_page_install_inactive_slot_warning">Dein Gerät wird **GEZWUNGEN**, nach dem Neustart den inaktiven Slot zu nutzen!
 \nNutze diese Funktion ausschließlich, wenn ein OTA-Update durchgeführt wurde.
 \nFortfahren?</string>
-    <string name="settings_custom_color_theme">Farbschema</string>
     <string name="deep_orange_theme">Tieforange</string>
     <string name="cyan_theme">Cyan</string>
     <string name="deep_purple_theme">Tiefviolett</string>
@@ -195,7 +193,6 @@
     <string name="about_powered_by">Unterstützt durch %1$s</string>
     <string name="red_theme">Rot</string>
     <string name="about_app_desc">Kernel-Root-Lösung mit nur einem gestrippten Kernel-Image, das die Möglichkeit bietet, Systemmodule zu mounten und Kernel-Funktionen einzuhängen.</string>
-    <string name="settings_use_system_color_theme_summary">Verwende ein Farbthema, das basierend aus dem aktuellen Hintergrund vom System erzeugt wird</string>
     <string name="save_log">Logs speichern</string>
     <string name="apm_action">Aktion</string>
     <string name="log_saved">Protokoll gespeichert</string>

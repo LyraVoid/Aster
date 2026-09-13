@@ -139,8 +139,6 @@
     <string name="kpm_control_dialog_title">Kontrollera KP-modulen</string>
     <string name="kpm_control_dialog_content">Mata in kontroll-parametrar:</string>
     <string name="mode_select_page_install_inactive_slot">Installera till en icke aktiv plats (Efter OTA)</string>
-    <string name="settings_custom_color_theme">Färgtema</string>
-    <string name="settings_use_system_color_theme_summary">Använd ett färgschema som genereras av systemet med den nuvarande bakgrundsbilden</string>
     <string name="brown_theme">Brunt tema</string>
     <string name="sakura_theme">Sakura-tema</string>
     <string name="yellow_theme">Gult tema</string>
@@ -166,7 +164,6 @@
     <string name="su_selinux_via_hook">bypass genom hook</string>
     <string name="pink_theme">Rosa tema</string>
     <string name="purple_theme">Lila tema</string>
-    <string name="settings_use_system_color_theme">System färgtema</string>
     <string name="settings_night_theme_enabled">Aktivera mörkt tema</string>
     <string name="teal_theme">Blågrönt tema</string>
     <string name="red_theme">Rött tema</string>

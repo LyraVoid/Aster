@@ -173,8 +173,6 @@
     <string name="kpm_control_dialog_content">Ingave controle parameters:</string>
     <string name="kpm_control_ok">Operatie succesvol!</string>
     <string name="kpm_control_failed">Operatie gefaald!</string>
-    <string name="settings_use_system_color_theme_summary">Gebruik een kleur thema gegenereerd door systeen met huidige achtergrondafbeelding</string>
-    <string name="settings_use_system_color_theme">Systeem Kleur Thema</string>
     <string name="kpm_args">Argumenten</string>
     <string name="su_title">Supergebruiker</string>
     <string name="su_selinux_via_hook">Omzeilen via haak</string>
@@ -191,7 +189,6 @@
     <string name="amber_theme">Amber Thema</string>
     <string name="settings_night_theme_enabled">Donkere Thema Inschakelen</string>
     <string name="blue_grey_theme">BlauwGrijs Thema</string>
-    <string name="settings_custom_color_theme">Kleur Thema</string>
     <string name="about_app_desc">Kernel Root-oplossing met alleen een gestripte kernel afbeelding, die de mogelijkheid biedt om een systeemmodule te mounten en een kernelfunctie te koppelen.</string>
     <string name="yellow_theme">Geel Thema</string>
     <string name="about_app_version">Versie %1$s</string>

@@ -112,7 +112,6 @@
     <string name="patch_item_extra_author">Autor:</string>
     <string name="patch_item_extra_kpm_license">Licença:</string>
     <string name="patch_item_extra_kpm_desciption">Descrição:</string>
-    <string name="settings_custom_color_theme">Tema de cores</string>
     <string name="blue_grey_theme">Cinzento-azul</string>
     <string name="blue_theme">Azul</string>
     <string name="brown_theme">Castanho</string>
@@ -194,8 +193,6 @@
     <string name="kpm_control_paramters">Parâmetros</string>
     <string name="kpm_control_outMsg">Mensagem</string>
     <string name="settings_night_mode_follow_sys_summary">Mude automaticamente para o tema escuro com base nas configurações do sistema</string>
-    <string name="settings_use_system_color_theme">Tema de cores do sistema</string>
-    <string name="settings_use_system_color_theme_summary">Use um tema de cores gerado pelo sistema com base no plano de fundo atual</string>
     <string name="amber_theme">Âmbar</string>
     <string name="apm_action">Ação</string>
     <string name="log_saved">Logs salvos</string>

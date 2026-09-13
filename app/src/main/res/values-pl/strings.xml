@@ -161,9 +161,6 @@
     <string name="settings_night_mode_follow_sys">Podążaj za ciemnym motywem systemu</string>
     <string name="settings_night_mode_follow_sys_summary">Automatyczne przełącz na ciemny motyw na podstawie ustawień systemowych</string>
     <string name="settings_night_theme_enabled">Włącz ciemny motyw</string>
-    <string name="settings_use_system_color_theme">Motyw kolorów systemu</string>
-    <string name="settings_use_system_color_theme_summary">Używaj motywu kolorystycznego wygenerowanego przez system na podstawie bieżącej tapety</string>
-    <string name="settings_custom_color_theme">Motyw kolorystyczny</string>
     <string name="blue_grey_theme">Niebiesko-szary</string>
     <string name="blue_theme">Niebieski</string>
     <string name="brown_theme">Brązowy</string>

@@ -15,22 +15,38 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
+import me.bmax.apatch.ui.shell.GlobalLayout
+import me.bmax.apatch.ui.shell.rememberGlobalLayout
+import me.bmax.apatch.ui.theme.DefaultPresetColor
 import me.bmax.apatch.ui.theme.LocalThemeModeState
+import me.bmax.apatch.ui.theme.PresetColorKey
+import me.bmax.apatch.ui.theme.SystemDynamicColorKey
 import me.bmax.apatch.ui.theme.ThemeColorScheme
+import me.bmax.apatch.ui.theme.ThemeColorSource
+import me.bmax.apatch.ui.theme.displayName
 import me.bmax.apatch.ui.theme.effectiveFor
 import me.bmax.apatch.ui.theme.isDefaultPalette
 import me.bmax.apatch.ui.theme.label
@@ -39,11 +55,17 @@ import me.bmax.apatch.ui.theme.rememberSystemPaletteSeed
 import me.bmax.apatch.ui.theme.rememberThemeColorSchemeState
 import me.bmax.apatch.ui.theme.rememberWallpaperColorThemeState
 import me.bmax.apatch.ui.theme.resolveThemeColorChoice
+import me.bmax.apatch.ui.theme.selectPresetColor
+import me.bmax.apatch.ui.theme.selectThemeColorSource
 import me.bmax.apatch.ui.theme.supportsSpec2025
 import me.bmax.apatch.ui.theme.summary
+import me.bmax.apatch.ui.theme.themeColorSourceOf
+import me.bmax.apatch.ui.theme.themeColorSourcesOffered
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Scaffold
@@ -53,9 +75,14 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
+import top.yukonga.miuix.kmp.icon.extended.Background
+import top.yukonga.miuix.kmp.icon.extended.GridView
+import top.yukonga.miuix.kmp.icon.extended.Photos
 import top.yukonga.miuix.kmp.icon.extended.Theme
 import top.yukonga.miuix.kmp.icon.extended.Tune
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
+import top.yukonga.miuix.kmp.preference.RadioButtonLocation
+import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.ThemeColorSpec
@@ -64,13 +91,16 @@ import top.yukonga.miuix.kmp.theme.ThemePaletteStyle
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 /**
- * The palette the app paints itself with: which colour it starts from, how that colour is spread
- * over the scheme, and which Material specification the tones are taken from.
+ * Everything about the palette the app paints itself with: which colour it starts from, how that
+ * colour is spread over the scheme, and which Material specification the tones are taken from.
  *
- * The choices are made against a live preview, because nine styles and two specs cannot be told
- * apart by their names. The preview is not a picture of a phone: it is a card built out of the
- * app's own components inside the candidate palette, so what it shows is what the app will look
- * like, down to the buttons.
+ * All of it lives here rather than in the appearance section, because these are one decision seen
+ * from four sides, and the sides have to be looked at together: the source is picked here, the
+ * colour that source holds is picked here, and both are judged against a live preview above them.
+ *
+ * The preview is not a picture of a phone: it is a card built out of the app's own components
+ * inside the candidate palette, so what it shows is what the app will look like, down to the
+ * buttons.
  */
 @Destination<RootGraph>
 @Composable
@@ -79,23 +109,49 @@ fun ThemeColorScreen(navigator: DestinationsNavigator) {
     val scheme = rememberThemeColorSchemeState()
     val isDark = LocalThemeModeState.current.isDark
 
-    // The same facts the theme resolves its seed from, read here so the preview can be drawn in
-    // the palette that is actually in force.
+    // The same facts the theme resolves its colour from, read here so the source list and the
+    // preview describe the palette that is actually in force.
     val wallpaperColorTheme = rememberWallpaperColorThemeState()
-    val dynamicColor = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-        prefs.getBoolean("use_system_color_theme", true)
-    val presetSeed = presetThemeSeed(prefs.getString("custom_color", "blue"))
-    val systemSeed = rememberSystemPaletteSeed(enabled = dynamicColor)
+    val wallpaperViewModel = LocalHomeWallpaperViewModel.current
+    val wallpaperState = if (wallpaperViewModel == null) {
+        null
+    } else {
+        wallpaperViewModel.uiState.collectAsStateWithLifecycle().value
+    }
+    val hasWallpaper = wallpaperState?.hasImage == true
+    val dynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    // The Home wallpaper only exists on the panoramic Home, so on any other home the source is not
+    // offered at all and the palette is built from one of the two sources that are.
+    val panoramaHome = rememberGlobalLayout().value == GlobalLayout.Panorama
+
+    // The wallpaper half of the choice is observable state of its own; the other two are plain
+    // preferences, so they are read once and read back after every tap.
+    var systemDynamicStored by rememberSaveable {
+        mutableStateOf(prefs.getBoolean(SystemDynamicColorKey, true))
+    }
+    var presetColor by rememberSaveable {
+        mutableStateOf(prefs.getString(PresetColorKey, DefaultPresetColor) ?: DefaultPresetColor)
+    }
+    val source = themeColorSourceOf(
+        panoramaHome = panoramaHome,
+        wallpaperEnabled = wallpaperColorTheme.enabled,
+        systemDynamicEnabled = systemDynamicStored,
+        dynamicColorSupported = dynamicColorSupported,
+    )
+    val systemDynamic = dynamicColorSupported && systemDynamicStored
+    val presetSeed = presetThemeSeed(presetColor)
+    val systemSeed = rememberSystemPaletteSeed(enabled = systemDynamic)
 
     val colorChoice = resolveThemeColorChoice(
+        panoramaHome = panoramaHome,
         wallpaperEnabled = wallpaperColorTheme.enabled,
         wallpaperSeed = wallpaperColorTheme.seed,
-        systemDynamicEnabled = dynamicColor,
+        systemDynamicEnabled = systemDynamic,
         systemSeed = systemSeed,
         paletteChosen = !scheme.isDefaultPalette(),
         presetSeed = presetSeed,
     )
-    // A style the reader picked has to be shown on a real seed, so the preview falls back to the
+    // A style the reader picked has to be shown on a real colour, so the preview falls back to the
     // platform's own seed even while the app itself is leaving the palette to the platform.
     val previewSeed = colorChoice.seed.takeIf { it != 0 } ?: systemSeed ?: presetSeed
 
@@ -133,19 +189,36 @@ fun ThemeColorScreen(navigator: DestinationsNavigator) {
                         seed = previewSeed,
                         style = scheme.style,
                         spec = scheme.spec.effectiveFor(scheme.style),
-                        title = stringResource(scheme.style.label),
+                        title = scheme.style.displayName,
                         summary = stringResource(scheme.style.summary),
                         dark = isDark,
                     )
-                    Text(
-                        text = stringResource(
-                            R.string.theme_color_source_summary,
-                            stringResource(colorChoice.source.label),
-                        ),
-                        modifier = Modifier.padding(start = 4.dp, top = 8.dp),
-                        style = MiuixTheme.textStyles.footnote1,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                    )
+                }
+            }
+
+            item(key = "source") {
+                SettingsSectionCard(title = stringResource(R.string.theme_color_source_title)) {
+                    themeColorSourcesOffered(panoramaHome).forEach { option ->
+                        RadioButtonPreference(
+                            title = stringResource(option.label),
+                            summary = stringResource(
+                                sourceSummary(
+                                    source = option,
+                                    dynamicColorSupported = dynamicColorSupported,
+                                    hasWallpaper = hasWallpaper,
+                                    wallpaperFailed = wallpaperColorTheme.failed,
+                                )
+                            ),
+                            selected = source == option,
+                            enabled = sourceAvailable(option, dynamicColorSupported, hasWallpaper),
+                            radioButtonLocation = RadioButtonLocation.End,
+                            startAction = { SettingsIcon(sourceIcon(option)) },
+                            onClick = {
+                                selectThemeColorSource(option)
+                                systemDynamicStored = prefs.getBoolean(SystemDynamicColorKey, true)
+                            },
+                        )
+                    }
                 }
             }
 
@@ -155,9 +228,9 @@ fun ThemeColorScreen(navigator: DestinationsNavigator) {
                     OverlayDropdownPreference(
                         title = stringResource(R.string.theme_color_style),
                         summary = stringResource(scheme.style.summary),
-                        items = styles.map { stringResource(it.label) },
+                        items = styles.map { it.displayName },
                         selectedIndex = styles.indexOf(scheme.style).coerceAtLeast(0),
-                        startAction = { SettingsIcon(MiuixIcons.Tune) },
+                        startAction = { SettingsIcon(MiuixIcons.GridView) },
                         onSelectedIndexChange = { index -> ThemeColorScheme.setStyle(styles[index]) },
                     )
 
@@ -170,10 +243,73 @@ fun ThemeColorScreen(navigator: DestinationsNavigator) {
                         startAction = { SettingsIcon(MiuixIcons.Theme) },
                         onSelectedIndexChange = { index -> ThemeColorScheme.setSpec(specs[index]) },
                     )
+
+                    // The colour list is a menu like the two above it rather than a wall of
+                    // swatches: the row says which colour is in use, and the list is where the
+                    // other eighteen are. Each row carries the colour itself, because that is the
+                    // only thing that tells them apart.
+                    OverlayDropdownPreference(
+                        entry = themeColorPresetEntry(presetColor) { colorName ->
+                            selectPresetColor(colorName)
+                            presetColor = colorName
+                            systemDynamicStored = prefs.getBoolean(SystemDynamicColorKey, true)
+                        },
+                        title = stringResource(R.string.theme_color_preset_title),
+                        summary = stringResource(R.string.theme_color_preset_summary),
+                        startAction = { SettingsIcon(MiuixIcons.Tune) },
+                        maxHeight = ThemeColorPresetMenuHeight,
+                    )
                 }
             }
         }
     }
+}
+
+/**
+ * Whether a listed source can be picked right now.
+ *
+ * A source that is listed but cannot be used keeps its row and says why, rather than disappearing,
+ * so the reader can see that the choice is there and what it is waiting for. The wallpaper is the
+ * one source that is not listed at all outside the panoramic home, because there is no picture on
+ * screen to take a colour from.
+ */
+private fun sourceAvailable(
+    source: ThemeColorSource,
+    dynamicColorSupported: Boolean,
+    hasWallpaper: Boolean,
+): Boolean = when (source) {
+    ThemeColorSource.System -> dynamicColorSupported
+    ThemeColorSource.Wallpaper -> hasWallpaper
+    ThemeColorSource.Preset -> true
+}
+
+/** What each source does, or why it cannot be picked at all. */
+@StringRes
+private fun sourceSummary(
+    source: ThemeColorSource,
+    dynamicColorSupported: Boolean,
+    hasWallpaper: Boolean,
+    wallpaperFailed: Boolean,
+): Int = when (source) {
+    ThemeColorSource.System -> if (dynamicColorSupported) {
+        R.string.theme_color_source_system_summary
+    } else {
+        R.string.theme_color_source_system_unavailable
+    }
+
+    ThemeColorSource.Wallpaper -> when {
+        !hasWallpaper -> R.string.settings_wallpaper_color_theme_no_wallpaper
+        wallpaperFailed -> R.string.settings_wallpaper_color_theme_failed
+        else -> R.string.theme_color_source_wallpaper_summary
+    }
+
+    ThemeColorSource.Preset -> R.string.theme_color_source_preset_summary
+}
+
+private fun sourceIcon(source: ThemeColorSource): ImageVector = when (source) {
+    ThemeColorSource.System -> MiuixIcons.Photos
+    ThemeColorSource.Wallpaper -> MiuixIcons.Background
+    ThemeColorSource.Preset -> MiuixIcons.Tune
 }
 
 /**
@@ -259,6 +395,47 @@ private fun ThemeColorPreviewCard(
         }
     }
 }
+
+/**
+ * How tall the colour menu is allowed to get before it scrolls. Nineteen colours are more rows than
+ * a popup should be tall, and the list is scrollable anyway.
+ */
+private val ThemeColorPresetMenuHeight = 380.dp
+
+/** The colour dot in the menu: the one thing that tells nineteen colours apart. */
+private val ThemeColorPresetDot = 20.dp
+
+/**
+ * The colours a preset palette can be built from, as a menu.
+ *
+ * Choosing one both fills the palette with it and puts the preset source in charge, because a tap
+ * on a colour is a wish to see it rather than a wish to keep looking at the old one.
+ *
+ * Named the way a value-returning composable is named, so it reads as the list it hands over.
+ */
+@Composable
+private fun themeColorPresetEntry(
+    selectedColor: String,
+    onSelect: (String) -> Unit,
+): DropdownEntry = DropdownEntry(
+    colorsList().map { preset ->
+        DropdownItem(
+            text = stringResource(preset.nameId),
+            selected = preset.name == selectedColor,
+            icon = { cellModifier ->
+                Box(modifier = cellModifier, contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier
+                            .size(ThemeColorPresetDot)
+                            .clip(CircleShape)
+                            .background(Color(presetThemeSeed(preset.name))),
+                    )
+                }
+            },
+            onClick = { onSelect(preset.name) },
+        )
+    },
+)
 
 @Composable
 private fun ThemeColorSwatch(color: Color) {

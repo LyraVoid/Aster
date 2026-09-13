@@ -108,7 +108,6 @@
     <string name="crash_handle_title">Η εφαρμογή κατέρρευσε…</string>
     <string name="crash_handle_copy">Αντιγραφή αρχείου καταγραφής σφαλμάτων</string>
     <string name="su_pkg_excluded_setting_summary">Η ενεργοποίηση αυτής της επιλογής θα επιτρέψει στο APatch να επαναφέρει τυχόν αρχεία που έχουν τροποποιηθεί από τις λειτουργικές μονάδες αυτής της εφαρμογής.</string>
-    <string name="settings_custom_color_theme">Χρώμα θέματος</string>
     <string name="blue_grey_theme">Μπλέ γκρί</string>
     <string name="enable_web_debugging_summary">Μπορεί να χρησιμοποιηθεί για εντοπισμό σφαλμάτων WebUI, Παρακαλώ ενεργοποιήσει μόνο όταν χρειάζεται.</string>
     <string name="hide_apatch_manager_summary">Εγκατάσταση μιας εφαρμογής proxy με τυχαίο αναγνωριστικό πακέτου και προσαρμοσμένη ετικέτα εφαρμογής</string>
@@ -170,8 +169,6 @@
     <string name="kpm_control_ok">Η λειτουργία πέτυχε!</string>
     <string name="kpm_control_failed">Η λειτουργία απέτυχε!</string>
     <string name="settings_night_mode_follow_sys">Ακολουθώντας το σκούρο θέμα συστήματος</string>
-    <string name="settings_use_system_color_theme">Χρωματικό θέμα συστήματος</string>
-    <string name="settings_use_system_color_theme_summary">Χρήση χρωματικού θέματος που δημιουργείται από το σύστημα με βάση την τρέχουσα ταπετσαρία</string>
     <string name="light_green_theme">Ανοιχτό Πράσινο</string>
     <string name="red_theme">Κόκκινο</string>
     <string name="sakura_theme">Σάκουρα</string>

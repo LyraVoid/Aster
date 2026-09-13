@@ -168,9 +168,6 @@
     <string name="kpm_control_failed">작업 실패!</string>
     <string name="settings_night_mode_follow_sys">시스템의 어두운 테마 따르기</string>
     <string name="amber_theme">등색 테마</string>
-    <string name="settings_use_system_color_theme">시스템 색상 테마</string>
-    <string name="settings_use_system_color_theme_summary">시스템이 현재 배경화면으로 생성한 색상 테마 사용</string>
-    <string name="settings_custom_color_theme">색상 테마</string>
     <string name="blue_grey_theme">블루그레이 테마</string>
     <string name="blue_theme">블루 테마</string>
     <string name="about_app_desc">제거된 커널 이미지만 있는 커널 루트 솔루션으로, 시스템 모듈을 마운트하고 커널 기능을 후크하는 기능을 제공합니다.</string>

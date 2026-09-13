@@ -174,9 +174,7 @@
     <string name="purple_theme">パープル</string>
     <string name="save_log">ログを保存</string>
     <string name="home_more_menu_about">APatch について</string>
-    <string name="settings_use_system_color_theme">ダイナミックテーマ</string>
     <string name="settings_night_mode_follow_sys">システムテーマに従う</string>
-    <string name="settings_custom_color_theme">カラーテーマ</string>
     <string name="amber_theme">アンバー</string>
     <string name="blue_grey_theme">ブルーグレー</string>
     <string name="green_theme">グリーン</string>
@@ -194,7 +192,6 @@
     <string name="kpm_control_outMsg">メッセージ</string>
     <string name="kpm_control_failed">操作は失敗しました！</string>
     <string name="settings_night_mode_follow_sys_summary">システム設定を元に自動でダークテーマに切り替える</string>
-    <string name="settings_use_system_color_theme_summary">現在設定している壁紙からシステムによって生成されたカラーテーマを使用する</string>
     <string name="about_app_desc">削除されたカーネルイメージのみを持つカーネルルートソリューションは、システムモジュールをマウントし、カーネル機能をフックする機能を提供します。</string>
     <string name="kpm_control_dialog_content">入力制御変数:</string>
     <string name="apm_action">アクション</string>

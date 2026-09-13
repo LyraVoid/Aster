@@ -162,7 +162,6 @@
     <string name="home_more_menu_feedback_or_suggestion">Zpětná vazba nebo návrhy</string>
     <string name="home_dialog_uninstall_title">Odinstalovat</string>
     <string name="mode_select_page_title">Instalovat</string>
-    <string name="settings_use_system_color_theme">Systémové barevné téma</string>
     <string name="blue_theme">Modré</string>
     <string name="lime_theme">Limetkové</string>
     <string name="sakura_theme">Sakurové</string>
@@ -174,7 +173,6 @@
     <string name="settings_night_mode_follow_sys">Následovat tmavé systémové téma</string>
     <string name="settings_night_mode_follow_sys_summary">Automaticky přepnout na tmavé téma se systémem</string>
     <string name="settings_night_theme_enabled">Povolit tmavé téma</string>
-    <string name="settings_use_system_color_theme_summary">Použít barevné téma generované systémem z aktuální tapety</string>
     <string name="amber_theme">Jantarové</string>
     <string name="blue_grey_theme">Modrošedé</string>
     <string name="brown_theme">Hnědé</string>
@@ -188,7 +186,6 @@
     <string name="orange_theme">Oranžové</string>
     <string name="teal_theme">Modrozelené</string>
     <string name="yellow_theme">Žluté</string>
-    <string name="settings_custom_color_theme">Barevné téma</string>
     <string name="pink_theme">Růžové</string>
     <string name="red_theme">Červené</string>
     <string name="about_app_version">Verze %1$s</string>

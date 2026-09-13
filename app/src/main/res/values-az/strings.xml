@@ -166,9 +166,6 @@
     <string name="settings_night_mode_follow_sys">Sistemin Qaranlıq Temasını izləyin</string>
     <string name="settings_night_mode_follow_sys_summary">Sistem ayarı ilə avtomatik olaraq qaranlıq temaya keçin</string>
     <string name="settings_night_theme_enabled">Qaranlıq Temanı aktiv et</string>
-    <string name="settings_use_system_color_theme">Sistem Rəng Teması</string>
-    <string name="settings_use_system_color_theme_summary">Cari divar kağızı ilə sistem tərəfindən yaradılan rəng temasını istifadə edin</string>
-    <string name="settings_custom_color_theme">Rəng Teması</string>
     <string name="amber_theme">Amber Teması</string>
     <string name="blue_grey_theme">MaviBoz Teması</string>
     <string name="blue_theme">Mavi Teması</string>

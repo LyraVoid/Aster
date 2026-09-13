@@ -160,9 +160,6 @@
     <string name="kpm_control_failed">Operasi gagal!</string>
     <string name="settings_night_mode_follow_sys_summary">Beralih secara otomatis ke tema gelap berdasarkan bawaan sistem</string>
     <string name="settings_night_theme_enabled">Aktifkan tema gelap</string>
-    <string name="settings_use_system_color_theme">Tema warna sistem</string>
-    <string name="settings_use_system_color_theme_summary">Gunakan tema warna yang dihasilkan sistem berdasarkan wallpaper saat ini</string>
-    <string name="settings_custom_color_theme">Warna tema</string>
     <string name="red_theme">Merah</string>
     <string name="sakura_theme">Merah muda sakura</string>
     <string name="teal_theme">Hijau kebiruan</string>

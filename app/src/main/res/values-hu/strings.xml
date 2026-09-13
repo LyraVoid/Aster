@@ -208,7 +208,6 @@
     <string name="search">Keresés</string>
     <string name="search_apps">Alkalmazások keresése</string>
     <string name="search_modules">Modulok keresése</string>
-    <string name="settings_custom_color_theme">Színtéma</string>
     <string name="settings_night_mode_follow_sys">Kövesd a rendszer sötét témáját</string>
     <string name="settings_night_mode_follow_sys_summary">Automatikus váltás sötét témára a rendszerbeállítások alapján</string>
     <string name="settings_night_theme_enabled">Sötét téma engedélyezése</string>
@@ -219,8 +218,6 @@
     <string name="settings_selinux_hide_warning_title">Figyelmeztetés</string>
     <string name="settings_selinux_hide_warning_below_5_10">Ez a funkció csak 5.10-es vagy újabb kernelen lett tesztelve, és alacsonyabb kernelverziókon instabil lehet.</string>
     <string name="settings_selinux_hide_warning_non_gki">A nem GKI kernelek nagyobb kockázatot hordoznak, és rendszerindítási hibát okozhatnak. Győződjön meg róla, hogy az adatai biztonsági mentése megtörtént.</string>
-    <string name="settings_use_system_color_theme">Rendszer színtéma</string>
-    <string name="settings_use_system_color_theme_summary">A rendszer által az aktuális háttérkép alapján generált színtéma használata</string>
     <string name="teal_theme">Kékeszöld</string>
     <string name="warning_of_meta_module_summary">Ez a modul a /system fájlrendszert szeretné csatlakoztatni; a metamodul ezt kezelni fogja. Ellenkező esetben lehet, hogy nem fog működni.</string>
     <string name="warning_of_meta_module_title">Meta modul szükséges</string>

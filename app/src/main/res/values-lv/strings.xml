@@ -201,7 +201,6 @@
     <string name="setting_reset_su_new_path">Jauns pilns ceļš</string>
     <string name="setting_reset_su_path">Atiestatīt su ceļu</string>
     <string name="settings_check_update_summary">Atverot lietotni, automātiski pārbaudīt atjauninājumus</string>
-    <string name="settings_custom_color_theme">Krāsu tēma</string>
     <string name="settings_global_namespace_mode">Globālā nosaukumvietas režīms</string>
     <string name="settings_global_namespace_mode_summary">Visas root sesijas izmanto globālo montēšanas nosaukumvietu</string>
     <string name="settings_night_mode_follow_sys">Sekot sistēmas tumšajai tēmai</string>
@@ -214,8 +213,6 @@
     <string name="settings_selinux_hide_warning_title">Brīdinājums</string>
     <string name="settings_selinux_hide_warning_below_5_10">Šī funkcija ir pārbaudīta tikai kodolā 5.10 un jaunākā, un var būt nestabila vecākās kodola versijās.</string>
     <string name="settings_selinux_hide_warning_non_gki">Ne-GKI kodoli ir saistīti ar lielāku risku un var izraisīt sāknēšanas kļūmi. Pārliecinieties, ka dati ir dublēti.</string>
-    <string name="settings_use_system_color_theme">Sistēmas krāsu tēma</string>
-    <string name="settings_use_system_color_theme_summary">Izmantot sistēmas ģenerētu krāsu tēmu, pamatojoties uz pašreizējo fona attēlu</string>
     <string name="su_hide_system_apps">Slēpt sistēmas lietotnes</string>
     <string name="su_pkg_excluded_setting_summary">Iespējojot šo opciju, APatch varēs atjaunot jebkurus failus, ko modificējuši šīs lietotnes moduļi.</string>
     <string name="su_pkg_excluded_setting_title">Izslēgt modifikācijas</string>

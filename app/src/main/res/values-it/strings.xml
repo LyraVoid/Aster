@@ -169,9 +169,6 @@
     <string name="kpm_control_outMsg">Messaggio</string>
     <string name="kpm_control_failed">Operazione fallita!</string>
     <string name="settings_night_theme_enabled">Abilita il Tema scuro</string>
-    <string name="settings_use_system_color_theme">Colore del Tema di sistema</string>
-    <string name="settings_use_system_color_theme_summary">Usa un colore generato dallo sfondo di sistema attuale</string>
-    <string name="settings_custom_color_theme">Colore</string>
     <string name="amber_theme">Tema ambra</string>
     <string name="blue_grey_theme">Tema grigio blu</string>
     <string name="blue_theme">Tema blu</string>

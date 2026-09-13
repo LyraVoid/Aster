@@ -196,7 +196,6 @@
     <string name="settings_check_update">Tikrinti atnaujinimus</string>
     <string name="settings_check_update_summary">Automatiškai tikrinti atnaujinimus atidarius programą</string>
     <string name="settings_clear_super_key_dialog">Ar tikrai norite tęsti?</string>
-    <string name="settings_custom_color_theme">Spalvų tema</string>
     <string name="settings_global_namespace_mode">Visuotinės vardų srities režimas</string>
     <string name="settings_global_namespace_mode_summary">Visos root sesijos naudoja visuotinę prijungimo vardų sritį</string>
     <string name="settings_night_mode_follow_sys">Sekti sistemos tamsiąją temą</string>
@@ -209,8 +208,6 @@
     <string name="settings_selinux_hide_warning_title">Įspėjimas</string>
     <string name="settings_selinux_hide_warning_below_5_10">Ši funkcija išbandyta tik su 5.10 ir naujesniais branduoliais ir gali būti nestabili senesnėse branduolio versijose.</string>
     <string name="settings_selinux_hide_warning_non_gki">Ne GKI branduoliai kelia didesnę riziką ir gali sukelti įkrovos gedimą. Įsitikinkite, kad jūsų duomenys atsarginti.</string>
-    <string name="settings_use_system_color_theme">Sistemos spalvų tema</string>
-    <string name="settings_use_system_color_theme_summary">Naudoti sistemos sukurtą spalvų temą pagal dabartinę užsklandą</string>
     <string name="su_hide_system_apps">Slėpti sistemos programas</string>
     <string name="su_pkg_excluded_label">Neįtraukti</string>
     <string name="su_pkg_excluded_setting_summary">Įjungus šią parinktį APatch galės atkurti visus šios programos modulių pakeistus failus.</string>

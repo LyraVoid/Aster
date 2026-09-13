@@ -196,7 +196,6 @@
     <string name="settings_check_update">Priksa pembaruan</string>
     <string name="settings_check_update_summary">Kanthi otomatis mriksa pembaruan nalika mbukak aplikasi</string>
     <string name="settings_clear_super_key_dialog">Apa sampeyan pancen pengin nerusake?</string>
-    <string name="settings_custom_color_theme">Tema werna</string>
     <string name="settings_global_namespace_mode">Mode namespace global</string>
     <string name="settings_global_namespace_mode_summary">Kabeh sesi root nggunakake namespace mount global</string>
     <string name="settings_night_mode_follow_sys">Tindakake tema peteng sistem</string>
@@ -209,8 +208,6 @@
     <string name="settings_selinux_hide_warning_title">Pènget</string>
     <string name="settings_selinux_hide_warning_below_5_10">Fitur iki mung dites ing kernel 5.10 lan luwih dhuwur lan bisa uga ora stabil ing versi kernel sing luwih cilik.</string>
     <string name="settings_selinux_hide_warning_non_gki">Kernel non-GKI duwe risiko luwih gedhe lan bisa nyebabake boot gagal. Manawa data sampeyan wis digaring.</string>
-    <string name="settings_use_system_color_theme">Tema werna sistem</string>
-    <string name="settings_use_system_color_theme_summary">Gunakake tema werna sing digawe dening sistem adhedhasar wallpaper saiki</string>
     <string name="su_hide_system_apps">Ndhelikake aplikasi sistem</string>
     <string name="su_pkg_excluded_label">Ora kalebu</string>
     <string name="su_pkg_excluded_setting_summary">Ngaktifake opsi iki bakal ngidini APatch mbalekake file apa wae sing diowahi dening modul aplikasi iki.</string>

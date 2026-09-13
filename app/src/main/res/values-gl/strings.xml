@@ -196,7 +196,6 @@
     <string name="settings_check_update">Comprobar actualizacións</string>
     <string name="settings_check_update_summary">Comproba automaticamente se hai actualizacións ao abrir a aplicación</string>
     <string name="settings_clear_super_key_dialog">Seguro que queres continuar?</string>
-    <string name="settings_custom_color_theme">Tema de cor</string>
     <string name="settings_global_namespace_mode">Modo de espazo de nomes global</string>
     <string name="settings_global_namespace_mode_summary">Todas as sesións de root usan o espazo de nomes de montaxe global</string>
     <string name="settings_night_mode_follow_sys">Seguir o tema escuro do sistema</string>
@@ -209,8 +208,6 @@
     <string name="settings_selinux_hide_warning_title">Aviso</string>
     <string name="settings_selinux_hide_warning_below_5_10">Esta función só foi probada en núcleos 5.10 e superiores e pode ser inestable en versións inferiores.</string>
     <string name="settings_selinux_hide_warning_non_gki">Os núcleos non GKI presentan un maior risco e poden provocar fallos de arranque. Asegúrate de ter unha copia de seguridade dos teus datos.</string>
-    <string name="settings_use_system_color_theme">Tema de cor do sistema</string>
-    <string name="settings_use_system_color_theme_summary">Usar un tema de cor xerado polo sistema a partir do fondo de pantalla actual</string>
     <string name="su_hide_system_apps">Ocultar as aplicacións do sistema</string>
     <string name="su_pkg_excluded_label">Excluír</string>
     <string name="su_pkg_excluded_setting_summary">Activar esta opción permitirá que APatch restaure os ficheiros modificados polos módulos desta aplicación.</string>

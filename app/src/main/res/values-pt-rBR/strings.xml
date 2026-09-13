@@ -160,9 +160,6 @@
     <string name="home_kpatch_version">Versão do KernelPatch</string>
     <string name="home_dialog_uninstall_title">Desinstalar</string>
     <string name="settings_night_theme_enabled">Ativar tema escuro</string>
-    <string name="settings_use_system_color_theme">Tema de cores do sistema</string>
-    <string name="settings_use_system_color_theme_summary">Use um tema de cores gerado pelo sistema com base no plano de fundo atual</string>
-    <string name="settings_custom_color_theme">Tema de cores</string>
     <string name="green_theme">Verde</string>
     <string name="deep_orange_theme">Laranja profundo</string>
     <string name="lime_theme">Verde-limão</string>

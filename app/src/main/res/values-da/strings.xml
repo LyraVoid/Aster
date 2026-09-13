@@ -196,7 +196,6 @@
     <string name="search_modules">Søg moduler</string>
     <string name="setting_reset_su_new_path">Ny fuld sti</string>
     <string name="setting_reset_su_path">Nulstil su-sti</string>
-    <string name="settings_custom_color_theme">Farvetema</string>
     <string name="settings_global_namespace_mode">Global navnerum-tilstand</string>
     <string name="settings_global_namespace_mode_summary">Alle root-sessioner bruger det globale mount-navnerum</string>
     <string name="settings_night_mode_follow_sys">Følg systemets mørke tema</string>
@@ -209,8 +208,6 @@
     <string name="settings_selinux_hide_warning_title">Advarsel</string>
     <string name="settings_selinux_hide_warning_below_5_10">Denne funktion er kun testet på kerne 5.10 og nyere og kan være ustabil på ældre versioner.</string>
     <string name="settings_selinux_hide_warning_non_gki">Ikke-GKI-kerner udgør en større risiko og kan forårsage opstartsfejl. Sørg for, at dine data er sikkerhedskopieret.</string>
-    <string name="settings_use_system_color_theme">Systemets farvetema</string>
-    <string name="settings_use_system_color_theme_summary">Brug et farvetema genereret af systemet baseret på den aktuelle tapet</string>
     <string name="su_hide_system_apps">Skjul systemapps</string>
     <string name="su_pkg_excluded_label">Udeluk</string>
     <string name="su_pkg_excluded_setting_summary">Aktivering af denne indstilling giver APatch mulighed for at gendanne filer, der er ændret af denne apps moduler.</string>

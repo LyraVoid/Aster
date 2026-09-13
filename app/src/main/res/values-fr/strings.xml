@@ -174,15 +174,12 @@
     <string name="about_app_desc">Solution Root noyau avec seulement une image de noyau dépouillée, offrant la possibilité de monter un module système et de hook une fonction du noyau.</string>
     <string name="kpm_control_ok">Opération réussie !</string>
     <string name="settings_night_theme_enabled">Activer le thème sombre</string>
-    <string name="settings_use_system_color_theme">Thème de couleur du système</string>
     <string name="about_app_version">Version %1$s</string>
     <string name="kpm_control_dialog_content">"Paramètres de contrôle d\'entrée :"</string>
-    <string name="settings_custom_color_theme">Thème de couleur</string>
     <string name="light_blue_theme">Thème bleu clair</string>
     <string name="kpm_control_dialog_title">Contrôler le KPModule</string>
     <string name="kpm_control_outMsg">Message</string>
     <string name="kpm_control_failed">Opération échouée !</string>
-    <string name="settings_use_system_color_theme_summary">"Utiliser un thème de couleur généré par le système avec le fond d\'écran actuel"</string>
     <string name="blue_theme">Thème bleu</string>
     <string name="deep_orange_theme">Thème orange foncé</string>
     <string name="deep_purple_theme">Thème violet foncé</string>

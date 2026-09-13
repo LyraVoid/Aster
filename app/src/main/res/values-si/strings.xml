@@ -121,8 +121,6 @@
     <string name="home_kpatch_version">KernelPatch අනුවාදය</string>
     <string name="kpm_embed">කාවද්දන්න</string>
     <string name="su_selinux_via_hook">Hook වලින් බයිපාස්</string>
-    <string name="settings_use_system_color_theme">සිස්ටම් පාටපාට Theme</string>
-    <string name="settings_custom_color_theme">පාට Theme</string>
     <string name="deep_orange_theme">Deep Orange Theme</string>
     <string name="light_green_theme">ලා කොළ Theme</string>
     <string name="lime_theme">Lime Theme</string>
@@ -162,7 +160,6 @@
     <string name="kpm_control_dialog_content">ඉන්පුට් control parameters:</string>
     <string name="kpm_control_ok">වැඩේ ගොඩ ලොක්කා!</string>
     <string name="kpm_control_failed">වැඩේ කෙලවුනා!</string>
-    <string name="settings_use_system_color_theme_summary">Wallpaper එකත් එක්කම වෙනස් වෙන පද්ධති පාටක් ගන්න</string>
     <string name="amber_theme">ඇම්බර් තේමාව</string>
     <string name="blue_grey_theme">BlueGrey Theme</string>
     <string name="blue_theme">නිල් Theme</string>

@@ -163,11 +163,9 @@
     <string name="kpm_control_outMsg">Mesaj</string>
     <string name="kpm_control_failed">İşlem başarısız!</string>
     <string name="settings_night_theme_enabled">Koyu temayı etkinleştir</string>
-    <string name="settings_custom_color_theme">Renk teması</string>
     <string name="light_blue_theme">Açık mavi</string>
     <string name="kpm_control_paramters">Parametreler</string>
     <string name="kpm_control_ok">İşlem başarılı!</string>
-    <string name="settings_use_system_color_theme">Sistem Renk Teması</string>
     <string name="blue_theme">Mavi</string>
     <string name="brown_theme">Kahverengi</string>
     <string name="cyan_theme">Camgöbeği</string>
@@ -192,7 +190,6 @@
     <string name="kpm_control_dialog_content">Giriş denetim parametreleri:</string>
     <string name="settings_night_mode_follow_sys">Sistemin koyu temasını kullan</string>
     <string name="settings_night_mode_follow_sys_summary">Sistem ayarına göre otomatik olarak koyu temaya geç</string>
-    <string name="settings_use_system_color_theme_summary">Geçerli duvar kağıdı ile sistem tarafından oluşturulan bir renk teması kullanın</string>
     <string name="amber_theme">Kehribar</string>
     <string name="blue_grey_theme">Mavi gri</string>
     <string name="green_theme">&quot;Yeşil &quot;</string>

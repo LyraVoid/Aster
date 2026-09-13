@@ -20,6 +20,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.MutableLiveData
 import me.bmax.apatch.APApplication
+import me.bmax.apatch.ui.shell.GlobalLayout
+import me.bmax.apatch.ui.shell.rememberGlobalLayout
 import me.bmax.apatch.ui.webui.MonetColorsProvider
 import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -94,12 +96,14 @@ fun APatchTheme(
     var dynamicColor by remember {
         mutableStateOf(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) prefs.getBoolean(
-                "use_system_color_theme",
+                SystemDynamicColorKey,
                 true
             ) else false
         )
     }
-    var customColorScheme by remember { mutableStateOf(prefs.getString("custom_color", "blue")) }
+    var customColorScheme by remember {
+        mutableStateOf(prefs.getString(PresetColorKey, DefaultPresetColor))
+    }
     // Highest priority of the three: it is the most specific choice the user can make, and the
     // system colour and the preset list below are left untouched so switching it off restores
     // whatever they had.
@@ -107,16 +111,20 @@ fun APatchTheme(
     val useWallpaperColor = wallpaperColorTheme.enabled
     val wallpaperColorSeed = wallpaperColorTheme.seed
     val themeColorScheme = rememberThemeColorSchemeState()
+    // The Home wallpaper is the picture behind the panoramic scene, so it is only in effect while
+    // that scene is the home in use. Switching layouts is read here rather than ignored, so the
+    // palette the reader sees in the settings is the palette the app is painted with.
+    val panoramaHome = rememberGlobalLayout().value == GlobalLayout.Panorama
 
     val refreshThemeObserver by refreshTheme.observeAsState(false)
     if (refreshThemeObserver == true) {
         darkThemeFollowSys = prefs.getBoolean("night_mode_follow_sys", true)
         nightModeEnabled = prefs.getBoolean("night_mode_enabled", false)
         dynamicColor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) prefs.getBoolean(
-            "use_system_color_theme",
+            SystemDynamicColorKey,
             true
         ) else false
-        customColorScheme = prefs.getString("custom_color", "blue")
+        customColorScheme = prefs.getString(PresetColorKey, DefaultPresetColor)
         refreshTheme.postValue(false)
     }
 
@@ -142,6 +150,7 @@ fun APatchTheme(
     val paletteChosen = !themeColorScheme.isDefaultPalette()
     val systemColorSeed = rememberSystemPaletteSeed(enabled = dynamicColor && paletteChosen)
     val themeColorChoice = resolveThemeColorChoice(
+        panoramaHome = panoramaHome,
         wallpaperEnabled = useWallpaperColor,
         wallpaperSeed = wallpaperColorSeed,
         systemDynamicEnabled = dynamicColor,

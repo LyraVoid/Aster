@@ -175,7 +175,6 @@
     <string name="kpm_control_ok">عملیات موفق بود!</string>
     <string name="kpm_control_failed">عملیات ناموفق بود!</string>
     <string name="settings_night_theme_enabled">فعالسازی تم تاریک</string>
-    <string name="settings_custom_color_theme">تم رنگی</string>
     <string name="amber_theme">کهربایی</string>
     <string name="blue_grey_theme">آبی-خاکستری</string>
     <string name="brown_theme">قهوه ای</string>
@@ -193,10 +192,8 @@
     <string name="blue_theme">آبی</string>
     <string name="setting_reset_su_new_path">مسیر کامل جدید</string>
     <string name="kpm_control_outMsg">پیام</string>
-    <string name="settings_use_system_color_theme">تم رنگی سیستم</string>
     <string name="kpm_control_dialog_title">کنترل KPModule</string>
     <string name="settings_night_mode_follow_sys_summary">جابجایی خودکار به تم تاریک بر اساس تنظیمات سیستم</string>
-    <string name="settings_use_system_color_theme_summary">استفاده از تم رنگی تولید شده بر اساس تصویر زمینه فعلی سیستم</string>
     <string name="about_app_desc">راه حل روت کرنل فقط با یک ایمیج جدا از کرنل،قابلیت نصب ماژول سیستم و قلاب کردن توابع کرنل را ارئه می دهد.</string>
     <string name="about_powered_by">قدرت گرفته از %1$s</string>
     <string name="about_github" translatable="false">GitHub</string>

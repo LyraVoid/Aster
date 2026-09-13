@@ -15,15 +15,11 @@ class SettingsAvailabilityTest {
                 webViewDebugging = false,
                 resetSuPath = false,
                 nightTheme = false,
-                customColor = false,
             ),
             resolveSettingsFeatureAvailability(
                 kPatchReady = false,
                 aPatchReady = false,
-                dynamicColorSupported = true,
                 nightFollowSystem = true,
-                useSystemDynamicColor = true,
-            useWallpaperColor = false,
             ),
         )
     }
@@ -33,10 +29,7 @@ class SettingsAvailabilityTest {
         val result = resolveSettingsFeatureAvailability(
             kPatchReady = true,
             aPatchReady = false,
-            dynamicColorSupported = true,
             nightFollowSystem = true,
-            useSystemDynamicColor = true,
-            useWallpaperColor = false,
         )
 
         assertEquals(false, result.globalNamespace)
@@ -51,10 +44,7 @@ class SettingsAvailabilityTest {
         val result = resolveSettingsFeatureAvailability(
             kPatchReady = false,
             aPatchReady = true,
-            dynamicColorSupported = true,
             nightFollowSystem = true,
-            useSystemDynamicColor = true,
-            useWallpaperColor = false,
         )
 
         assertEquals(true, result.webViewDebugging)
@@ -66,10 +56,7 @@ class SettingsAvailabilityTest {
         val result = resolveSettingsFeatureAvailability(
             kPatchReady = true,
             aPatchReady = true,
-            dynamicColorSupported = true,
             nightFollowSystem = true,
-            useSystemDynamicColor = true,
-            useWallpaperColor = false,
         )
 
         assertEquals(true, result.globalNamespace)
@@ -79,61 +66,4 @@ class SettingsAvailabilityTest {
         assertEquals(true, result.resetSuPath)
     }
 
-    @Test
-    fun manualNightModeAndUnsupportedDynamicColorShowThemeChoices() {
-        val result = resolveSettingsFeatureAvailability(
-            kPatchReady = true,
-            aPatchReady = true,
-            dynamicColorSupported = false,
-            nightFollowSystem = false,
-            useSystemDynamicColor = true,
-            useWallpaperColor = false,
-        )
-
-        assertEquals(true, result.nightTheme)
-        assertEquals(true, result.customColor)
-    }
-
-    @Test
-    fun systemNightModeAndDynamicColorHideRedundantChoices() {
-        val result = resolveSettingsFeatureAvailability(
-            kPatchReady = true,
-            aPatchReady = true,
-            dynamicColorSupported = true,
-            nightFollowSystem = true,
-            useSystemDynamicColor = true,
-            useWallpaperColor = false,
-        )
-
-        assertEquals(false, result.nightTheme)
-        assertEquals(false, result.customColor)
-    }
-
-    @Test
-    fun wallpaperColoursTakeThePresetListAway() {
-        val result = resolveSettingsFeatureAvailability(
-            kPatchReady = true,
-            aPatchReady = true,
-            dynamicColorSupported = false,
-            nightFollowSystem = true,
-            useSystemDynamicColor = false,
-            useWallpaperColor = true,
-        )
-
-        assertEquals(false, result.customColor)
-    }
-
-    @Test
-    fun switchingWallpaperColoursOffBringsThePresetListBack() {
-        val result = resolveSettingsFeatureAvailability(
-            kPatchReady = true,
-            aPatchReady = true,
-            dynamicColorSupported = true,
-            nightFollowSystem = true,
-            useSystemDynamicColor = false,
-            useWallpaperColor = false,
-        )
-
-        assertEquals(true, result.customColor)
-    }
 }

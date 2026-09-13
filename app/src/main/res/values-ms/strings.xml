@@ -199,7 +199,6 @@
     <string name="search_modules">Cari modul</string>
     <string name="setting_reset_su_new_path">Laluan penuh baharu</string>
     <string name="setting_reset_su_path">Tetapkan semula laluan su</string>
-    <string name="settings_custom_color_theme">Tema warna</string>
     <string name="settings_global_namespace_mode_summary">Semua sesi root menggunakan ruang nama pemasangan global</string>
     <string name="settings_night_mode_follow_sys">Ikuti tema gelap sistem</string>
     <string name="settings_night_mode_follow_sys_summary">Tukar ke tema gelap secara automatik berdasarkan tetapan sistem</string>
@@ -211,8 +210,6 @@
     <string name="settings_selinux_hide_warning_title">Amaran</string>
     <string name="settings_selinux_hide_warning_below_5_10">Ciri ini hanya diuji pada kernel 5.10 dan ke atas dan mungkin tidak stabil pada versi kernel yang lebih rendah.</string>
     <string name="settings_selinux_hide_warning_non_gki">Kernel bukan GKI membawa risiko yang lebih tinggi dan boleh menyebabkan kegagalan but. Pastikan data anda telah disandarkan.</string>
-    <string name="settings_use_system_color_theme">Tema warna sistem</string>
-    <string name="settings_use_system_color_theme_summary">Gunakan tema warna yang dijana oleh sistem berdasarkan kertas dinding semasa</string>
     <string name="su_hide_system_apps">Sembunyikan apl sistem</string>
     <string name="su_pkg_excluded_label">Kecualikan</string>
     <string name="su_pkg_excluded_setting_summary">Mendayakan pilihan ini akan membenarkan APatch memulihkan sebarang fail yang diubah suai oleh modul apl ini.</string>

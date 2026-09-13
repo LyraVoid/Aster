@@ -37,7 +37,6 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import me.bmax.apatch.ui.home.HomeViewModel
-import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
 import me.bmax.apatch.ui.home.HomeUpdateState
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.Modifier
@@ -69,10 +68,12 @@ import me.bmax.apatch.ui.shell.rememberGlobalLayout
 import me.bmax.apatch.ui.shell.rememberNavigationMode
 import me.bmax.apatch.ui.shell.setGlobalLayout
 import me.bmax.apatch.ui.shell.setNavigationMode
-import me.bmax.apatch.ui.theme.WallpaperColorTheme
+import me.bmax.apatch.ui.theme.displayName
 import me.bmax.apatch.ui.theme.label
 import me.bmax.apatch.ui.theme.refreshTheme
+import me.bmax.apatch.ui.theme.SystemDynamicColorKey
 import me.bmax.apatch.ui.theme.rememberThemeColorSchemeState
+import me.bmax.apatch.ui.theme.themeColorSourceOf
 import me.bmax.apatch.ui.theme.rememberWallpaperColorThemeState
 import me.bmax.apatch.util.getBugreportFile
 import me.bmax.apatch.util.getKernelVersionCode
@@ -94,7 +95,6 @@ import top.yukonga.miuix.kmp.icon.extended.Hide
 import top.yukonga.miuix.kmp.icon.extended.Layers
 import top.yukonga.miuix.kmp.icon.extended.Lock
 import top.yukonga.miuix.kmp.icon.extended.More
-import top.yukonga.miuix.kmp.icon.extended.Photos
 import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.icon.extended.Report
 import top.yukonga.miuix.kmp.icon.extended.ScreenMirroring
@@ -103,7 +103,6 @@ import top.yukonga.miuix.kmp.icon.extended.Sidebar
 import top.yukonga.miuix.kmp.icon.extended.Theme
 import top.yukonga.miuix.kmp.icon.extended.Timer
 import top.yukonga.miuix.kmp.icon.extended.Translate
-import top.yukonga.miuix.kmp.icon.extended.Tune
 import top.yukonga.miuix.kmp.icon.extended.Update
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
@@ -211,24 +210,10 @@ fun SettingScreen(navigator: DestinationsNavigator) {
     var nightThemeEnabled by rememberSaveable {
         mutableStateOf(prefs.getBoolean("night_mode_enabled", false))
     }
-    var useSystemDynamicColor by rememberSaveable {
-        mutableStateOf(prefs.getBoolean("use_system_color_theme", true))
-    }
-    var customColor by rememberSaveable {
-        mutableStateOf(prefs.getString("custom_color", "blue") ?: "blue")
-    }
+    // Only the source of the colour is shown here; the colour itself, and how it is spread over
+    // the scheme, are picked on the page this row opens.
     val wallpaperColorTheme = rememberWallpaperColorThemeState()
-    val useWallpaperColor = wallpaperColorTheme.enabled
     val themeColorScheme = rememberThemeColorSchemeState()
-    val wallpaperViewModel = LocalHomeWallpaperViewModel.current
-    val wallpaperState = if (wallpaperViewModel == null) {
-        null
-    } else {
-        wallpaperViewModel.uiState.collectAsStateWithLifecycle().value
-    }
-    // The colours are derived from the Home wallpaper, so the switch only makes sense once there
-    // is one to derive them from.
-    val hasWallpaper = wallpaperState?.hasImage == true
 
     val navigationMode by rememberNavigationMode()
     val globalLayout by rememberGlobalLayout()
@@ -236,7 +221,6 @@ fun SettingScreen(navigator: DestinationsNavigator) {
     var showNavigationModeDialog by rememberSaveable { mutableStateOf(false) }
     var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
     var showResetSuPathDialog by rememberSaveable { mutableStateOf(false) }
-    var showThemeChooseDialog by rememberSaveable { mutableStateOf(false) }
     var showLogBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showSelinuxHideWarning by rememberSaveable { mutableStateOf(false) }
 
@@ -267,11 +251,16 @@ fun SettingScreen(navigator: DestinationsNavigator) {
     val availability = resolveSettingsFeatureAvailability(
         kPatchReady = kPatchReady,
         aPatchReady = aPatchReady,
-        dynamicColorSupported = dynamicColorSupported,
         nightFollowSystem = nightFollowSystem,
-        useSystemDynamicColor = useSystemDynamicColor,
-        useWallpaperColor = useWallpaperColor,
     )
+    // The wallpaper is only a source while the panoramic home is the one in use, so the row says
+    // whichever source is really in charge after that is taken into account.
+    val colorSource = themeColorSourceOf(
+        panoramaHome = globalLayout == GlobalLayout.Panorama,
+        wallpaperEnabled = wallpaperColorTheme.enabled,
+        systemDynamicEnabled = prefs.getBoolean(SystemDynamicColorKey, true),
+        dynamicColorSupported = dynamicColorSupported,
+    ).label
     val languageSummary = AppCompatDelegate.getApplicationLocales()[0]?.displayLanguage
         ?.replaceFirstChar {
             if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
@@ -550,64 +539,14 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                         )
                     }
 
-                    SwitchPreference(
-                        checked = useWallpaperColor,
-                        onCheckedChange = { WallpaperColorTheme.setEnabled(it) },
-                        title = stringResource(R.string.settings_wallpaper_color_theme),
-                        summary = stringResource(
-                            when {
-                                !hasWallpaper -> R.string.settings_wallpaper_color_theme_no_wallpaper
-                                // Worth saying out loud: the fallback theme is in charge instead.
-                                wallpaperColorTheme.failed ->
-                                    R.string.settings_wallpaper_color_theme_failed
-
-                                else -> R.string.settings_wallpaper_color_theme_summary
-                            }
-                        ),
-                        enabled = hasWallpaper,
-                        startAction = {
-                            SettingsIcon(MiuixIcons.Theme)
-                        },
-                    )
-
-                    // The wallpaper colours outrank the system colour, so the rows it overrides
-                    // step aside instead of claiming to be in charge.
-                    if (dynamicColorSupported && !useWallpaperColor) {
-                        SwitchPreference(
-                            checked = useSystemDynamicColor,
-                            onCheckedChange = { enabled ->
-                                prefs.edit {
-                                    putBoolean("use_system_color_theme", enabled)
-                                }
-                                useSystemDynamicColor = enabled
-                                refreshTheme.value = true
-                            },
-                            title = stringResource(R.string.settings_use_system_color_theme),
-                            summary = stringResource(R.string.settings_use_system_color_theme_summary),
-                            startAction = {
-                                SettingsIcon(MiuixIcons.Photos)
-                            },
-                        )
-                    }
-
-                    if (availability.customColor) {
-                        ArrowPreference(
-                            title = stringResource(R.string.settings_custom_color_theme),
-                            summary = stringResource(colorNameToString(customColor)),
-                            startAction = {
-                                    SettingsIcon(MiuixIcons.Tune)
-                            },
-                            onClick = { showThemeChooseDialog = true },
-                        )
-                    }
-
-                    // How that colour is spread over the scheme is a separate choice, and it
-                    // outlives all three sources above: it is still in force if the reader stops
-                    // using dynamic colour entirely.
+                    // Where the colour comes from, how it is spread over the scheme and which
+                    // spec it is built to are one decision, so they are read on one page. The row
+                    // says the two that describe the palette; the spec is left to the page, which
+                    // is also where it is said when the one picked has no form of its own.
                     ArrowPreference(
                         title = stringResource(R.string.theme_color_title),
-                        summary = stringResource(themeColorScheme.style.label) +
-                            " · " + stringResource(themeColorScheme.spec.label),
+                        summary = stringResource(colorSource) +
+                            " · " + themeColorScheme.style.displayName,
                         startAction = {
                             SettingsIcon(MiuixIcons.Layers)
                         },
@@ -704,18 +643,6 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 )
             }
         }
-
-        ThemeChooseDialog(
-            show = showThemeChooseDialog,
-            selectedColor = customColor,
-            onDismiss = { showThemeChooseDialog = false },
-            onSelect = { color ->
-                prefs.edit { putString("custom_color", color) }
-                customColor = color
-                refreshTheme.value = true
-                showThemeChooseDialog = false
-            },
-        )
 
         LanguageDialog(
             show = showLanguageDialog,

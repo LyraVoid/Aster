@@ -146,7 +146,6 @@
     <string name="patch_item_skey">SuperKey</string>
     <string name="home_more_menu_feedback_or_suggestion">Povratne informacije ili prijedlozi</string>
     <string name="settings_night_theme_enabled">Uključi tamni prikaz</string>
-    <string name="settings_custom_color_theme">Boje prikaza</string>
     <string name="blue_grey_theme">Plavo-siva</string>
     <string name="blue_theme">Plava</string>
     <string name="orange_theme">Narančasta</string>
@@ -173,8 +172,6 @@
     <string name="kpm_control_dialog_content">Parametri kontrola unosa:</string>
     <string name="kpm_control_failed">Operacija neuspješna!</string>
     <string name="settings_night_mode_follow_sys">Prati tamni prikaz sistema</string>
-    <string name="settings_use_system_color_theme">Boje prikaza sistema</string>
-    <string name="settings_use_system_color_theme_summary">Koristi boje prikaza koje je sistem generirao bazirano na trenutačnoj pozadini.</string>
     <string name="amber_theme">Jantar</string>
     <string name="brown_theme">Smeđa</string>
     <string name="deep_orange_theme">Tamno narančasta</string>

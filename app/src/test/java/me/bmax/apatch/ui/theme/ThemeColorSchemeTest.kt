@@ -14,12 +14,14 @@ class ThemeColorSchemeTest {
     private val wallpaperSeed = 0xFF654321.toInt()
 
     private fun choiceOf(
+        panoramaHome: Boolean = true,
         wallpaperEnabled: Boolean = false,
         wallpaperSeed: Int = 0,
         systemDynamicEnabled: Boolean = false,
         systemSeed: Int? = null,
         paletteChosen: Boolean = false,
     ) = resolveThemeColorChoice(
+        panoramaHome = panoramaHome,
         wallpaperEnabled = wallpaperEnabled,
         wallpaperSeed = wallpaperSeed,
         systemDynamicEnabled = systemDynamicEnabled,
@@ -110,6 +112,22 @@ class ThemeColorSchemeTest {
     }
 
     @Test
+    fun aWallpaperTheAppIsNotShowingIsNotASource() {
+        // Turning the panoramic home off leaves the picture behind it unshown, so its colour stops
+        // being what the app is painted from — the switch it was turned on with is not forgotten.
+        val choice = choiceOf(
+            panoramaHome = false,
+            wallpaperEnabled = true,
+            wallpaperSeed = wallpaperSeed,
+            systemDynamicEnabled = true,
+            systemSeed = systemSeed,
+            paletteChosen = true,
+        )
+        assertEquals(ThemeColorSource.System, choice.source)
+        assertEquals(systemSeed, choice.seed)
+    }
+
+    @Test
     fun aWallpaperWithoutAColourLeavesTheSystemPaletteInCharge() {
         val choice = choiceOf(
             wallpaperEnabled = true,
@@ -157,7 +175,7 @@ class ThemeColorSchemeTest {
 
     @Test
     fun everyStyleAndSpecIsNamedAndExplainedApart() {
-        val styleLabels = ThemePaletteStyle.entries.map { it.label }
+        val styleLabels = ThemePaletteStyle.entries.map { it.displayName }
         val styleSummaries = ThemePaletteStyle.entries.map { it.summary }
         assertEquals(ThemePaletteStyle.entries.size, styleLabels.toSet().size)
         assertEquals(ThemePaletteStyle.entries.size, styleSummaries.toSet().size)

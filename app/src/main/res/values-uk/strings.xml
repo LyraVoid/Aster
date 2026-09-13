@@ -164,8 +164,6 @@
     <string name="kpm_control_ok">Операцію виконано успішно!</string>
     <string name="kpm_control_failed">Операцію не виконано!</string>
     <string name="settings_night_mode_follow_sys_summary">Автоматично переключатися на темну тему залежно від налаштувань системи</string>
-    <string name="settings_use_system_color_theme_summary">Використовуйте колірну тему, згенеровану системою на основі поточних шпалер</string>
-    <string name="settings_custom_color_theme">Кольорова тема</string>
     <string name="blue_grey_theme">Синій сірий</string>
     <string name="green_theme">Зелена</string>
     <string name="brown_theme">Коричневий</string>
@@ -178,7 +176,6 @@
     <string name="yellow_theme">Жовта</string>
     <string name="orange_theme">Оранжева</string>
     <string name="about_telegram_channel">Телеграм канал</string>
-    <string name="settings_use_system_color_theme">Системна кольорова тема</string>
     <string name="amber_theme">Бурштин</string>
     <string name="blue_theme">Синій</string>
     <string name="cyan_theme">Блакитна</string>

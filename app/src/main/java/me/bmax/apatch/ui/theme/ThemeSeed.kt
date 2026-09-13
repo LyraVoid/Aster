@@ -17,6 +17,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.edit
+import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
 import org.json.JSONObject
 import top.yukonga.miuix.kmp.theme.ThemePaletteStyle
@@ -47,6 +49,113 @@ internal val ThemeColorSource.label: Int
     }
 
 /**
+ * The preference that decides whether the platform palette is used at all. Read by the theme and by
+ * the screen that offers the choice, so it lives here rather than in either of them.
+ */
+internal const val SystemDynamicColorKey = "use_system_color_theme"
+
+/** The preset colour the palette is built from when neither of the other sources is in charge. */
+internal const val PresetColorKey = "custom_color"
+
+/** The colour a preset name falls back to, so an unknown name is never a broken theme. */
+internal const val DefaultPresetColor = "blue"
+
+/**
+ * The sources in the order they are offered: what follows the phone first, the colour of the
+ * reader's own last, because it is the only one that needs a further choice underneath it.
+ */
+internal val themeColorSourceOrder: List<ThemeColorSource> = listOf(
+    ThemeColorSource.System,
+    ThemeColorSource.Wallpaper,
+    ThemeColorSource.Preset,
+)
+
+/**
+ * The sources the reader can be offered right now.
+ *
+ * The Home wallpaper only exists on the panoramic Home, which is the one that has a scene to put a
+ * picture behind; everywhere else there is nothing to take a colour from, so the source is left
+ * out rather than offered as a choice that cannot be made.
+ */
+internal fun themeColorSourcesOffered(panoramaHome: Boolean): List<ThemeColorSource> =
+    themeColorSourceOrder.filter { it != ThemeColorSource.Wallpaper || panoramaHome }
+
+/**
+ * Which source the stored preferences add up to.
+ *
+ * This reads the *choice* rather than the colour that came of it: a wallpaper whose colour has not
+ * been read yet is still the source the reader picked, and the page must not fall back to another
+ * one while the picture is being read.
+ *
+ * A wallpaper the app is not showing is not a source either, however its switch is left: a
+ * preference for a picture that is nowhere on screen describes nothing.
+ */
+internal fun themeColorSourceOf(
+    panoramaHome: Boolean,
+    wallpaperEnabled: Boolean,
+    systemDynamicEnabled: Boolean,
+    dynamicColorSupported: Boolean,
+): ThemeColorSource = when {
+    panoramaHome && wallpaperEnabled -> ThemeColorSource.Wallpaper
+    systemDynamicEnabled && dynamicColorSupported -> ThemeColorSource.System
+    else -> ThemeColorSource.Preset
+}
+
+/** What a source asks of the two preferences underneath it. */
+@Immutable
+internal data class ThemeColorSourceSwitches(
+    val wallpaper: Boolean,
+    val system: Boolean,
+)
+
+/**
+ * The preferences a source writes.
+ *
+ * The wallpaper does not replace the system palette, it outranks it, so that preference is left
+ * where it was and going back to the system palette finds the choice that was already made. What
+ * the phone can offer is not judged here: a source that cannot be used is not offered at all.
+ */
+internal fun themeColorSourceSwitches(
+    source: ThemeColorSource,
+    systemDynamicEnabled: Boolean,
+): ThemeColorSourceSwitches = when (source) {
+    ThemeColorSource.System -> ThemeColorSourceSwitches(wallpaper = false, system = true)
+    ThemeColorSource.Wallpaper -> ThemeColorSourceSwitches(
+        wallpaper = true,
+        system = systemDynamicEnabled,
+    )
+
+    ThemeColorSource.Preset -> ThemeColorSourceSwitches(wallpaper = false, system = false)
+}
+
+/**
+ * Puts a source in charge.
+ *
+ * The wallpaper colours are started or stopped through their own store, which is also what keeps
+ * the derived colour in step with the picture on screen; the theme then re-reads the preferences it
+ * was built from, because the two flags are not observable state on their own.
+ */
+internal fun selectThemeColorSource(source: ThemeColorSource) {
+    val prefs = APApplication.sharedPreferences
+    val switches = themeColorSourceSwitches(
+        source = source,
+        systemDynamicEnabled = prefs.getBoolean(SystemDynamicColorKey, true),
+    )
+    WallpaperColorTheme.setEnabled(switches.wallpaper)
+    prefs.edit { putBoolean(SystemDynamicColorKey, switches.system) }
+    refreshTheme.value = true
+}
+
+/**
+ * Picks the colour a preset palette is built from — and takes the reader's tap on a colour as the
+ * wish to use it, so choosing a colour and putting it in charge are one gesture rather than two.
+ */
+internal fun selectPresetColor(colorName: String) {
+    APApplication.sharedPreferences.edit { putString(PresetColorKey, colorName) }
+    selectThemeColorSource(ThemeColorSource.Preset)
+}
+
+/**
  * The seed in force, and where it came from.
  *
  * A [seed] of zero means there is nothing for the app to build a palette from, and the platform
@@ -68,8 +177,13 @@ internal data class ThemeColorChoice(
  * [systemSeed] being null on a phone that has a system palette means the platform did not say what
  * it is; the platform palette is then left to decide for itself rather than being replaced by a
  * guess.
+ *
+ * The wallpaper is only in the running on the panoramic Home, because that is the only home that
+ * shows one: a picture the reader has turned off does not go on colouring the app behind their
+ * back.
  */
 internal fun resolveThemeColorChoice(
+    panoramaHome: Boolean,
     wallpaperEnabled: Boolean,
     wallpaperSeed: Int,
     systemDynamicEnabled: Boolean,
@@ -77,7 +191,7 @@ internal fun resolveThemeColorChoice(
     paletteChosen: Boolean,
     presetSeed: Int,
 ): ThemeColorChoice = when {
-    wallpaperEnabled && wallpaperSeed != 0 -> ThemeColorChoice(
+    panoramaHome && wallpaperEnabled && wallpaperSeed != 0 -> ThemeColorChoice(
         source = ThemeColorSource.Wallpaper,
         seed = wallpaperSeed,
     )

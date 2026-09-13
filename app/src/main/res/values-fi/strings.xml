@@ -171,9 +171,6 @@
     <string name="kpm_control_failed">Toiminta epäonnistui!</string>
     <string name="settings_night_mode_follow_sys">Seuraa järjestelmän tummaa teemaa</string>
     <string name="settings_night_theme_enabled">Ota tumma teema käyttöön</string>
-    <string name="settings_use_system_color_theme">Järjestelmän väriteema</string>
-    <string name="settings_use_system_color_theme_summary">Käytä järjestelmän luomaa väriteemaa nykyisen taustakuvan mukaan</string>
-    <string name="settings_custom_color_theme">Väriteema:</string>
     <string name="amber_theme">Meripihka</string>
     <string name="blue_grey_theme">Siniharmaa</string>
     <string name="blue_theme">Sininen</string>

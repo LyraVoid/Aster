@@ -142,7 +142,6 @@
     <string name="enable_web_debugging_summary">WebUI ডিবাগ করতে ব্যবহার করা যেতে পারে, অনুগ্রহ করে শুধুমাত্র প্রয়োজন হলেই চালু করুন।</string>
     <string name="home_more_menu_feedback_or_suggestion">ফিডব্যাক অথবা পরামর্শ</string>
     <string name="home_dialog_uninstall_ap_only">এন্ড্রয়েডপ্যাচ দূর করুন</string>
-    <string name="settings_custom_color_theme">কালার থিম</string>
     <string name="amber_theme">অ্যাম্বার থিম</string>
     <string name="apm_action">ব্যবস্থা</string>
     <string name="home_dialog_uninstall_all">সকল কিছু আনইন্সটল করুন</string>
@@ -155,8 +154,6 @@
     <string name="settings_night_mode_follow_sys">সিস্টেমের ডার্ক থিম অনুসরণ করুন</string>
     <string name="settings_night_mode_follow_sys_summary">অটোমেটিক ভাবে সিষ্টেম এর সেটিং ফলো করে ডার্ক থিম সেটিং করুন</string>
     <string name="settings_night_theme_enabled">ডার্ক থিম চালু করুন</string>
-    <string name="settings_use_system_color_theme">সিস্টেম কালার থিম</string>
-    <string name="settings_use_system_color_theme_summary">বর্তমান ওয়ালপেপার এর কালার দ্বারা সিস্টেমে তৈরি হওয়া কালার থিম ব্যবহার করুন</string>
     <string name="blue_grey_theme">নীল ধূসর</string>
     <string name="blue_theme">নীল</string>
     <string name="brown_theme">বাদামী</string>

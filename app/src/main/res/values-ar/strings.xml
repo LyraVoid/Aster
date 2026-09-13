@@ -177,15 +177,12 @@
     <string name="kpm_control_dialog_title">التحكم بـKPModule</string>
     <string name="kpm_control_outMsg">رسالة</string>
     <string name="kpm_control_ok">نجحت العملية!</string>
-    <string name="settings_use_system_color_theme">مظهر لون النظام</string>
     <string name="amber_theme">مظهر Amber</string>
     <string name="light_blue_theme">مظهر أزرق فاتح</string>
     <string name="kpm_control_paramters">معلمات</string>
     <string name="kpm_control_failed">فشلت العملية!</string>
     <string name="settings_night_mode_follow_sys">اتبع المظهر الداكن للنظام</string>
     <string name="settings_night_theme_enabled">تمكين المظهر الداكن</string>
-    <string name="settings_use_system_color_theme_summary">استخدام لون الموضوع الذي يولده النظام استنادا إلى ورق الحائط الحالي</string>
-    <string name="settings_custom_color_theme">لون الحلة</string>
     <string name="blue_grey_theme">مظهر BlueGrey</string>
     <string name="blue_theme">أزرق</string>
     <string name="deep_orange_theme">مظهر برتقالي غامق</string>

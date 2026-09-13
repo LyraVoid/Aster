@@ -117,19 +117,16 @@ internal fun ThemeColorSpec.effectiveFor(style: ThemePaletteStyle): ThemeColorSp
         this
     }
 
-@get:StringRes
-internal val ThemePaletteStyle.label: Int
-    get() = when (this) {
-        ThemePaletteStyle.TonalSpot -> R.string.theme_style_tonal_spot
-        ThemePaletteStyle.Neutral -> R.string.theme_style_neutral
-        ThemePaletteStyle.Vibrant -> R.string.theme_style_vibrant
-        ThemePaletteStyle.Expressive -> R.string.theme_style_expressive
-        ThemePaletteStyle.Rainbow -> R.string.theme_style_rainbow
-        ThemePaletteStyle.FruitSalad -> R.string.theme_style_fruit_salad
-        ThemePaletteStyle.Monochrome -> R.string.theme_style_monochrome
-        ThemePaletteStyle.Fidelity -> R.string.theme_style_fidelity
-        ThemePaletteStyle.Content -> R.string.theme_style_content
-    }
+/**
+ * The style's own name, and the only label it gets.
+ *
+ * A palette style is named after what it does to the colour — TonalSpot, FruitSalad, Monochrome —
+ * and a translation of those names says less than the names do, so Miuix's names are shown as they
+ * are in every language. The line under the name is the translated half, and it is what explains
+ * the choice.
+ */
+internal val ThemePaletteStyle.displayName: String
+    get() = name
 
 @get:StringRes
 internal val ThemePaletteStyle.summary: Int

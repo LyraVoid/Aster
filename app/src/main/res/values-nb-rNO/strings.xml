@@ -124,7 +124,6 @@
     <string name="home_dialog_uninstall_title">Avinstaller</string>
     <string name="kpm_control_outMsg">Melding</string>
     <string name="kpm_control_failed">Operasjonen mislyktes</string>
-    <string name="settings_custom_color_theme">Fargetema</string>
     <string name="about_app_version">Versjon %1$s</string>
     <string name="failure">Mislykket</string>
     <string name="patch">Rettelse</string>
@@ -219,8 +218,6 @@
     <string name="settings_selinux_hide_warning_title">Advarsel</string>
     <string name="settings_selinux_hide_warning_below_5_10">Denne funksjonen er kun testet på kjerne 5.10 og nyere, og kan være ustabil på lavere kjerneversjoner.</string>
     <string name="settings_selinux_hide_warning_non_gki">Ikke-GKI-kjerner har en høyere risiko og kan føre til oppstartsfeil. Sørg for at dataene dine er sikkerhetskopiert.</string>
-    <string name="settings_use_system_color_theme">Systemfargetema</string>
-    <string name="settings_use_system_color_theme_summary">Bruk et fargetema generert av systemet basert på gjeldende bakgrunnsbilde</string>
     <string name="teal_theme">Blågrønn</string>
     <string name="warning_of_meta_module_summary">Denne modulen ønsker å montere /system; metamodulen vil håndtere det. Ellers kan den kanskje ikke fungere.</string>
     <string name="warning_of_meta_module_title">Krever metamodul</string>
