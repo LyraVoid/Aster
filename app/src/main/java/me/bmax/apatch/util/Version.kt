@@ -15,6 +15,7 @@ import com.topjohnwu.superuser.nio.FileSystemManager
 import com.topjohnwu.superuser.Shell
 import androidx.compose.runtime.mutableStateOf
 import java.io.File
+import java.security.MessageDigest
 import android.system.Os
 
 internal sealed interface ApdVersionResult {
@@ -51,6 +52,41 @@ internal fun mapApdVersionResult(
     } else {
         ApdVersionResult.Error(exitCode)
     }
+}
+
+/** How the system patch on disk compares with the one this manager ships. */
+internal enum class InstalledApdState {
+    NOT_INSTALLED,
+    INSTALLED,
+    NEED_UPDATE,
+}
+
+/**
+ * Decide the system patch state by comparing the two patch binaries instead of version codes.
+ *
+ * The manager version code moves on every build, but the patch binary only moves when its own
+ * sources do, so comparing codes reports a patch update for every new manager build and the home
+ * card offers an update that would install a byte-identical binary. Comparing the binaries asks the
+ * question that actually matters: is the patch on disk the one this manager ships?
+ *
+ * [installedVersion] is the version the installed patch answers with. It is only a fallback for the
+ * case where the hash cannot be read at all, so that a manager which cannot hash never claims the
+ * patch is missing.
+ */
+internal fun resolveInstalledApdState(
+    bundledSha256: String,
+    installedSha256: String,
+    installedVersion: Int,
+): InstalledApdState = when {
+    installedSha256.isNotBlank() ->
+        if (bundledSha256 == installedSha256) {
+            InstalledApdState.INSTALLED
+        } else {
+            InstalledApdState.NEED_UPDATE
+        }
+
+    installedVersion > 0 -> InstalledApdState.INSTALLED
+    else -> InstalledApdState.NOT_INSTALLED
 }
 
 
@@ -179,6 +215,42 @@ object Version {
 
     fun installedApdVUInt(): Int = updateInstalledApdVersion(probeInstalledApdVersion())
 
+    /**
+     * SHA-256 of the system patch binary shipped inside this manager, empty when it cannot be read.
+     */
+    fun getBundledApdSha256(): String {
+        val libapd = File(apApp.applicationInfo.nativeLibraryDir, "libapd.so")
+        if (!libapd.isFile) {
+            return ""
+        }
+        return computeSHA256(libapd)
+    }
+
+    /**
+     * SHA-256 of the system patch binary on disk, empty when it is missing or unreadable.
+     */
+    fun getInstalledApdSha256(): String {
+        val resultShell = rootShellForResult("sha256sum ${APApplication.APD_PATH}")
+        if (!resultShell.isSuccess) {
+            return ""
+        }
+        return resultShell.out.firstOrNull()?.split(Regex("\\s+"))?.firstOrNull().orEmpty()
+    }
+
+    private fun computeSHA256(file: File): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buffer = ByteArray(8192)
+            while (true) {
+                val read = input.read(buffer)
+                if (read <= 0) {
+                    break
+                }
+                digest.update(buffer, 0, read)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
+    }
 
     fun getManagerVersion(): Pair<String, Long> {
         val packageInfo = apApp.packageManager.getPackageInfo(apApp.packageName, 0)!!

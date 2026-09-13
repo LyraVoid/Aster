@@ -24,8 +24,10 @@ import me.bmax.apatch.root.toRootDetailRead
 import me.bmax.apatch.util.APatchCli
 import me.bmax.apatch.util.APatchKeyHelper
 import me.bmax.apatch.util.ApdVersionResult
+import me.bmax.apatch.util.InstalledApdState
 import me.bmax.apatch.util.Version
 import me.bmax.apatch.util.getRootShell
+import me.bmax.apatch.util.resolveInstalledApdState
 import me.bmax.apatch.util.rootShellForResult
 import okhttp3.Cache
 import okhttp3.OkHttpClient
@@ -293,25 +295,42 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
                             "manager version: $mgv, installed apd version: $installedApdVInt"
                         )
 
-                        if (Version.installedApdVInt > 0) {
-                            _apStateLiveData.postValue(State.ANDROIDPATCH_INSTALLED)
-                        }
+                        // The installed patch is compared with the one this manager ships rather
+                        // than with the manager version code, which moves on every build.
+                        val bundledApdSha256 = Version.getBundledApdSha256()
+                        val installedApdSha256 = Version.getInstalledApdSha256()
+                        Log.d(
+                            TAG,
+                            "bundled apd sha256: $bundledApdSha256, " +
+                                "installed apd sha256: $installedApdSha256"
+                        )
 
-                        if (
-                            Version.installedApdVInt > 0 &&
-                            mgv.toInt() != Version.installedApdVInt
+                        when (
+                            resolveInstalledApdState(
+                                bundledSha256 = bundledApdSha256,
+                                installedSha256 = installedApdSha256,
+                                installedVersion = installedApdVInt,
+                            )
                         ) {
-                            _apStateLiveData.postValue(State.ANDROIDPATCH_NEED_UPDATE)
-                            // su path
-                            val suPathFile = File(SU_PATH_FILE)
-                            if (suPathFile.exists()) {
-                                val suPath = suPathFile.readLines()[0].trim()
-                                if (
-                                    suPathRead.state == RootDetailState.AVAILABLE &&
-                                    suPathRead.value != suPath
-                                ) {
-                                    Log.d(TAG, "su path: $suPath")
-                                    Natives.resetSuPath(suPath)
+                            InstalledApdState.NOT_INSTALLED ->
+                                _apStateLiveData.postValue(State.ANDROIDPATCH_NOT_INSTALLED)
+
+                            InstalledApdState.INSTALLED ->
+                                _apStateLiveData.postValue(State.ANDROIDPATCH_INSTALLED)
+
+                            InstalledApdState.NEED_UPDATE -> {
+                                _apStateLiveData.postValue(State.ANDROIDPATCH_NEED_UPDATE)
+                                // su path
+                                val suPathFile = File(SU_PATH_FILE)
+                                if (suPathFile.exists()) {
+                                    val suPath = suPathFile.readLines()[0].trim()
+                                    if (
+                                        suPathRead.state == RootDetailState.AVAILABLE &&
+                                        suPathRead.value != suPath
+                                    ) {
+                                        Log.d(TAG, "su path: $suPath")
+                                        Natives.resetSuPath(suPath)
+                                    }
                                 }
                             }
                         }
