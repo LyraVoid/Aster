@@ -56,6 +56,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
@@ -1701,6 +1702,19 @@ private fun WallpaperSlider(
     }
 }
 
+/**
+ * How much of the palette the work card takes in a dark theme, where the surface sits below the
+ * palette and a card may be lifted out of it.
+ */
+private const val WorkCardTintDark = 0.28f
+
+/**
+ * The same in a light theme, where the surface is already as bright as the screen gets: there the
+ * palette may only tint the card, or a palette whose colour is near-black - the monochrome one in a
+ * light theme - would draw a grey card in a white app.
+ */
+private const val WorkCardTintLight = 0.12f
+
 @Composable
 private fun KStatusCard(
     state: HomeUiState,
@@ -1708,10 +1722,6 @@ private fun KStatusCard(
     onApmClick: () -> Unit,
     onKpmClick: () -> Unit,
 ) {
-    val themeMode = LocalThemeModeState.current
-    val isDark = themeMode.isDark
-    val isMonet = themeMode.isDynamicColor
-
     // The card reports the kernel patch, so a system patch that is behind is not its business: that
     // one has its own card right below. Letting the shared conclusion through would make this card
     // claim an update for the other layer, and would offer to install it.
@@ -1732,23 +1742,22 @@ private fun KStatusCard(
     val isWorking = conclusion == HomeConclusion.FULL_APATCH ||
         conclusion == HomeConclusion.KERNEL_PATCH_ONLY
 
-    val cardBg = when {
-        isWorking -> when {
-            isMonet -> MiuixTheme.colorScheme.primaryContainer
-            isDark -> Color(0xFF1A3825)
-            else -> Color(0xFFDFFAE4)
-        }
-        conclusion == HomeConclusion.NEED_UPDATE -> MiuixTheme.colorScheme.secondaryContainer
-        conclusion == HomeConclusion.NEED_REBOOT -> MiuixTheme.colorScheme.errorContainer
-        else -> MiuixTheme.colorScheme.secondaryContainer
+    // Every state is painted with the palette, each in the colour its own meaning carries: the
+    // working state speaks in the app's colour, the states that ask something of the reader keep
+    // the role that asks for it, and the rest stay neutral. The colour is mixed into the card's own
+    // surface rather than taken from a container: a container is a flat colour meant for a chip or
+    // a badge, and a palette may well spell it in near-white - the monochrome one does - which a
+    // card the size of this one cannot be.
+    val cardAccent = when {
+        isWorking -> MiuixTheme.colorScheme.primary
+        conclusion == HomeConclusion.NEED_REBOOT -> MiuixTheme.colorScheme.error
+        else -> MiuixTheme.colorScheme.secondary
     }
+    val cardTint = if (LocalThemeModeState.current.isDark) WorkCardTintDark else WorkCardTintLight
+    val cardBg = lerp(MiuixTheme.colorScheme.surfaceContainer, cardAccent, cardTint)
 
     val decoIconColor = when {
-        isWorking -> if (isMonet) {
-            MiuixTheme.colorScheme.primary.copy(alpha = 0.8f)
-        } else {
-            Color(0xFF36D167)
-        }
+        isWorking -> MiuixTheme.colorScheme.primary.copy(alpha = 0.8f)
         conclusion == HomeConclusion.NEED_UPDATE -> MiuixTheme.colorScheme.secondary
         conclusion == HomeConclusion.NEED_REBOOT -> MiuixTheme.colorScheme.error
         else -> MiuixTheme.colorScheme.outline
