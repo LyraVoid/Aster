@@ -14,13 +14,18 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -36,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -58,6 +64,8 @@ import me.bmax.apatch.ui.component.rememberConfirmDialog
 import me.bmax.apatch.ui.component.rememberLoadingDialog
 import me.bmax.apatch.ui.module.APModuleContentState
 import me.bmax.apatch.ui.module.MetaModuleWarning
+import me.bmax.apatch.ui.module.ModuleSortGroup
+import me.bmax.apatch.ui.module.ModuleSortPriorityGroups
 import me.bmax.apatch.ui.module.resolveAPModuleContentState
 import me.bmax.apatch.ui.module.shouldScrollToTopAfterModuleLoad
 import me.bmax.apatch.ui.viewmodel.APModuleViewModel
@@ -73,6 +81,9 @@ import me.bmax.apatch.util.uninstallModule
 import okhttp3.Request
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.ListPopupColumn
+import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.InputField
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.PullToRefresh
@@ -87,6 +98,9 @@ import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.icon.extended.Info
+import top.yukonga.miuix.kmp.icon.extended.Ok
+import top.yukonga.miuix.kmp.icon.extended.Sort
+import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
@@ -119,6 +133,7 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
     val moduleListState = rememberLazyListState()
     var lastKnownModuleCount by rememberSaveable { mutableStateOf(-1) }
     var searchExpanded by rememberSaveable { mutableStateOf(false) }
+    var showSortPriorityMenu by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(viewModel.totalModuleCount) {
         if (
@@ -176,6 +191,10 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
                         viewModel.search = ""
                     }
                 },
+                priorities = viewModel.sortPriorities,
+                onSortPriorityChange = viewModel::setSortPriorities,
+                showSortPriorityMenu = showSortPriorityMenu,
+                onShowSortPriorityMenuChange = { showSortPriorityMenu = it },
                 scrollBehavior = scrollBehavior,
             )
         },
@@ -245,6 +264,10 @@ private fun APModuleTopBar(
     searchExpanded: Boolean,
     onSearchTextChange: (String) -> Unit,
     onSearchExpandedChange: (Boolean) -> Unit,
+    priorities: Set<ModuleSortGroup>,
+    onSortPriorityChange: (Set<ModuleSortGroup>) -> Unit,
+    showSortPriorityMenu: Boolean,
+    onShowSortPriorityMenuChange: (Boolean) -> Unit,
     scrollBehavior: ScrollBehavior,
 ) {
     TopAppBar(
@@ -255,6 +278,42 @@ private fun APModuleTopBar(
             stringResource(R.string.apm_module_summary, moduleCount, enabledCount)
         },
         scrollBehavior = scrollBehavior,
+        actions = {
+            // The choice belongs to the list, so it opens on the list's own top bar rather than
+            // in a settings page somewhere else.
+            Box {
+                IconButton(onClick = { onShowSortPriorityMenuChange(true) }) {
+                    Icon(
+                        imageVector = MiuixIcons.Sort,
+                        contentDescription = stringResource(R.string.apm_sort_priority),
+                    )
+                }
+                OverlayListPopup(
+                    show = showSortPriorityMenu,
+                    alignment = PopupPositionProvider.Align.BottomEnd,
+                    onDismissRequest = { onShowSortPriorityMenuChange(false) },
+                ) {
+                    ListPopupColumn {
+                        ModuleSortPriorityHeading(
+                            title = stringResource(R.string.apm_sort_priority),
+                            summary = stringResource(R.string.apm_sort_priority_summary),
+                        )
+                        ModuleSortPriorityGroups.forEach { group ->
+                            ModuleSortPriorityMenuItem(
+                                group = group,
+                                selected = group in priorities,
+                                onClick = {
+                                    onSortPriorityChange(
+                                        if (group in priorities) priorities - group
+                                        else priorities + group,
+                                    )
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+        },
         bottomContent = {
             SearchBar(
                 modifier = Modifier
@@ -275,6 +334,67 @@ private fun APModuleTopBar(
             )
         },
     )
+}
+
+/**
+ * What the top-right button opens. What it sets is a priority, not a filter: a kind left unticked
+ * does not leave the list, it only stops being lifted above the alphabet.
+ */
+@Composable
+private fun ModuleSortPriorityHeading(title: String, summary: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Text(text = title, color = MiuixTheme.colorScheme.onSurface)
+        Text(
+            text = summary,
+            style = MiuixTheme.textStyles.body2,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+        )
+    }
+}
+
+@Composable
+private fun ModuleSortPriorityMenuItem(
+    group: ModuleSortGroup,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val contentColor = if (selected) {
+        MiuixTheme.colorScheme.primary
+    } else {
+        MiuixTheme.colorScheme.onSurface
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(group.label),
+                modifier = Modifier.weight(1f),
+                color = contentColor,
+            )
+            if (selected) {
+                Icon(
+                    imageVector = MiuixIcons.Ok,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = contentColor,
+                )
+            }
+        }
+        Text(
+            text = stringResource(group.summary),
+            style = MiuixTheme.textStyles.body2,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+        )
+    }
 }
 
 @Composable

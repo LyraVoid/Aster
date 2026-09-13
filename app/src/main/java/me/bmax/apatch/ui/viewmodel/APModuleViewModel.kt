@@ -12,11 +12,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import me.bmax.apatch.APApplication
 import me.bmax.apatch.apApp
 import me.bmax.apatch.ui.module.MetaModuleWarning
 import me.bmax.apatch.ui.module.ModuleSortFacts
+import me.bmax.apatch.ui.module.ModuleSortGroup
+import me.bmax.apatch.ui.module.ModuleSortPriorityGroups
+import me.bmax.apatch.ui.module.ModuleSortPriorityStore
 import me.bmax.apatch.ui.module.moduleSortComparator
 import me.bmax.apatch.ui.module.probeMetaModuleWarning
+import me.bmax.apatch.ui.module.probeZygiskConsumerIds
 import me.bmax.apatch.util.HanziToPinyin
 import me.bmax.apatch.util.hasMagisk
 import me.bmax.apatch.util.listModules
@@ -32,6 +37,9 @@ class APModuleViewModel : ViewModel() {
         private var cachedMagiskPresent by mutableStateOf(false)
         private var cachedMetaModuleWarning by mutableStateOf<MetaModuleWarning?>(null)
         private var cachedLoadFailed by mutableStateOf(false)
+
+        // Filled by a probe on every refresh, and read by the order below.
+        private var zygiskConsumers by mutableStateOf<Set<String>>(emptySet())
     }
 
     data class ModuleInfo(
@@ -67,8 +75,18 @@ class APModuleViewModel : ViewModel() {
 
     private val collator = Collator.getInstance(Locale.getDefault())
 
+    /**
+     * Which kinds of module the reader asked to see first. Held on the instance, because it is
+     * only this screen that sorts, and read back from the preferences so a reader who reopens the
+     * screen gets the order they left.
+     */
+    internal var sortPriorities by mutableStateOf(ModuleSortPriorityStore.decode(storedSortPriorities()))
+        private set
+
     val moduleList by derivedStateOf {
-        val comparator = compareBy<ModuleInfo, ModuleSortFacts>(moduleSortComparator(collator)) { it.sortFacts() }
+        val comparator = compareBy<ModuleInfo, ModuleSortFacts>(
+            moduleSortComparator(collator, sortPriorities),
+        ) { it.sortFacts() }
 
         modules.filter {
             it.id.contains(search, true) || it.name.contains(search, true) ||
@@ -82,7 +100,21 @@ class APModuleViewModel : ViewModel() {
         metaModule = metamodule,
         hasWebUi = hasWebUi,
         hasActionScript = hasActionScript,
+        isZygiskConsumer = id in zygiskConsumers,
     )
+
+    internal fun setSortPriorities(groups: Set<ModuleSortGroup>) {
+        sortPriorities = groups
+        runCatching {
+            APApplication.sharedPreferences.edit()
+                .putString(ModuleSortPriorityStore.Key, ModuleSortPriorityStore.encode(groups))
+                .apply()
+        }
+    }
+
+    private fun storedSortPriorities(): String? = runCatching {
+        APApplication.sharedPreferences.getString(ModuleSortPriorityStore.Key, null)
+    }.getOrNull()
 
     val totalModuleCount: Int
         get() = modules.size
@@ -142,6 +174,7 @@ class APModuleViewModel : ViewModel() {
                         )
                     }.toList()
                 cachedMetaModuleWarning = probeMetaModuleWarning(modules.map(ModuleInfo::id))
+                zygiskConsumers = probeZygiskConsumerIds(modules.map(ModuleInfo::id))
                 isNeedRefresh = false
                 isRefreshing = false
 
