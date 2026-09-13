@@ -75,6 +75,9 @@ class APModuleViewModel : ViewModel() {
         // Pinyin of `name`, precomputed at load time; per-keystroke conversion in
         // the search filter dropped frames on the main thread.
         val pinyin: String = "",
+        val actionIcon: String = "",
+        val webuiIcon: String = "",
+        val iconRevision: Long = 0,
     )
 
     data class ModuleUpdateInfo(
@@ -178,7 +181,10 @@ class APModuleViewModel : ViewModel() {
                             obj.getBooleanCompat("web"),
                             obj.getBooleanCompat("action"),
                             obj.getBooleanCompat("metamodule"),
-                            pinyin = HanziToPinyin.getInstance().toPinyinString(name) ?: ""
+                            pinyin = HanziToPinyin.getInstance().toPinyinString(name) ?: "",
+                            actionIcon = obj.optString("actionIcon"),
+                            webuiIcon = obj.optString("webuiIcon"),
+                            iconRevision = start,
                         )
                     }.toList()
                 refreshMountWarning()

@@ -776,6 +776,9 @@ fn _list_modules(path: &str) -> Vec<HashMap<String, String>> {
         module_prop_map.insert("web".to_owned(), web.to_string());
         module_prop_map.insert("action".to_owned(), action.to_string());
 
+        crate::module_icon::resolve(&mut module_prop_map, "actionIcon", &path);
+        crate::module_icon::resolve(&mut module_prop_map, "webuiIcon", &path);
+
         // Apply module config overrides and extract managed features
         if let Some(module_id) = module_prop_map.get("id")
             && let Some(config) = all_configs.get(module_id.as_str())
@@ -794,6 +797,6 @@ fn _list_modules(path: &str) -> Vec<HashMap<String, String>> {
 
 pub fn list_modules() -> Result<()> {
     let modules = _list_modules(defs::MODULE_DIR);
-    println!("{}", serde_json::to_string_pretty(&modules)?);
+    crate::utils::write_stdout_line(&serde_json::to_string_pretty(&modules)?)?;
     Ok(())
 }

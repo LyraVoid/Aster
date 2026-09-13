@@ -216,3 +216,46 @@ pub fn get_tmp_path() -> &'static str {
 pub fn get_magic_mount_work_dir() -> String {
     format!("{}/workdir/", get_tmp_path())
 }
+
+/// A consumer may close its pipe before the complete module list is written.
+pub fn write_stdout_line(line: &str) -> Result<()> {
+    write_output_line(&mut std::io::stdout().lock(), line).map_err(Error::from)
+}
+
+fn write_output_line(writer: &mut impl Write, line: &str) -> std::io::Result<()> {
+    match writeln!(writer, "{line}") {
+        Err(err) if err.kind() == std::io::ErrorKind::BrokenPipe => std::result::Result::Ok(()),
+        result => result,
+    }
+}
+
+#[cfg(test)]
+mod output_tests {
+    use super::*;
+    #[test]
+    fn writes_complete_line() {
+        let mut output = Vec::new();
+        write_output_line(&mut output, "[]").unwrap();
+        assert_eq!(output, b"[]\n");
+    }
+    struct FailedWriter(std::io::ErrorKind);
+    impl Write for FailedWriter {
+        fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
+            Err(self.0.into())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            std::result::Result::Ok(())
+        }
+    }
+    #[test]
+    fn suppresses_only_broken_pipe() {
+        use std::io::ErrorKind;
+        assert!(write_output_line(&mut FailedWriter(ErrorKind::BrokenPipe), "[]").is_ok());
+        assert_eq!(
+            write_output_line(&mut FailedWriter(ErrorKind::PermissionDenied), "[]")
+                .unwrap_err()
+                .kind(),
+            ErrorKind::PermissionDenied
+        );
+    }
+}

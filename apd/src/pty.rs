@@ -12,8 +12,8 @@ use std::{
 
 use anyhow::{Ok, Result, bail};
 use libc::{
-    __errno, EINTR, SIG_BLOCK, SIG_UNBLOCK, SIGWINCH, TIOCGWINSZ, TIOCSWINSZ, fork,
-    pthread_sigmask, sigaddset, sigemptyset, sigset_t, sigwait, waitpid, winsize,
+    EINTR, SIG_BLOCK, SIG_UNBLOCK, SIGWINCH, TIOCGWINSZ, TIOCSWINSZ, fork, pthread_sigmask,
+    sigaddset, sigemptyset, sigset_t, sigwait, waitpid, winsize,
 };
 use rustix::{
     fs::{Mode, OFlags, open},
@@ -151,7 +151,7 @@ fn create_transfer(ptmx: OwnedFd) -> Result<()> {
             if waitpid(pid, &mut status, 0) != -1 {
                 break;
             }
-            if *__errno() != EINTR {
+            if std::io::Error::last_os_error().raw_os_error() != Some(EINTR) {
                 // Permanent waitpid failure (e.g. ECHILD): the child is gone and
                 // its real exit status is unknowable.
                 exit(1);
