@@ -1,14 +1,18 @@
 package me.bmax.apatch.ui.repo
 
 /**
- * A module offered by the manager's own index. That index only carries what is needed to fetch a
- * zip, so there is no version history or readme to show.
+ * A module offered by the manager's own index. That index only carries what is needed to fetch the
+ * package, so there is no version history or readme to show.
+ *
+ * @param needsParameter the module takes a control parameter, so loading it is only half of the
+ *   story and the reader can send it one afterwards.
  */
 data class OnlineModule(
     val name: String,
     val version: String,
     val url: String,
     val description: String,
+    val needsParameter: Boolean = false,
 )
 
 /** One module described by a Magisk style repository index. */

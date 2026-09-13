@@ -41,6 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestination
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
+import com.ramcosta.composedestinations.generated.destinations.OnlineModuleScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.PatchesDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.topjohnwu.superuser.nio.ExtendedFile
@@ -76,6 +77,7 @@ import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.InputField
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
@@ -92,13 +94,16 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.icon.extended.Import
 import top.yukonga.miuix.kmp.icon.extended.Layers
+import top.yukonga.miuix.kmp.icon.extended.Store
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 private const val TAG = "KernelPatchModule"
-private val kpmInstallMutex = Mutex()
+
+/** Installing a kernel module copies it into place, so the store and the pickers take turns. */
+internal val kpmInstallMutex = Mutex()
 
 private data class UninstallResult(
     val unloaded: Boolean,
@@ -133,10 +138,10 @@ fun KPModuleScreen(navigator: DestinationsNavigator) {
     val installSuccessToastText = stringResource(R.string.kpm_install_toast_succ)
     val failToastText = stringResource(R.string.kpm_load_toast_failed)
 
+    // Read on every visit: a module can be installed from the store, from the picker, or removed
+    // by another app, and the list is the only place that shows the result.
     LaunchedEffect(Unit) {
-        if (modules.isEmpty() || viewModel.isNeedRefresh) {
-            viewModel.fetchModuleList()
-        }
+        viewModel.fetchModuleList()
     }
 
     val scope = rememberCoroutineScope()
@@ -150,7 +155,6 @@ fun KPModuleScreen(navigator: DestinationsNavigator) {
             val rc = loadModule(loadingDialog, uri, "")
             val toastText = if (rc == 0) successToastText else "$failToastText: $rc"
             Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show()
-            viewModel.markNeedRefresh()
             viewModel.fetchModuleList()
         }
     }
@@ -168,7 +172,6 @@ fun KPModuleScreen(navigator: DestinationsNavigator) {
                 "$failToastText: $rc"
             }
             Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show()
-            viewModel.markNeedRefresh()
             viewModel.fetchModuleList()
         }
     }
@@ -190,6 +193,7 @@ fun KPModuleScreen(navigator: DestinationsNavigator) {
     Scaffold(
         topBar = {
             KPModuleTopBar(
+                onOpenStore = { navigator.navigate(OnlineModuleScreenDestination(MODULE_TYPE.KPM)) },
                 moduleCount = modules.size,
                 loadedCount = modules.count { it.loaded },
                 isLoadingInitial = viewModel.isRefreshing && modules.isEmpty(),
@@ -233,6 +237,7 @@ fun KPModuleScreen(navigator: DestinationsNavigator) {
 
 @Composable
 private fun KPModuleTopBar(
+    onOpenStore: () -> Unit,
     moduleCount: Int,
     loadedCount: Int,
     isLoadingInitial: Boolean,
@@ -250,6 +255,14 @@ private fun KPModuleTopBar(
             stringResource(R.string.kpm_module_summary, moduleCount, loadedCount)
         },
         scrollBehavior = scrollBehavior,
+        actions = {
+            IconButton(onClick = onOpenStore) {
+                Icon(
+                    imageVector = MiuixIcons.Store,
+                    contentDescription = stringResource(R.string.online_module_title),
+                )
+            }
+        },
         bottomContent = {
             SearchBar(
                 modifier = Modifier
@@ -525,7 +538,6 @@ private fun KPModuleList(
                                         }
                                     }
                                     viewModel.updateModuleDisabled(module.moduleId, !enabled)
-                                    viewModel.markNeedRefresh()
                                     viewModel.fetchModuleList()
                                 }
                             },

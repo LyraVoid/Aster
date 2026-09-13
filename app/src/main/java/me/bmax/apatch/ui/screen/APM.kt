@@ -149,10 +149,10 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
         lastKnownModuleCount = viewModel.totalModuleCount
     }
 
+    // Read on every visit: a module can be installed from the store, from the picker, or removed
+    // by another app, and the list is the only place that shows the result.
     LaunchedEffect(Unit) {
-        if (modules.isEmpty() || viewModel.isNeedRefresh) {
-            viewModel.fetchModuleList()
-        }
+        viewModel.fetchModuleList()
     }
 
     val webUILauncher = rememberLauncherForActivityResult(
@@ -168,7 +168,6 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
 
         Log.i("ModuleScreen", "select zip result: $uri")
         navigator.navigate(InstallScreenDestination(uri, MODULE_TYPE.APM))
-        viewModel.markNeedRefresh()
     }
     val launchZipPicker = {
         selectZipLauncher.launch(
@@ -197,7 +196,7 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
                 onSortPriorityChange = viewModel::setSortPriorities,
                 showSortPriorityMenu = showSortPriorityMenu,
                 onShowSortPriorityMenuChange = { showSortPriorityMenu = it },
-                onOpenStore = { navigator.navigate(OnlineModuleScreenDestination) },
+                onOpenStore = { navigator.navigate(OnlineModuleScreenDestination(MODULE_TYPE.APM)) },
                 scrollBehavior = scrollBehavior,
             )
         },
@@ -251,7 +250,6 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
                 },
                 onOpenAction = { id ->
                     navigator.navigate(ExecuteAPMActionScreenDestination(id))
-                    viewModel.markNeedRefresh()
                 },
             )
         }

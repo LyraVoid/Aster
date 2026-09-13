@@ -119,9 +119,6 @@ class APModuleViewModel : ViewModel() {
     val totalModuleCount: Int
         get() = modules.size
 
-    var isNeedRefresh by mutableStateOf(false)
-        private set
-
     val isMagiskPresent: Boolean
         get() = cachedMagiskPresent
 
@@ -130,10 +127,6 @@ class APModuleViewModel : ViewModel() {
 
     val hasLoadError: Boolean
         get() = cachedLoadFailed
-
-    fun markNeedRefresh() {
-        isNeedRefresh = true
-    }
 
     fun fetchModuleList() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -175,7 +168,6 @@ class APModuleViewModel : ViewModel() {
                     }.toList()
                 cachedMetaModuleWarning = probeMetaModuleWarning(modules.map(ModuleInfo::id))
                 zygiskConsumers = probeZygiskConsumerIds(modules.map(ModuleInfo::id))
-                isNeedRefresh = false
                 isRefreshing = false
 
                 // One network round trip per enabled module; running them

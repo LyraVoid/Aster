@@ -478,6 +478,7 @@
     <string name="home_update_current">Already up to date</string>
 
     <string name="online_module_title">Module store</string>
+    <string name="online_module_kpm_title">Kernel module store</string>
     <string name="online_module_source_title">Module source</string>
     <string name="online_module_source_official">Official index</string>
     <string name="online_module_source_official_summary">Served by the manager itself</string>
@@ -488,6 +489,7 @@
     <string name="online_module_select_repo">Select a repository</string>
     <string name="online_module_repo_url_title">Repository address</string>
     <string name="online_module_repo_url_summary">The address must serve a module index at json/modules.json</string>
+    <string name="online_module_kpm_repo_url_summary">The address must answer with a module list in the same shape as the manager\'s own index</string>
     <string name="online_module_repo_url_hint">https://example.com/repo/</string>
     <string name="online_module_module_count">%1$d modules</string>
     <string name="online_module_default_repo">Default repository</string>

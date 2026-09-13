@@ -71,7 +71,8 @@ fun RepoModuleDetailScreen(
     // Resource lookups go through the configuration-aware provider, not the raw context.
     val resources = LocalResources.current
     val uriHandler = LocalUriHandler.current
-    val repositoryUrl = ModuleRepoPreferences.repositoryUrl()
+    // Repository modules come from the manager module store, which is the one with a cluster.
+    val repositoryUrl = ModuleRepoPreferences.repositoryUrl(forKernelModules = false)
     val module = viewModel.selectedModule
 
     LaunchedEffect(moduleId, repositoryUrl) {

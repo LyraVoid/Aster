@@ -35,9 +35,12 @@ import top.yukonga.miuix.kmp.utils.PressFeedbackType
 @Composable
 internal fun OnlineModuleCard(
     module: OnlineModule,
+    moduleType: MODULE_TYPE,
     onDownload: () -> Unit,
     downloadLabel: String,
 ) {
+    val kernelModule = moduleType == MODULE_TYPE.KPM
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -63,11 +66,16 @@ internal fun OnlineModuleCard(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    APModuleBadge(text = "APM")
+                    if (kernelModule && module.needsParameter) {
+                        APModuleBadge(text = stringResource(R.string.kpm_control))
+                    }
+                    APModuleBadge(text = if (kernelModule) "KPM" else "APM")
                 }
 
                 Text(
-                    text = "${stringResource(R.string.apm_version)} ${module.version}",
+                    text = stringResource(
+                        if (kernelModule) R.string.kpm_version else R.string.apm_version
+                    ) + " " + module.version,
                     style = MiuixTheme.textStyles.footnote1,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     maxLines = 1,

@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.database.Cursor
 import android.net.Uri
 import android.os.Environment
 import androidx.compose.runtime.Composable
@@ -22,7 +23,8 @@ fun download(
     fileName: String,
     description: String,
     onDownloaded: (Uri) -> Unit = {},
-    onDownloading: () -> Unit = {}
+    onDownloading: () -> Unit = {},
+    mimeType: String = "application/zip",
 ) {
     val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     val query = DownloadManager.Query()
@@ -30,8 +32,8 @@ fun download(
     query.setFilterByStatus(DownloadManager.STATUS_RUNNING or DownloadManager.STATUS_PAUSED or DownloadManager.STATUS_PENDING)
     downloadManager.query(query)?.use { cursor ->
         while (cursor.moveToNext()) {
+            val id = cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_ID))
             val uri = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_URI))
-            val localUri = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI))
             val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
             val columnTitle = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_TITLE))
             if (url == uri || fileName == columnTitle) {
@@ -39,7 +41,7 @@ fun download(
                     onDownloading()
                     return
                 } else if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                    onDownloaded(localUri.toUri())
+                    downloadManager.readableUri(cursor, id)?.let(onDownloaded)
                     return
                 }
             }
@@ -48,7 +50,7 @@ fun download(
 
     val request = DownloadManager.Request(url.toUri())
         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-        .setMimeType("application/zip").setTitle(fileName).setDescription(description)
+        .setMimeType(mimeType).setTitle(fileName).setDescription(description)
 
     try {
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
@@ -99,6 +101,17 @@ fun checkNewVersion(): LatestVersionInfo {
     return defaultValue
 }
 
+/**
+ * A finished download belongs in the public Download folder, where the reader can find it too, and
+ * on a current Android nothing but the download manager itself may read from there. The uri it
+ * hands out for a download it made on our behalf is the readable one; the plain file path is what
+ * older releases returned, and is kept as the fallback.
+ */
+@SuppressLint("Range")
+private fun DownloadManager.readableUri(cursor: Cursor, id: Long): Uri? =
+    getUriForDownloadedFile(id)
+        ?: cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI))?.toUri()
+
 @Composable
 fun DownloadListener(context: Context, onDownloaded: (Uri) -> Unit) {
     DisposableEffect(context) {
@@ -116,8 +129,8 @@ fun DownloadListener(context: Context, onDownloaded: (Uri) -> Unit) {
                         if (cursor.moveToFirst()) {
                             val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
                             if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                                val uriString = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI))
-                                uriString?.toUri()?.let { onDownloaded(it) }
+                                val id = cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_ID))
+                                downloadManager.readableUri(cursor, id)?.let { onDownloaded(it) }
                             }
                         }
                     }

@@ -32,6 +32,22 @@ class ModuleRepoParsingTest {
         val modules = parseOfficialModules(json, "en")
         assertEquals(1, modules.size)
         assertEquals("", modules[0].description)
+        assertFalse(modules[0].needsParameter)
+    }
+
+    @Test
+    fun `the kernel index marks the modules that take a parameter`() {
+        val json = """
+            [
+              {"name":"re_kernel","version":"v8.0.0","url":"https://example.com/re.kpm",
+               "description":"无网络解冻","parameter":0},
+              {"name":"NoHello","version":"v1.8.3","url":"https://example.com/nh.kpm",
+               "description":"环境隐藏","parameter":1}
+            ]
+        """.trimIndent()
+
+        val modules = parseOfficialModules(json, "zh")
+        assertEquals(listOf(false, true), modules.map { it.needsParameter })
     }
 
     @Test

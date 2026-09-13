@@ -6,12 +6,13 @@ import org.json.JSONObject
 /**
  * Where the module store looks by default.
  *
- * [OfficialModulesUrl] is the manager's own index; it answers an array of modules in the active
- * language. [ClusterIndexUrl] lists community repositories, each of which publishes a Magisk style
- * `json/modules.json` under its own base url.
+ * [OfficialModulesUrl] and [KernelModulesUrl] are the manager's own indexes; both answer an array
+ * of modules in the active language, one per kind of module. [ClusterIndexUrl] lists community
+ * repositories, each of which publishes a Magisk style `json/modules.json` under its own base url.
  */
 object ModuleRepoDefaults {
     const val OfficialModulesUrl = "https://folk.mysqil.com/api/modules?type=apm"
+    const val KernelModulesUrl = "https://folk.mysqil.com/api/modules?type=kpm"
     const val ClusterIndexUrl = "https://mmrl.dev/api/repositories.json"
     const val GmrRepositoryUrl = "https://gr.dergoogler.com/gmr/"
 }
@@ -54,6 +55,7 @@ internal fun parseOfficialModules(json: String, language: String): List<OnlineMo
                 version = obj.text("version"),
                 url = url,
                 description = description,
+                needsParameter = obj.optInt("parameter", 0) == 1,
             )
         )
     }

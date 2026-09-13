@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -37,6 +38,8 @@ import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestina
 import com.ramcosta.composedestinations.generated.destinations.InstallScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.RepoModuleDetailScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.component.MissingLayerNotice
 import me.bmax.apatch.ui.repo.ModuleRepoPreferences
@@ -71,15 +74,18 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 /**
- * The module store.
+ * The module store, one store per [moduleType].
  *
- * Three sources feed the same list: the manager's own index, a repository picked from the community
- * cluster index, and a repository url typed by hand. The reader's pick is remembered, and a
- * downloaded zip is handed to the normal installer instead of being installed behind their back.
+ * The manager's own index feeds both of them. Manager modules can also come from a repository picked
+ * out of the community cluster index, or from an address typed by hand; kernel modules have no
+ * cluster to pick from, since a Magisk style repository holds Magisk style packages. Either way the
+ * reader's pick is remembered per store, and nothing is installed without them: a downloaded package
+ * goes to the normal installer, or, for a kernel module, through the same install the module list
+ * itself uses.
  */
 @Destination<RootGraph>
 @Composable
-fun OnlineModuleScreen(navigator: DestinationsNavigator) {
+fun OnlineModuleScreen(navigator: DestinationsNavigator, moduleType: MODULE_TYPE) {
     val capabilities = LocalAsterCapabilities.current
     if (!capabilities.kernelPatchReady) {
         MissingLayerNotice(
@@ -89,7 +95,9 @@ fun OnlineModuleScreen(navigator: DestinationsNavigator) {
         )
         return
     }
-    if (!capabilities.androidPatchReady) {
+    // A kernel module is loaded by the kernel patch itself and never by the Android patch.
+    val kernelModules = moduleType == MODULE_TYPE.KPM
+    if (!kernelModules && !capabilities.androidPatchReady) {
         MissingLayerNotice(
             title = stringResource(R.string.apm_not_installed),
             description = stringResource(R.string.capability_android_patch_required_desc),
@@ -98,32 +106,39 @@ fun OnlineModuleScreen(navigator: DestinationsNavigator) {
         return
     }
 
-    val officialViewModel = viewModel<OnlineModuleViewModel>()
+    val indexViewModel = viewModel<OnlineModuleViewModel>()
     val repoViewModel = viewModel<RepoModuleViewModel>()
     val context = LocalContext.current
     // Resource lookups go through the configuration-aware provider, not the raw context.
     val resources = LocalResources.current
+    val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+    val installSuccessToastText = stringResource(R.string.kpm_install_toast_succ)
+    val installFailedToastText = stringResource(R.string.kpm_load_toast_failed)
 
-    var source by rememberSaveable { mutableStateOf(ModuleRepoPreferences.source()) }
-    var repositoryUrl by rememberSaveable { mutableStateOf(ModuleRepoPreferences.repositoryUrl()) }
+    var source by rememberSaveable { mutableStateOf(ModuleRepoPreferences.source(kernelModules)) }
+    var repositoryUrl by rememberSaveable {
+        mutableStateOf(ModuleRepoPreferences.repositoryUrl(kernelModules))
+    }
     var showSourceMenu by rememberSaveable { mutableStateOf(false) }
     var showRepositoryDialog by rememberSaveable { mutableStateOf(false) }
     var showRepositoryList by rememberSaveable { mutableStateOf(false) }
     var searchExpanded by rememberSaveable { mutableStateOf(false) }
 
-    val officialSource = source == ModuleSource.Official
-    val searchQuery = if (officialSource) officialViewModel.searchQuery else repoViewModel.searchQuery
+    // The manager's index also answers for a hand typed address; the cluster only ever adds
+    // repositories of Magisk style packages, which is a manager module story alone.
+    val usesManagerIndex = source == ModuleSource.Official || kernelModules
+    val customIndexUrl = if (source == ModuleSource.Custom) repositoryUrl else ""
+    val searchQuery = if (usesManagerIndex) indexViewModel.searchQuery else repoViewModel.searchQuery
+    val packageExtension = if (kernelModules) "kpm" else "zip"
+    val packageMimeType = if (kernelModules) "application/octet-stream" else "application/zip"
 
     // Loading is driven by the selection alone, so switching back and forth never stacks fetches.
-    LaunchedEffect(source, repositoryUrl) {
-        when (source) {
-            ModuleSource.Official ->
-                if (officialViewModel.modules.isEmpty() && !officialViewModel.isRefreshing) {
-                    officialViewModel.fetchModules()
-                }
-
-            else -> if (repositoryUrl.isNotBlank()) repoViewModel.fetchModules(repositoryUrl)
+    LaunchedEffect(moduleType, source, repositoryUrl) {
+        if (usesManagerIndex) {
+            indexViewModel.fetchModules(moduleType, customIndexUrl)
+        } else if (repositoryUrl.isNotBlank()) {
+            repoViewModel.fetchModules(repositoryUrl)
         }
     }
 
@@ -137,21 +152,23 @@ fun OnlineModuleScreen(navigator: DestinationsNavigator) {
         if (target == source && url == repositoryUrl) return
         source = target
         repositoryUrl = url
-        ModuleRepoPreferences.setSource(target)
-        if (url.isNotEmpty()) ModuleRepoPreferences.setRepositoryUrl(url)
+        ModuleRepoPreferences.setSource(kernelModules, target)
+        if (url.isNotEmpty()) ModuleRepoPreferences.setRepositoryUrl(kernelModules, url)
         repoViewModel.resetModules()
     }
 
     fun startDownload(url: String, fileName: String, description: String) {
         if (url.isBlank()) return
         Toast.makeText(context, description, Toast.LENGTH_SHORT).show()
-        download(context, url, fileName, description)
+        download(context, url, fileName, description, mimeType = packageMimeType)
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = stringResource(R.string.online_module_title),
+                title = stringResource(
+                    if (kernelModules) R.string.online_module_kpm_title else R.string.online_module_title
+                ),
                 subtitle = stringResource(source.label),
                 navigationIcon = {
                     IconButton(onClick = { navigator.popBackStack() }) {
@@ -175,27 +192,29 @@ fun OnlineModuleScreen(navigator: DestinationsNavigator) {
                             onDismissRequest = { showSourceMenu = false },
                         ) {
                             ListPopupColumn {
-                                ModuleSource.entries.forEach { entry ->
-                                    StoreChoiceRow(
-                                        title = stringResource(entry.label),
-                                        summary = stringResource(entry.summary),
-                                        selected = entry == source,
-                                        onClick = {
-                                            showSourceMenu = false
-                                            when (entry) {
-                                                ModuleSource.Official ->
-                                                    selectSource(entry, repositoryUrl)
+                                ModuleSource.entries
+                                    .filter { !kernelModules || it != ModuleSource.Cluster }
+                                    .forEach { entry ->
+                                        StoreChoiceRow(
+                                            title = stringResource(entry.label),
+                                            summary = stringResource(entry.summary),
+                                            selected = entry == source,
+                                            onClick = {
+                                                showSourceMenu = false
+                                                when (entry) {
+                                                    ModuleSource.Official ->
+                                                        selectSource(entry, repositoryUrl)
 
-                                                ModuleSource.Cluster -> {
-                                                    showRepositoryList = true
-                                                    repoViewModel.fetchRepositories()
+                                                    ModuleSource.Cluster -> {
+                                                        showRepositoryList = true
+                                                        repoViewModel.fetchRepositories()
+                                                    }
+
+                                                    ModuleSource.Custom -> showRepositoryDialog = true
                                                 }
-
-                                                ModuleSource.Custom -> showRepositoryDialog = true
-                                            }
-                                        },
-                                    )
-                                }
+                                            },
+                                        )
+                                    }
                             }
                         }
                     }
@@ -209,8 +228,8 @@ fun OnlineModuleScreen(navigator: DestinationsNavigator) {
                             InputField(
                                 query = searchQuery,
                                 onQueryChange = { query ->
-                                    if (officialSource) {
-                                        officialViewModel.onSearchQueryChange(query)
+                                    if (usesManagerIndex) {
+                                        indexViewModel.onSearchQueryChange(query)
                                     } else {
                                         repoViewModel.onSearchQueryChange(query)
                                     }
@@ -233,14 +252,15 @@ fun OnlineModuleScreen(navigator: DestinationsNavigator) {
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            if (officialSource) {
-                OfficialModuleList(
-                    viewModel = officialViewModel,
+            if (usesManagerIndex) {
+                IndexModuleList(
+                    viewModel = indexViewModel,
+                    moduleType = moduleType,
                     listState = listState,
                     onDownload = { module ->
                         startDownload(
                             url = module.url,
-                            fileName = "${module.name}-${module.version}.zip",
+                            fileName = "${module.name}-${module.version}.$packageExtension",
                             description = resources.getString(
                                 R.string.online_module_download_start,
                                 module.name,
@@ -259,7 +279,7 @@ fun OnlineModuleScreen(navigator: DestinationsNavigator) {
                         module.latestRelease?.let { release ->
                             startDownload(
                                 url = release.zipUrl,
-                                fileName = "${module.name}-${release.version}.zip",
+                                fileName = "${module.name}-${release.version}.$packageExtension",
                                 description = resources.getString(
                                     R.string.online_module_download_start,
                                     module.name,
@@ -273,7 +293,19 @@ fun OnlineModuleScreen(navigator: DestinationsNavigator) {
     }
 
     DownloadListener(context) { uri ->
-        navigator.navigate(InstallScreenDestination(uri, MODULE_TYPE.APM))
+        if (!kernelModules) {
+            navigator.navigate(InstallScreenDestination(uri, MODULE_TYPE.APM))
+        } else {
+            scope.launch {
+                val result = kpmInstallMutex.withLock { installKpm(uri) }
+                val message = if (result == 0) {
+                    installSuccessToastText
+                } else {
+                    "$installFailedToastText: $result"
+                }
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     if (showRepositoryList) {
@@ -291,6 +323,13 @@ fun OnlineModuleScreen(navigator: DestinationsNavigator) {
     if (showRepositoryDialog) {
         RepositoryUrlDialog(
             initialUrl = repositoryUrl,
+            summary = stringResource(
+                if (kernelModules) {
+                    R.string.online_module_kpm_repo_url_summary
+                } else {
+                    R.string.online_module_repo_url_summary
+                }
+            ),
             onDismiss = { showRepositoryDialog = false },
             onConfirm = { url ->
                 showRepositoryDialog = false
@@ -301,8 +340,9 @@ fun OnlineModuleScreen(navigator: DestinationsNavigator) {
 }
 
 @Composable
-private fun OfficialModuleList(
+private fun IndexModuleList(
     viewModel: OnlineModuleViewModel,
+    moduleType: MODULE_TYPE,
     listState: LazyListState,
     onDownload: (OnlineModule) -> Unit,
 ) {
@@ -318,6 +358,7 @@ private fun OfficialModuleList(
             items(modules) { module ->
                 OnlineModuleCard(
                     module = module,
+                    moduleType = moduleType,
                     onDownload = { onDownload(module) },
                     downloadLabel = stringResource(R.string.online_module_download),
                 )
@@ -327,7 +368,7 @@ private fun OfficialModuleList(
         viewModel.isRefreshing -> APModuleLoadingState()
 
         viewModel.errorMessage != null -> StoreLoadErrorCard(
-            onRetry = { viewModel.fetchModules() },
+            onRetry = { viewModel.fetchModules(moduleType, force = true) },
         )
 
         else -> APModuleEmptyState(isSearching = viewModel.searchQuery.isNotBlank())
@@ -363,7 +404,7 @@ private fun RepositoryModuleList(
 
         viewModel.errorMessage != null -> StoreLoadErrorCard(
             onRetry = {
-                val url = ModuleRepoPreferences.repositoryUrl()
+                val url = ModuleRepoPreferences.repositoryUrl(forKernelModules = false)
                 if (url.isNotBlank()) viewModel.fetchModules(url)
             },
         )
@@ -434,6 +475,7 @@ private fun RepositoryListDialog(
 @Composable
 private fun RepositoryUrlDialog(
     initialUrl: String,
+    summary: String,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
 ) {
@@ -447,7 +489,7 @@ private fun RepositoryUrlDialog(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = stringResource(R.string.online_module_repo_url_summary),
+                text = summary,
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             )

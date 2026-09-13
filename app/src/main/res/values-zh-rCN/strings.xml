@@ -412,6 +412,7 @@
     <string name="home_layer_unknown">未知</string>
 
     <string name="online_module_title">模块仓库</string>
+    <string name="online_module_kpm_title">内核模块仓库</string>
     <string name="online_module_source_title">模块来源</string>
     <string name="online_module_source_official">官方索引</string>
     <string name="online_module_source_official_summary">由管理器自己的接口提供</string>
@@ -422,6 +423,7 @@
     <string name="online_module_select_repo">选择仓库</string>
     <string name="online_module_repo_url_title">仓库地址</string>
     <string name="online_module_repo_url_summary">仓库需在 json/modules.json 提供模块索引</string>
+    <string name="online_module_kpm_repo_url_summary">该地址需返回与管理器官方索引相同格式的模块列表</string>
     <string name="online_module_repo_url_hint">https://example.com/repo/</string>
     <string name="online_module_module_count">%1$d 个模块</string>
     <string name="online_module_default_repo">默认仓库</string>

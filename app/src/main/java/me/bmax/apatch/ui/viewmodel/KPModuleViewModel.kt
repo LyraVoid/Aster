@@ -69,8 +69,6 @@ class KPModuleViewModel : ViewModel() {
     var search by mutableStateOf("")
     var isRefreshing by mutableStateOf(false)
         private set
-    var isNeedRefresh by mutableStateOf(false)
-        private set
 
     val moduleList by derivedStateOf {
         val comparator = compareBy(Collator.getInstance(Locale.getDefault()), KPModel.KPMInfo::name)
@@ -82,8 +80,6 @@ class KPModuleViewModel : ViewModel() {
 
     val hasLoadError: Boolean
         get() = cachedLoadFailed
-
-    fun markNeedRefresh() { isNeedRefresh = true }
 
     fun updateModuleDisabled(moduleId: String, disabled: Boolean) {
         modules = modules.map { module ->
@@ -170,7 +166,6 @@ class KPModuleViewModel : ViewModel() {
                         )
                     }
                     modules = result.values.toList()
-                    isNeedRefresh = false
                 }.onFailure {
                     Log.e(TAG, "fetchModuleList", it)
                     cachedLoadFailed = true

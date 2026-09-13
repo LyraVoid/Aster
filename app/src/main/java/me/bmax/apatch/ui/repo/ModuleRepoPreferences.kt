@@ -22,22 +22,36 @@ enum class ModuleSource(val value: String) {
  * The store remembers what the reader last chose, so reopening it does not send them back to the
  * official index every time. The repository url is shared by the cluster and the custom source:
  * both end up as "the repository in use".
+ *
+ * The two stores keep separate answers. They are asked for different packages, so an address that
+ * suits one of them means nothing to the other, and the manager's own modules keep the keys that
+ * were in use before there was a second store.
  */
 internal object ModuleRepoPreferences {
     private const val SourceKey = "online_module_source"
     private const val RepositoryUrlKey = "custom_repo_url"
+    private const val KernelSourceKey = "online_kpm_source"
+    private const val KernelRepositoryUrlKey = "custom_kpm_repo_url"
 
-    fun source(): ModuleSource = ModuleSource.fromValue(
-        APApplication.sharedPreferences.getString(SourceKey, null)
-    )
-
-    fun setSource(source: ModuleSource) {
-        APApplication.sharedPreferences.edit { putString(SourceKey, source.value) }
+    fun source(forKernelModules: Boolean): ModuleSource {
+        val key = if (forKernelModules) KernelSourceKey else SourceKey
+        val stored = ModuleSource.fromValue(APApplication.sharedPreferences.getString(key, null))
+        // Kernel modules have no cluster to pick from, so a leftover cluster choice falls back.
+        return if (forKernelModules && stored == ModuleSource.Cluster) ModuleSource.Default else stored
     }
 
-    fun repositoryUrl(): String = APApplication.sharedPreferences.getString(RepositoryUrlKey, "").orEmpty()
+    fun setSource(forKernelModules: Boolean, source: ModuleSource) {
+        val key = if (forKernelModules) KernelSourceKey else SourceKey
+        APApplication.sharedPreferences.edit { putString(key, source.value) }
+    }
 
-    fun setRepositoryUrl(url: String) {
-        APApplication.sharedPreferences.edit { putString(RepositoryUrlKey, url) }
+    fun repositoryUrl(forKernelModules: Boolean): String {
+        val key = if (forKernelModules) KernelRepositoryUrlKey else RepositoryUrlKey
+        return APApplication.sharedPreferences.getString(key, "").orEmpty()
+    }
+
+    fun setRepositoryUrl(forKernelModules: Boolean, url: String) {
+        val key = if (forKernelModules) KernelRepositoryUrlKey else RepositoryUrlKey
+        APApplication.sharedPreferences.edit { putString(key, url) }
     }
 }
