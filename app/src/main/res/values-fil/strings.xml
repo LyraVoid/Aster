@@ -155,15 +155,12 @@
     <string name="light_blue_theme">Mapusyaw na asul</string>
     <string name="light_green_theme">Mapusyaw na berde</string>
     <string name="lime_theme">Lime</string>
-    <string name="meta_module_disabled">hindi naka-mount ang module, dahil naka-disable ang metamodule</string>
-    <string name="meta_module_removed">hindi naka-mount ang module, dahil tinatanggal ang metamodule</string>
     <string name="metamodule_uninstall_confirm">&quot;Sigurado ka bang gusto mong i-uninstall ang module %s? Makakaapekto ang aksyong ito sa lahat ng modules, at ang ilang feature na ibinibigay ng metamodule (tulad ng pag-mount) ay hindi na gagana.  &quot;</string>
     <string name="mode_select_page_install_inactive_slot">I-install sa inactive slot (Pagkatapos ng OTA)</string>
     <string name="mode_select_page_install_inactive_slot_warning">Ang iyong device ay **PUWERSAHIN** na mag-boot sa kasalukuyang inactive slot pagkatapos ng reboot!\nGamitin lamang ang opsyong ito pagkatapos ng OTA.\nMagpatuloy?</string>
     <string name="mode_select_page_patch_and_install">I-patch at i-install</string>
     <string name="mode_select_page_select_file">Pumili ng boot image na i-patch</string>
     <string name="mode_select_page_title">I-install</string>
-    <string name="no_meta_module_installed">hindi naka-mount ang module, dahil hindi naka-install ang metamodule</string>
     <string name="orange_theme">Kahel</string>
     <string name="patch_config_title">Mga Patch</string>
     <string name="patch_custom_superkey">Custom na SuperKey</string>
@@ -219,8 +216,6 @@
     <string name="settings_selinux_hide_warning_below_5_10">Ang feature na ito ay nasubok lamang sa kernel 5.10 pataas at maaaring hindi matatag sa mas mababang bersyon ng kernel.</string>
     <string name="settings_selinux_hide_warning_non_gki">Ang mga hindi GKI na kernel ay may mas malaking panganib at maaaring magdulot ng pagkabigo sa pag-boot. Siguraduhing naka-backup ang iyong data.</string>
     <string name="teal_theme">Teal</string>
-    <string name="warning_of_meta_module_summary">Ang module na ito ay nais i-mount ang /system, ang meta module ang hahawak niyan. Kung hindi, maaaring hindi ito gumana.</string>
-    <string name="warning_of_meta_module_title">Kinakailangan ang Meta module</string>
     <string name="yellow_theme">Dilaw</string>
     <string name="settings_jailbreak_mode">Mode ng jailbreak</string>
     <string name="settings_jailbreak_mode_summary">I-load ang module ng KernelPatch sa isang stock kernel. Hindi pinapayagan ang pag-patch sa mode na ito.</string>

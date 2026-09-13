@@ -206,10 +206,7 @@
     <string name="apm_undo">실행 취소</string>
     <string name="back">뒤로</string>
     <string name="learn_more">더 알아보기</string>
-    <string name="meta_module_disabled">메타 모듈이 비활성화되어 모듈이 마운트되지 않았습니다</string>
-    <string name="meta_module_removed">메타 모듈이 삭제 중이므로 모듈이 마운트되지 않았습니다</string>
     <string name="metamodule_uninstall_confirm">&quot;%s 모듈을 제거하시겠습니까? 이 작업은 모든 모듈에 영향을 미치며 메타 모듈에서 제공하는 일부 기능(예: 마운트)이 더 이상 작동하지 않습니다.  &quot;</string>
-    <string name="no_meta_module_installed">메타 모듈이 설치되지 않아 모듈이 마운트되지 않았습니다</string>
     <string name="patch_custom_superkey">사용자 지정 SuperKey</string>
     <string name="patch_custom_superkey_summary">superkey 관리자 root를 계속 사용할 수 있습니다. 이제 커널이 관리자 서명을 검증합니다</string>
     <string name="search">검색</string>
@@ -222,8 +219,6 @@
     <string name="settings_selinux_hide_warning_title">경고</string>
     <string name="settings_selinux_hide_warning_below_5_10">이 기능은 커널 5.10 이상에서만 테스트되었으며, 더 낮은 커널 버전에서는 불안정할 수 있습니다.</string>
     <string name="settings_selinux_hide_warning_non_gki">GKI가 아닌 커널은 더 큰 위험이 있으며 부팅 실패를 유발할 수 있습니다. 데이터를 백업했는지 확인하세요.</string>
-    <string name="warning_of_meta_module_summary">이 모듈은 /system을 마운트하려고 합니다. 메타 모듈이 이를 처리합니다. 그렇지 않으면 작동하지 않을 수 있습니다.</string>
-    <string name="warning_of_meta_module_title">Meta 모듈 필요</string>
     <string name="settings_jailbreak_mode">탈옥 모드</string>
     <string name="settings_jailbreak_mode_summary">순정 커널에 KernelPatch 모듈을 로드합니다. 이 모드에서는 패치가 허용되지 않습니다.</string>
     <string name="settings_jailbreak_soft_reboot">소프트 리부팅</string>

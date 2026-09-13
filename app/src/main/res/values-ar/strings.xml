@@ -206,10 +206,7 @@
     <string name="apm_undo">تراجع</string>
     <string name="back">رجوع</string>
     <string name="learn_more">اعرف المزيد</string>
-    <string name="meta_module_disabled">الوحدة غير مثبتة، لأن metamodule معطّل</string>
-    <string name="meta_module_removed">الوحدة غير مثبتة، لأن metamodule تم حذفه</string>
     <string name="metamodule_uninstall_confirm">&quot;هل أنت متأكد أنك تريد إلغاء تثبيت الوحدة %s؟ سيؤثر هذا الإجراء على جميع الوحدات، ولن تعمل بعض الميزات التي يوفرها metamodule (مثل التركيب) بعد الآن.&quot;</string>
-    <string name="no_meta_module_installed">الوحدة غير مثبتة، لأن metamodule غير مثبت</string>
     <string name="patch_custom_superkey">المفتاح الخارق المخصص</string>
     <string name="patch_custom_superkey_summary">لا يزال بإمكانك استخدام مدير الجذر بالمفتاح الخارق، والآن تتحقق النواة من توقيع المدير</string>
     <string name="search">بحث</string>
@@ -222,8 +219,6 @@
     <string name="settings_selinux_hide_warning_title">تحذير</string>
     <string name="settings_selinux_hide_warning_below_5_10">تم اختبار هذه الميزة على نواة 5.10 وما فوق فقط وقد تكون غير مستقرة على إصدارات النواة الأقل.</string>
     <string name="settings_selinux_hide_warning_non_gki">تحمل النوى غير GKI مخاطر أكبر وقد تؤدي إلى فشل الإقلاع. تأكد من عمل نسخة احتياطية لبياناتك.</string>
-    <string name="warning_of_meta_module_summary">تريد هذه الوحدة تركيب /system، وسيتولى metamodule ذلك. وإلا فقد لا تعمل.</string>
-    <string name="warning_of_meta_module_title">يتطلب وحدة Meta</string>
     <string name="settings_jailbreak_mode">وضع كسر الحماية</string>
     <string name="settings_jailbreak_mode_summary">قم بتحميل وحدة KernelPatch على نواة أصلية. لا يُسمح بالتثبيت في هذا الوضع.</string>
     <string name="settings_jailbreak_soft_reboot">إعادة تشغيل ناعمة</string>

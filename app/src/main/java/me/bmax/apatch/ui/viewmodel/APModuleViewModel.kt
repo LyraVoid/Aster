@@ -14,17 +14,18 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.apApp
-import me.bmax.apatch.ui.module.MetaModuleWarning
+import me.bmax.apatch.ui.module.ModuleMountWarning
 import me.bmax.apatch.ui.module.ModuleSortFacts
 import me.bmax.apatch.ui.module.ModuleSortGroup
 import me.bmax.apatch.ui.module.ModuleSortPriorityGroups
 import me.bmax.apatch.ui.module.ModuleSortPriorityStore
 import me.bmax.apatch.ui.module.moduleSortComparator
-import me.bmax.apatch.ui.module.probeMetaModuleWarning
+import me.bmax.apatch.ui.module.probeModuleMountWarning
 import me.bmax.apatch.ui.module.probeZygiskConsumerIds
 import me.bmax.apatch.util.HanziToPinyin
 import me.bmax.apatch.util.hasMagisk
 import me.bmax.apatch.util.listModules
+import me.bmax.apatch.util.magicMountChanges
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.Collator
@@ -35,11 +36,25 @@ class APModuleViewModel : ViewModel() {
         private const val TAG = "ModuleViewModel"
         private var modules by mutableStateOf<List<ModuleInfo>>(emptyList())
         private var cachedMagiskPresent by mutableStateOf(false)
-        private var cachedMetaModuleWarning by mutableStateOf<MetaModuleWarning?>(null)
+        private var cachedModuleMountWarning by mutableStateOf<ModuleMountWarning?>(null)
         private var cachedLoadFailed by mutableStateOf(false)
 
         // Filled by a probe on every refresh, and read by the order below.
         private var zygiskConsumers by mutableStateOf<Set<String>>(emptySet())
+    }
+
+    init {
+        // Main pages can remain composed behind Settings. Refresh the banner as soon as
+        // the mount switch succeeds, without waiting for another module/network refresh.
+        viewModelScope.launch(Dispatchers.IO) {
+            magicMountChanges.collect { refreshMountWarning() }
+        }
+    }
+
+    private fun refreshMountWarning() {
+        cachedModuleMountWarning = probeModuleMountWarning(
+            modules.filter { it.enabled && !it.remove }.map(ModuleInfo::id),
+        )
     }
 
     data class ModuleInfo(
@@ -122,8 +137,8 @@ class APModuleViewModel : ViewModel() {
     val isMagiskPresent: Boolean
         get() = cachedMagiskPresent
 
-    val metaModuleWarning: MetaModuleWarning?
-        get() = cachedMetaModuleWarning
+    val moduleMountWarning: ModuleMountWarning?
+        get() = cachedModuleMountWarning
 
     val hasLoadError: Boolean
         get() = cachedLoadFailed
@@ -166,7 +181,7 @@ class APModuleViewModel : ViewModel() {
                             pinyin = HanziToPinyin.getInstance().toPinyinString(name) ?: ""
                         )
                     }.toList()
-                cachedMetaModuleWarning = probeMetaModuleWarning(modules.map(ModuleInfo::id))
+                refreshMountWarning()
                 zygiskConsumers = probeZygiskConsumerIds(modules.map(ModuleInfo::id))
                 isRefreshing = false
 

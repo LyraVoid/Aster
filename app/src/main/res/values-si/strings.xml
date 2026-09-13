@@ -204,10 +204,7 @@
     <string name="crash_handle_title">යෙදුම ක්‍රෑෂ් විය…</string>
     <string name="learn_more">තව දැනගන්න</string>
     <string name="log_saved">ලොග් සුරකින ලදී</string>
-    <string name="meta_module_disabled">metamodule අක්‍රිය නිසා module එක සවි කර නොමැත</string>
-    <string name="meta_module_removed">metamodule මකා දමමින් පවතින නිසා module එක සවි කර නොමැත</string>
     <string name="metamodule_uninstall_confirm">"ඔබට %s module එක ඉවත් කිරීමට අවශ්‍ය බව විශ්වාසද? මෙම ක්‍රියාව සියලුම module වලට බලපානු ඇති අතර, metamodule මගින් සපයන සමහර විශේෂාංග (mount වැනි) තවදුරටත් ක්‍රියා නොකරනු ඇත.  "</string>
-    <string name="no_meta_module_installed">metamodule ස්ථාපනය කර නොමැති නිසා module එක සවි කර නොමැත</string>
     <string name="patch_custom_superkey">අභිරුචි SuperKey</string>
     <string name="patch_custom_superkey_summary">තවමත් superkey manager root භාවිතා කළ හැක; දැන් අපි kernel මගින් manager අත්සන තහවුරු කරමු</string>
     <string name="search">සොයන්න</string>
@@ -220,8 +217,6 @@
     <string name="settings_selinux_hide_warning_title">අනතුරු ඇඟවීම</string>
     <string name="settings_selinux_hide_warning_below_5_10">මෙම විශේෂාංගය පරීක්ෂා කර ඇත්තේ 5.10 සහ ඊට වැඩි කර්නල් වල පමණක් වන අතර පහළ කර්නල් සංස්කරණ වල අස්ථායී විය හැක.</string>
     <string name="settings_selinux_hide_warning_non_gki">GKI නොවන කර්නල් වල වැඩි අවදානමක් ඇති අතර ආරම්භක අසාර්ථකත්වයට හේතු විය හැක. ඔබේ දත්ත උපස්ථ කර ඇති බවට වග බලා ගන්න.</string>
-    <string name="warning_of_meta_module_summary">මෙම module එකට /system mount කිරීමට අවශ්‍යයි; metamodule එය භාර ගනී. එසේ නොවුවහොත් එය ක්‍රියා නොකරනු ඇත.</string>
-    <string name="warning_of_meta_module_title">Meta module එකක් අවශ්‍යයි</string>
     <string name="settings_jailbreak_mode">ජේල්බ්රේක් මාදිලිය</string>
     <string name="settings_jailbreak_mode_summary">මුල් කර්නලයට KernelPatch මොඩියුලය පූරණය කරන්න. මෙම මාදිලියේ patching අවසර නැත.</string>
     <string name="settings_jailbreak_soft_reboot">මෘදු reboot</string>

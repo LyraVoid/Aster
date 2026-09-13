@@ -140,15 +140,12 @@
     <string name="light_blue_theme">Lyseblå</string>
     <string name="light_green_theme">Lysegrøn</string>
     <string name="lime_theme">Lime</string>
-    <string name="meta_module_disabled">modulet er ikke monteret, fordi metamodulet er deaktiveret</string>
-    <string name="meta_module_removed">modulet er ikke monteret, fordi metamodulet bliver slettet</string>
     <string name="metamodule_uninstall_confirm">&quot;Er du sikker på, at du vil afinstallere modulet %s? Denne handling påvirker alle moduler, og visse funktioner, der leveres af metamodulet (såsom montering), vil ikke længere virke.  &quot;</string>
     <string name="mode_select_page_install_inactive_slot">Installér i inaktiv slot (efter OTA)</string>
     <string name="mode_select_page_install_inactive_slot_warning">Din enhed vil blive **TVUNGET** til at starte i den nuværende inaktive slot efter en genstart!\nBrug kun denne mulighed, når OTA er færdig.\nFortsæt?</string>
     <string name="mode_select_page_patch_and_install">Patch og installér</string>
     <string name="mode_select_page_select_file">Vælg et boot-image at patche</string>
     <string name="mode_select_page_title">Installér</string>
-    <string name="no_meta_module_installed">modulet er ikke monteret, fordi metamodulet ikke er installeret</string>
     <string name="orange_theme">Orange</string>
     <string name="patch_config_title">Patches</string>
     <string name="patch_custom_superkey">Brugerdefineret SuperKey</string>
@@ -219,8 +216,6 @@
     <string name="super_key">SuperKey</string>
     <string name="system_default">Systemstandard</string>
     <string name="teal_theme">Blågrøn</string>
-    <string name="warning_of_meta_module_summary">Dette modul vil montere /system, metamodulet vil håndtere det. Ellers fungerer det måske ikke.</string>
-    <string name="warning_of_meta_module_title">Kræver meta-modul</string>
     <string name="yellow_theme">Gul</string>
     <string name="settings_jailbreak_mode">Jailbreak-tilstand</string>
     <string name="settings_jailbreak_mode_summary">Indlæs KernelPatch-modulet på en uændret kerne. Patching er ikke tilladt i denne tilstand.</string>

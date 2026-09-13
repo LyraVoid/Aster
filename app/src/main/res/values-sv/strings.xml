@@ -198,12 +198,9 @@
     <string name="kpm_unload">Lossa</string>
     <string name="learn_more">Lär dig mer</string>
     <string name="lime_theme">Lime</string>
-    <string name="meta_module_disabled">modulen är inte monterad, eftersom metamodulen är inaktiverad</string>
-    <string name="meta_module_removed">modulen är inte monterad, eftersom metamodulen tas bort</string>
     <string name="metamodule_uninstall_confirm">"Är du säker på att du vill avinstallera modulen %s? Den här åtgärden påverkar alla moduler, och vissa funktioner som tillhandahålls av metamodulen (t.ex. montering) fungerar inte längre.  "</string>
     <string name="mode_select_page_install_inactive_slot_warning">Din enhet kommer att **TVINGAS** att starta på den inaktiva platsen efter en omstart!\nAnvänd bara det här alternativet efter att OTA är klar.\nFortsätta?</string>
     <string name="mode_select_page_select_file">Välj en startavbild att patcha</string>
-    <string name="no_meta_module_installed">modulen är inte monterad, eftersom metamodulen inte är installerad</string>
     <string name="orange_theme">Orange</string>
     <string name="patch_custom_superkey">Anpassad SuperKey</string>
     <string name="patch_custom_superkey_summary">Du kan fortfarande använda superkey-hanteraren för root; nu verifierar kärnan hanterarens signatur.</string>
@@ -220,8 +217,6 @@
     <string name="settings_selinux_hide_warning_title">Varning</string>
     <string name="settings_selinux_hide_warning_below_5_10">Den här funktionen är endast testad på kärnan 5.10 och nyare och kan vara instabil på lägre kärnversioner.</string>
     <string name="settings_selinux_hide_warning_non_gki">Icke-GKI-kärnor medför en högre risk och kan orsaka startfel. Se till att dina data är säkerhetskopierade.</string>
-    <string name="warning_of_meta_module_summary">Den här modulen vill montera /system; metamodulen kommer att hantera det. Annars kanske den inte fungerar.</string>
-    <string name="warning_of_meta_module_title">Kräver metamodul</string>
     <string name="settings_jailbreak_mode">Jailbreak-läge</string>
     <string name="settings_jailbreak_mode_summary">Laddar KernelPatch-modulen på en oförändrad kärna. Patching är inte tillåtet i detta läge.</string>
     <string name="settings_jailbreak_soft_reboot">Mjuk omstart</string>

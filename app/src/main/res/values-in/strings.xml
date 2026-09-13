@@ -204,10 +204,7 @@
     <string name="apm_undo">Urungkan</string>
     <string name="back">Kembali</string>
     <string name="learn_more">Pelajari lebih lanjut</string>
-    <string name="meta_module_disabled">modul tidak dipasang, karena modul meta dinonaktifkan</string>
-    <string name="meta_module_removed">modul tidak dipasang, karena modul meta sedang dihapus</string>
     <string name="metamodule_uninstall_confirm">"Apakah Anda yakin ingin menghapus modul %s? Tindakan ini akan memengaruhi semua modul, dan beberapa fitur yang disediakan oleh modul meta (seperti mounting) tidak akan berfungsi lagi.  "</string>
-    <string name="no_meta_module_installed">modul tidak dipasang, karena modul meta tidak terpasang</string>
     <string name="patch_custom_superkey">SuperKey Kustom</string>
     <string name="patch_custom_superkey_summary">masih dapat menggunakan root manajer superkey; kini kami memverifikasi tanda tangan manajer melalui kernel</string>
     <string name="search">Cari</string>
@@ -220,8 +217,6 @@
     <string name="settings_selinux_hide_warning_title">Peringatan</string>
     <string name="settings_selinux_hide_warning_below_5_10">Fitur ini hanya diuji pada kernel 5.10 ke atas dan mungkin tidak stabil pada versi kernel yang lebih rendah.</string>
     <string name="settings_selinux_hide_warning_non_gki">Kernel non-GKI memiliki risiko yang lebih besar dan dapat menyebabkan kegagalan boot. Pastikan data Anda sudah dicadangkan.</string>
-    <string name="warning_of_meta_module_summary">Modul ini ingin me-mount /system, modul meta akan menanganinya. Jika tidak, modul mungkin tidak berfungsi.</string>
-    <string name="warning_of_meta_module_title">Memerlukan modul meta</string>
     <string name="settings_jailbreak_mode">Mode jailbreak</string>
     <string name="settings_jailbreak_mode_summary">Muat modul KernelPatch pada kernel asli. Patching tidak diizinkan dalam mode ini.</string>
     <string name="settings_jailbreak_soft_reboot">Reboot lembut</string>

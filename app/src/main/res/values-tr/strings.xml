@@ -206,10 +206,7 @@
     <string name="apm_undo">Geri al</string>
     <string name="back">Geri</string>
     <string name="learn_more">Daha fazla bilgi</string>
-    <string name="meta_module_disabled">modül bağlanmadı, çünkü metamodül devre dışı</string>
-    <string name="meta_module_removed">modül bağlanmadı, çünkü metamodül siliniyor</string>
     <string name="metamodule_uninstall_confirm">&quot;%s modülünü kaldırmak istediğinize emin misiniz? Bu işlem tüm modülleri etkileyecek ve metamodül tarafından sağlanan bazı özellikler (bağlama gibi) artık çalışmayacak.  &quot;</string>
-    <string name="no_meta_module_installed">modül bağlanmadı, çünkü metamodül kurulu değil</string>
     <string name="patch_custom_superkey">Özel Süper Anahtar</string>
     <string name="patch_custom_superkey_summary">süper anahtar yöneticisi root kullanmaya devam edebilir, artık yönetici imzasını kernel ile doğruluyoruz</string>
     <string name="search">Ara</string>
@@ -222,8 +219,6 @@
     <string name="settings_selinux_hide_warning_title">Uyarı</string>
     <string name="settings_selinux_hide_warning_below_5_10">Bu özellik yalnızca 5.10 ve üzeri çekirdeklerde test edilmiştir ve daha düşük çekirdek sürümlerinde kararsız olabilir.</string>
     <string name="settings_selinux_hide_warning_non_gki">GKI olmayan çekirdekler daha büyük risk taşır ve önyükleme hatasına neden olabilir. Verilerinizin yedeklendiğinden emin olun.</string>
-    <string name="warning_of_meta_module_summary">Bu modül /system\'i bağlamak istiyor, meta modül bunu halledecek. Aksi takdirde çalışmayabilir.</string>
-    <string name="warning_of_meta_module_title">Meta modül gerektirir</string>
     <string name="settings_jailbreak_mode">Jailbreak modu</string>
     <string name="settings_jailbreak_mode_summary">KernelPatch modülünü orijinal çekirdeğe yükler. Bu modda yama yapmaya izin verilmez.</string>
     <string name="settings_jailbreak_soft_reboot">Yumuşak yeniden başlatma</string>

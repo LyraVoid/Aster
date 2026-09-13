@@ -208,10 +208,7 @@
     <string name="apm_undo">Geri qaytar</string>
     <string name="back">Geri</string>
     <string name="learn_more">Daha çox öyrənin</string>
-    <string name="meta_module_disabled">modul quraşdırılmayıb, çünki metamodul deaktiv edilib</string>
-    <string name="meta_module_removed">modul quraşdırılmayıb, çünki metamodul silinir</string>
     <string name="metamodule_uninstall_confirm">%s modulunu silmək istədiyinizə əminsiniz? Bu əməliyyat bütün modullara təsir edəcək və metamodulun təmin etdiyi bəzi xüsusiyyətlər (məsələn, mount etmə) artıq işləməyəcək.</string>
-    <string name="no_meta_module_installed">modul quraşdırılmayıb, çünki metamodul quraşdırılmayıb</string>
     <string name="patch_custom_superkey">Fərdi SuperKey</string>
     <string name="patch_custom_superkey_summary">hələ də superkey menecerinin root funksiyasından istifadə edə bilərsiniz, indi menecerin imzasını nüvə vasitəsilə yoxlayırıq</string>
     <string name="search">Axtar</string>
@@ -224,8 +221,6 @@
     <string name="settings_selinux_hide_warning_title">Xəbərdarlıq</string>
     <string name="settings_selinux_hide_warning_below_5_10">Bu xüsusiyyət yalnız 5.10 və yuxarı nüvədə sınaqdan keçirilib və daha aşağı nüvə versiyalarında qeyri-sabit ola bilər.</string>
     <string name="settings_selinux_hide_warning_non_gki">GKI olmayan nüvələr daha böyük risk daşıyır və açılışın uğursuz olmasına səbəb ola bilər. Məlumatlarınızın ehtiyat nüsxəsini yaratdığınızdan əmin olun.</string>
-    <string name="warning_of_meta_module_summary">Bu modul /system-i mount etmək istəyir, meta modul bununla məşğul olacaq. Əks halda, işləməyə bilər.</string>
-    <string name="warning_of_meta_module_title">Meta modul tələb olunur</string>
     <string name="settings_jailbreak_mode">Cilbrik rejimi</string>
     <string name="settings_jailbreak_mode_summary">Stock kernel üzərində KernelPatch modulunu yükləyin. Bu rejimdə yamaq tətbiq etmək icazə verilmir.</string>
     <string name="settings_jailbreak_soft_reboot">Yumşaq yenidən başlatma</string>

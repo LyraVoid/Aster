@@ -161,15 +161,12 @@
     <string name="light_green_theme">Hijau muda</string>
     <string name="lime_theme">Limau</string>
     <string name="log_saved">Log disimpan</string>
-    <string name="meta_module_disabled">modul tidak dipasang, kerana metamodul dimatikan</string>
-    <string name="meta_module_removed">modul tidak dipasang, kerana metamodul sedang dipadam</string>
     <string name="metamodule_uninstall_confirm">Adakah anda pasti mahu menyahpasang modul %s? Tindakan ini akan menjejaskan semua modul, dan ciri tertentu yang disediakan oleh metamodul (seperti pemasangan) tidak akan berfungsi lagi.</string>
     <string name="mode_select_page_install_inactive_slot">Pasang ke slot tidak aktif (Selepas OTA)</string>
     <string name="mode_select_page_install_inactive_slot_warning">Peranti anda akan **DIPAKSA** untuk boot ke slot tidak aktif semasa selepas but semula!\nGunakan pilihan ini hanya selepas OTA selesai.\nTeruskan?</string>
     <string name="mode_select_page_patch_and_install">Tampal dan pasang</string>
     <string name="mode_select_page_select_file">Pilih imej boot untuk ditampal</string>
     <string name="mode_select_page_title">Pasang</string>
-    <string name="no_meta_module_installed">modul tidak dipasang, kerana metamodul tidak dipasang</string>
     <string name="orange_theme">Oren</string>
     <string name="patch_custom_superkey">SuperKey Tersuai</string>
     <string name="patch_custom_superkey_summary">masih boleh menggunakan pengurus root superkey, kini kami mengesahkan tandatangan pengurus oleh kernel</string>
@@ -219,8 +216,6 @@
     <string name="su_show_system_apps">Tunjukkan apl sistem</string>
     <string name="su_title">Pengguna super</string>
     <string name="teal_theme">Biru hijau</string>
-    <string name="warning_of_meta_module_summary">Modul ini mahu memasang /system, metamodul akan mengendalikannya. Jika tidak, ia mungkin tidak berfungsi.</string>
-    <string name="warning_of_meta_module_title">Memerlukan modul Meta</string>
     <string name="yellow_theme">Kuning</string>
     <string name="settings_jailbreak_mode">Mod jailbreak</string>
     <string name="settings_jailbreak_mode_summary">Muatkan modul KernelPatch pada kernel asli. Menampal tidak dibenarkan dalam mod ini.</string>

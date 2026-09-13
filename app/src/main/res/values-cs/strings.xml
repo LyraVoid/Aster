@@ -204,10 +204,7 @@
     <string name="app_name" translatable="false">APatch</string>
     <string name="back">Zpět</string>
     <string name="learn_more">Zjistit více</string>
-    <string name="meta_module_disabled">modul není připojen, protože metamodul je zakázán</string>
-    <string name="meta_module_removed">modul není připojen, protože metamodul je odstraněn</string>
     <string name="metamodule_uninstall_confirm">&quot;Opravdu chcete odinstalovat modul %s? Tato akce ovlivní všechny moduly a některé funkce poskytované metamodulem (například připojování) přestanou fungovat.  &quot;</string>
-    <string name="no_meta_module_installed">modul není připojen, protože metamodul není nainstalován</string>
     <string name="patch_custom_superkey">Vlastní SuperKlíč</string>
     <string name="patch_custom_superkey_summary">stále můžete použít root správce SuperKlíče, nyní ověřujeme podpis správce jádrem</string>
     <string name="search">Hledat</string>
@@ -220,8 +217,6 @@
     <string name="settings_selinux_hide_warning_title">Varování</string>
     <string name="settings_selinux_hide_warning_below_5_10">Tato funkce byla testována pouze na jádře 5.10 a vyšším a na nižších verzích jádra může být nestabilní.</string>
     <string name="settings_selinux_hide_warning_non_gki">Jádra mimo GKI s sebou nesou vyšší riziko a mohou způsobit selhání spuštění. Ujistěte se, že máte zálohovaná data.</string>
-    <string name="warning_of_meta_module_summary">Tento modul chce připojit /system, metamodul to bude řešit. Jinak by nemusel fungovat.</string>
-    <string name="warning_of_meta_module_title">Vyžaduje meta modul</string>
     <string name="settings_jailbreak_mode">Režim jailbreak</string>
     <string name="settings_jailbreak_mode_summary">Načte modul KernelPatch na neupraveném jádře. V tomto režimu není povoleno patchování.</string>
     <string name="settings_jailbreak_soft_reboot">Měkký restart</string>

@@ -204,10 +204,7 @@
     <string name="apm_undo">เลิกทำ</string>
     <string name="back">ย้อนกลับ</string>
     <string name="learn_more">เรียนรู้เพิ่มเติม</string>
-    <string name="meta_module_disabled">โมดูลไม่ได้ติดตั้ง เนื่องจากปิดใช้งานเมตาโมดูล</string>
-    <string name="meta_module_removed">โมดูลไม่ได้ติดตั้ง เนื่องจากกำลังลบเมตาโมดูล</string>
     <string name="metamodule_uninstall_confirm">"คุณแน่ใจหรือไม่ว่าต้องการถอนการติดตั้งโมดูล %s? การดำเนินการนี้จะส่งผลต่อโมดูลทั้งหมด และคุณสมบัติบางอย่างที่ได้รับจากเมตาโมดูล (เช่นการ mount) จะไม่ทำงานอีกต่อไป  "</string>
-    <string name="no_meta_module_installed">โมดูลไม่ได้ติดตั้ง เนื่องจากยังไม่ได้ติดตั้งเมตาโมดูล</string>
     <string name="patch_custom_superkey">SuperKey แบบกำหนดเอง</string>
     <string name="patch_custom_superkey_summary">ยังสามารถใช้ root ผ่านตัวจัดการ superkey ได้ โดยตอนนี้เราจะตรวจสอบลายเซ็นของตัวจัดการผ่านเคอร์เนล</string>
     <string name="search">ค้นหา</string>
@@ -220,8 +217,6 @@
     <string name="settings_selinux_hide_warning_title">คำเตือน</string>
     <string name="settings_selinux_hide_warning_below_5_10">ฟีเจอร์นี้ทดสอบเฉพาะบนเคอร์เนล 5.10 ขึ้นไปและอาจไม่เสถียรบนเวอร์ชันเคอร์เนลที่ต่ำกว่า</string>
     <string name="settings_selinux_hide_warning_non_gki">เคอร์เนลที่ไม่ใช่ GKI มีความเสี่ยงสูงกว่าและอาจทำให้บูตไม่สำเร็จ ตรวจสอบให้แน่ใจว่าข้อมูลของคุณถูกสำรองไว้</string>
-    <string name="warning_of_meta_module_summary">โมดูลนี้ต้องการ mount /system เมตาโมดูลจะจัดการเรื่องนั้น มิฉะนั้นอาจไม่ทำงาน</string>
-    <string name="warning_of_meta_module_title">ต้องใช้เมตาโมดูล</string>
     <string name="settings_jailbreak_mode">โหมดเจลเบรก</string>
     <string name="settings_jailbreak_mode_summary">โหลดโมดูล KernelPatch บนเคอร์เนลปกติ ไม่สามารถแพตช์ได้ในโหมดนี้</string>
     <string name="settings_jailbreak_soft_reboot">รีสตาร์ทแบบซอฟต์</string>

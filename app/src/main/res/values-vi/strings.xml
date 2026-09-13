@@ -206,10 +206,7 @@
     <string name="apm_undo">Hoàn tác</string>
     <string name="back">Quay lại</string>
     <string name="learn_more">Tìm hiểu thêm</string>
-    <string name="meta_module_disabled">không gắn mô-đun vì mô-đun meta bị vô hiệu hóa</string>
-    <string name="meta_module_removed">không gắn mô-đun vì mô-đun meta đang bị xóa</string>
     <string name="metamodule_uninstall_confirm">"Bạn có chắc chắn muốn gỡ cài đặt mô-đun %s không? Hành động này sẽ ảnh hưởng đến tất cả các mô-đun và một số tính năng do mô-đun meta cung cấp (như mount) sẽ không còn hoạt động.  "</string>
-    <string name="no_meta_module_installed">không gắn mô-đun vì mô-đun meta chưa được cài đặt</string>
     <string name="patch_custom_superkey">SuperKey tùy chỉnh</string>
     <string name="patch_custom_superkey_summary">vẫn có thể dùng root qua trình quản lý superkey; hiện chúng tôi xác minh chữ ký của trình quản lý bằng kernel</string>
     <string name="search">Tìm kiếm</string>
@@ -222,8 +219,6 @@
     <string name="settings_selinux_hide_warning_title">Cảnh báo</string>
     <string name="settings_selinux_hide_warning_below_5_10">Tính năng này chỉ được thử nghiệm trên kernel 5.10 trở lên và có thể không ổn định trên các phiên bản kernel thấp hơn.</string>
     <string name="settings_selinux_hide_warning_non_gki">Kernel không phải GKI có rủi ro cao hơn và có thể gây lỗi khởi động. Đảm bảo rằng bạn đã sao lưu dữ liệu.</string>
-    <string name="warning_of_meta_module_summary">Mô-đun này muốn mount /system, mô-đun meta sẽ xử lý việc đó. Nếu không, nó có thể không hoạt động.</string>
-    <string name="warning_of_meta_module_title">Yêu cầu mô-đun meta</string>
     <string name="settings_jailbreak_mode">Chế độ jailbreak</string>
     <string name="settings_jailbreak_mode_summary">Tải mô-đun KernelPatch trên kernel gốc. Không được phép vá trong chế độ này.</string>
     <string name="settings_jailbreak_soft_reboot">Khởi động lại mềm</string>

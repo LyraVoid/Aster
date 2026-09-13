@@ -204,10 +204,7 @@
     <string name="app_name" translatable="false">APatch</string>
     <string name="back">பின்செல்</string>
     <string name="learn_more">மேலும் அறிக</string>
-    <string name="meta_module_disabled">மெட்டாமாட்யூல் முடக்கப்பட்டதால், தொகுதி ஏற்றப்படவில்லை</string>
-    <string name="meta_module_removed">மெட்டாமாட்யூல் நீக்கப்படுவதால், தொகுதி ஏற்றப்படவில்லை</string>
     <string name="metamodule_uninstall_confirm">"தொகுதி %s ஐ நிறுவல் நீக்க விரும்புகிறீர்களா? இந்த செயல் அனைத்து தொகுதிகளையும் பாதிக்கும், மேலும் மெட்டாமாட்யூலால் வழங்கப்படும் சில அம்சங்கள் (மவுண்ட் செய்வது போன்றவை) இனி வேலை செய்யாது."</string>
-    <string name="no_meta_module_installed">மெட்டாமாட்யூல் நிறுவப்படாததால், தொகுதி ஏற்றப்படவில்லை</string>
     <string name="patch_custom_superkey">தனிப்பயன் SuperKey</string>
     <string name="patch_custom_superkey_summary">இன்னும் சூப்பர்கி மேலாளர் ரூட்டைப் பயன்படுத்தலாம், இப்போது கர்னல் மேலாளர் கையொப்பத்தை சரிபார்க்கிறது</string>
     <string name="search">தேடு</string>
@@ -220,8 +217,6 @@
     <string name="settings_selinux_hide_warning_title">எச்சரிக்கை</string>
     <string name="settings_selinux_hide_warning_below_5_10">இந்த அம்சம் 5.10 மற்றும் அதற்கு மேற்பட்ட கர்னல்களில் மட்டுமே சோதிக்கப்பட்டது, மேலும் குறைந்த கர்னல் பதிப்புகளில் நிலையற்றதாக இருக்கலாம்.</string>
     <string name="settings_selinux_hide_warning_non_gki">GKI அல்லாத கர்னல்கள் அதிக ஆபத்தை ஏற்படுத்தும் மற்றும் துவக்க தோல்வியை ஏற்படுத்தலாம். உங்கள் தரவு காப்புப் பிரதி எடுக்கப்பட்டுள்ளதா என்பதை உறுதிப்படுத்தவும்.</string>
-    <string name="warning_of_meta_module_summary">இந்த தொகுதி /system ஐ மவுண்ட் செய்ய விரும்புகிறது, மெட்டா தொகுதி அதை கவனித்துக் கொள்ளும். இல்லையெனில், அது வேலை செய்யாமல் போகலாம்.</string>
-    <string name="warning_of_meta_module_title">மெட்டா தொகுதி தேவை</string>
     <string name="settings_jailbreak_mode">ஜெயில்பிரேக் முறை</string>
     <string name="settings_jailbreak_mode_summary">அசல் கர்னலில் KernelPatch தொகுதியை ஏற்றவும். இந்த முறையில் patching அனுமதிக்கப்படாது.</string>
     <string name="settings_jailbreak_soft_reboot">மென்மையான மறுதொடக்கம்</string>

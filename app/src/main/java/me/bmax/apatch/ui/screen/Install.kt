@@ -2,13 +2,11 @@ package me.bmax.apatch.ui.screen
 
 import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import android.util.Log
+import android.os.Environment
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -37,13 +34,11 @@ import androidx.lifecycle.compose.dropUnlessResumed
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.topjohnwu.superuser.io.SuFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.component.KeyEventBlocker
-import me.bmax.apatch.util.hasMetaModule
 import me.bmax.apatch.util.installModule
 import me.bmax.apatch.util.reboot
 import top.yukonga.miuix.kmp.basic.Button
@@ -54,13 +49,11 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SnackbarHost
 import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.FileDownloads
 import top.yukonga.miuix.kmp.icon.extended.Refresh
-import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.io.File
 import java.text.SimpleDateFormat
@@ -80,7 +73,6 @@ fun InstallScreen(navigator: DestinationsNavigator, uri: Uri, type: MODULE_TYPE)
     var text by rememberSaveable { mutableStateOf("") }
     val logContent = remember { StringBuilder() }
     var showRebootAction by rememberSaveable { mutableStateOf(false) }
-    var showMetaModuleWarning by rememberSaveable { mutableStateOf(false) }
 
     fun appendLog(line: String) {
         logContent.append(line).append("\n")
@@ -92,7 +84,6 @@ fun InstallScreen(navigator: DestinationsNavigator, uri: Uri, type: MODULE_TYPE)
     val snackBarHost = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
-    val uriHandler = LocalUriHandler.current
     val logSavedLabel = stringResource(R.string.log_saved)
 
     LaunchedEffect(Unit) {
@@ -105,7 +96,6 @@ fun InstallScreen(navigator: DestinationsNavigator, uri: Uri, type: MODULE_TYPE)
 
                 scope.launch {
                     showRebootAction = true
-                    showMetaModuleWarning = shouldShowMetaModuleWarning(context, uri)
                 }
 
             }, onStdout = {
@@ -171,31 +161,7 @@ fun InstallScreen(navigator: DestinationsNavigator, uri: Uri, type: MODULE_TYPE)
         )
     }
 
-    MetaModuleWarningDialog(
-        show = showMetaModuleWarning,
-        onDismiss = { showMetaModuleWarning = false },
-        onLearnMore = {
-            uriHandler.openUri("https://apatch.dev/meta-module.html")
-        },
-    )
 }
-
-private suspend fun shouldShowMetaModuleWarning(context: Context, uri: Uri): Boolean =
-    withContext(Dispatchers.IO) {
-        try {
-            if (hasMetaModule()) return@withContext false
-
-            val moduleId = getModuleIdFromUri(context, uri) ?: return@withContext false
-            val mountOldDirectory =
-                SuFile.open("/data/adb/modules/$moduleId/system")
-            val mountNewDirectory =
-                SuFile.open("/data/adb/modules_update/$moduleId/system")
-            mountOldDirectory.isDirectory || mountNewDirectory.isDirectory
-        } catch (t: Throwable) {
-            Log.w("ModuleInstall", "Unable to inspect installed module", t)
-            false
-        }
-    }
 
 @Composable
 private fun InstallTopBar(
@@ -241,38 +207,6 @@ private fun InstallRebootAction(onClick: () -> Unit) {
             text = reboot,
             style = MiuixTheme.textStyles.button,
         )
-    }
-}
-
-@Composable
-private fun MetaModuleWarningDialog(
-    show: Boolean,
-    onDismiss: () -> Unit,
-    onLearnMore: () -> Unit,
-) {
-    OverlayDialog(
-        show = show,
-        title = stringResource(R.string.warning_of_meta_module_title),
-        summary = stringResource(R.string.warning_of_meta_module_summary),
-        onDismissRequest = onDismiss,
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            TextButton(
-                text = stringResource(R.string.learn_more),
-                onClick = onLearnMore,
-                modifier = Modifier.weight(1f),
-            )
-            Button(
-                onClick = onDismiss,
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColorsPrimary(),
-            ) {
-                Text(stringResource(android.R.string.ok))
-            }
-        }
     }
 }
 

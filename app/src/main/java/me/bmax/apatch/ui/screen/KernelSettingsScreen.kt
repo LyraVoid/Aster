@@ -32,6 +32,8 @@ import me.bmax.apatch.ui.settings.resolveSettingsFeatureAvailability
 import me.bmax.apatch.ui.shell.LocalAsterCapabilities
 import me.bmax.apatch.ui.shell.LocalFloatingNavigationInset
 import me.bmax.apatch.util.getKernelVersionCode
+import me.bmax.apatch.util.isMagicMountEnabled
+import me.bmax.apatch.util.setMagicMountEnabled
 import me.bmax.apatch.util.isGkiKernel
 import me.bmax.apatch.util.isGlobalNamespaceEnabled
 import me.bmax.apatch.util.rootShellForResult
@@ -43,7 +45,6 @@ import top.yukonga.miuix.kmp.icon.extended.All
 import top.yukonga.miuix.kmp.icon.extended.Edit
 import top.yukonga.miuix.kmp.icon.extended.Layers
 import top.yukonga.miuix.kmp.icon.extended.Lock
-import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -68,6 +69,9 @@ fun KernelSettingsScreen(navigator: DestinationsNavigator) {
     val scope = rememberCoroutineScope()
     val prefs = APApplication.sharedPreferences
 
+    var magicMountEnabled by remember { mutableStateOf(false) }
+    var magicMountLoaded by remember { mutableStateOf(false) }
+    var magicMountSaving by remember { mutableStateOf(false) }
     var globalNamespaceEnabled by remember { mutableStateOf(false) }
     var namespaceLoaded by remember { mutableStateOf(false) }
     var kernelRuntime by remember { mutableStateOf<KernelRuntimeInfo?>(null) }
@@ -87,6 +91,17 @@ fun KernelSettingsScreen(navigator: DestinationsNavigator) {
         aPatchReady = aPatchReady,
         nightFollowSystem = false,
     )
+
+    LaunchedEffect(kPatchReady, aPatchReady) {
+        magicMountLoaded = false
+        if (kPatchReady && aPatchReady) {
+            val result = withContext(Dispatchers.IO) { runCatching { isMagicMountEnabled() } }
+            result.onSuccess {
+                magicMountEnabled = it
+                magicMountLoaded = true
+            }
+        }
+    }
 
     LaunchedEffect(kPatchReady, aPatchReady) {
         namespaceLoaded = false
@@ -154,6 +169,34 @@ fun KernelSettingsScreen(navigator: DestinationsNavigator) {
         ) {
             item(key = "patch") {
                 SettingsCard {
+                    if (kPatchReady && aPatchReady) {
+                        SwitchPreference(
+                            title = stringResource(R.string.settings_magic_mount),
+                            summary = stringResource(R.string.settings_magic_mount_summary),
+                            checked = magicMountEnabled,
+                            enabled = magicMountLoaded && !magicMountSaving,
+                            startAction = { SettingsIcon(MiuixIcons.Layers) },
+                            onCheckedChange = { enabled ->
+                                magicMountSaving = true
+                                scope.launch {
+                                    try {
+                                        val success = withContext(Dispatchers.IO) {
+                                            runCatching { setMagicMountEnabled(enabled) }.getOrDefault(false)
+                                        }
+                                        if (success) magicMountEnabled = enabled
+                                        Toast.makeText(
+                                            context,
+                                            if (success) R.string.apm_reboot_to_apply else R.string.failure,
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                    } finally {
+                                        magicMountSaving = false
+                                    }
+                                }
+                            },
+                        )
+                    }
+
                     if (availability.globalNamespace) {
                         SwitchPreference(
                             checked = globalNamespaceEnabled,

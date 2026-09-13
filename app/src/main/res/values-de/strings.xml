@@ -206,10 +206,7 @@
     <string name="apm_undo">Rückgängig</string>
     <string name="back">Zurück</string>
     <string name="learn_more">Mehr erfahren</string>
-    <string name="meta_module_disabled">Modul nicht gemountet, da die Metamodul deaktiviert ist</string>
-    <string name="meta_module_removed">Modul nicht gemountet, da die Metamodul gelöscht wird</string>
     <string name="metamodule_uninstall_confirm">"Sind Sie sicher, dass Sie Modul %s deinstallieren möchten? Diese Aktion betrifft alle Module, und bestimmte von der Metamodul bereitgestellte Funktionen (wie das Mounten) funktionieren dann nicht mehr.  "</string>
-    <string name="no_meta_module_installed">Modul nicht gemountet, da die Metamodul nicht installiert ist</string>
     <string name="patch_custom_superkey">Benutzerdefinierter SuperKey</string>
     <string name="patch_custom_superkey_summary">Sie können den SuperKey-Manager weiterhin für Root verwenden; jetzt verifiziert der Kernel die Signatur des Managers</string>
     <string name="search">Suchen</string>
@@ -222,8 +219,6 @@
     <string name="settings_selinux_hide_warning_title">Warnung</string>
     <string name="settings_selinux_hide_warning_below_5_10">Diese Funktion wurde nur mit Kernel 5.10 und höher getestet und kann auf niedrigeren Kernelversionen instabil sein.</string>
     <string name="settings_selinux_hide_warning_non_gki">Nicht-GKI-Kernel bergen ein höheres Risiko und können Startfehler verursachen. Stellen Sie sicher, dass Ihre Daten gesichert sind.</string>
-    <string name="warning_of_meta_module_summary">Dieses Modul möchte /system mounten; die Metamodul übernimmt das. Andernfalls funktioniert es möglicherweise nicht.</string>
-    <string name="warning_of_meta_module_title">Metamodul erforderlich</string>
     <string name="settings_jailbreak_mode">Jailbreak-Modus</string>
     <string name="settings_jailbreak_mode_summary">Lädt das KernelPatch-Modul auf einem unmodifizierten Kernel. In diesem Modus ist kein Patchen erlaubt.</string>
     <string name="settings_jailbreak_soft_reboot">Weicher Neustart</string>

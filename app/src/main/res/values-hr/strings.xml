@@ -201,11 +201,8 @@
     <string name="home_kpatch_version">Verzija KernelPatcha</string>
     <string name="kpm_embed">Ugradi</string>
     <string name="learn_more">Saznaj više</string>
-    <string name="meta_module_disabled">modul nije montiran jer je metamodul onemogućen</string>
-    <string name="meta_module_removed">modul nije montiran jer se metamodul briše</string>
     <string name="metamodule_uninstall_confirm">"Jeste li sigurni da želite deinstalirati modul %s? Ova radnja će utjecati na sve module, a neke značajke koje pruža metamodul (poput montiranja) više neće raditi.  "</string>
     <string name="mode_select_page_select_file">Odaberi sliku za pokretanje za patchiranje</string>
-    <string name="no_meta_module_installed">modul nije montiran jer metamodul nije instaliran</string>
     <string name="patch_custom_superkey">Prilagođeni SuperKey</string>
     <string name="patch_custom_superkey_summary">još uvijek možete koristiti root putem upravitelja superkey; sada provjeravamo potpis upravitelja u kernelu</string>
     <string name="patch_embed_kpm_btn">Ugradi KPM</string>
@@ -222,8 +219,6 @@
     <string name="settings_selinux_hide_warning_title">Upozorenje</string>
     <string name="settings_selinux_hide_warning_below_5_10">Ova značajka testirana je samo na jezgri 5.10 i novijoj te može biti nestabilna na nižim verzijama jezgre.</string>
     <string name="settings_selinux_hide_warning_non_gki">Ne-GKI jezgre nose veći rizik i mogu uzrokovati neuspjeh pokretanja. Provjerite jeste li napravili sigurnosnu kopiju podataka.</string>
-    <string name="warning_of_meta_module_summary">Ovaj modul želi montirati /system, metamodul će to riješiti. Inače, možda neće raditi.</string>
-    <string name="warning_of_meta_module_title">Potreban Meta modul</string>
     <string name="settings_jailbreak_mode">Način jailbreak</string>
     <string name="settings_jailbreak_mode_summary">Učitajte KernelPatch modul na nepromijenjenoj jezgri. U ovom načinu rada patchanje nije dopušteno.</string>
     <string name="settings_jailbreak_soft_reboot">Mekani ponovni pokret</string>

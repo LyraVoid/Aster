@@ -77,6 +77,7 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
          * would fail and the app would disappear without a word.
          */
         private const val MAX_CRASH_TRACE_LENGTH = 64 * 1024
+        const val MAGIC_MOUNT_FILE = "/data/adb/.magic_mount_enable"
         const val GLOBAL_NAMESPACE_FILE = "/data/adb/.global_namespace_enable"
         const val SUCOMPAT_FILE = "/data/adb/ap/sucompat"
         const val SELINUX_HIDE_FILE = APATCH_FOLDER + "selinux_hide"

@@ -204,10 +204,7 @@
     <string name="apm_undo">Cofnij</string>
     <string name="back">Wstecz</string>
     <string name="learn_more">Dowiedz się więcej</string>
-    <string name="meta_module_disabled">moduł nie jest zamontowany, ponieważ metamoduł jest wyłączony</string>
-    <string name="meta_module_removed">moduł nie jest zamontowany, ponieważ metamoduł jest usuwany</string>
     <string name="metamodule_uninstall_confirm">&quot;Czy na pewno chcesz odinstalować moduł %s? Ta operacja wpłynie na wszystkie moduły, a niektóre funkcje udostępniane przez metamoduł (takie jak montowanie) przestaną działać.  &quot;</string>
-    <string name="no_meta_module_installed">moduł nie jest zamontowany, ponieważ metamoduł nie jest zainstalowany</string>
     <string name="patch_custom_superkey">Niestandardowy SuperKey</string>
     <string name="patch_custom_superkey_summary">nadal można używać menedżera root SuperKey, teraz weryfikujemy podpis menedżera za pomocą jądra</string>
     <string name="search">Szukaj</string>
@@ -220,8 +217,6 @@
     <string name="settings_selinux_hide_warning_title">Ostrzeżenie</string>
     <string name="settings_selinux_hide_warning_below_5_10">Ta funkcja jest testowana tylko na jądrze 5.10 i nowszym i może być niestabilna na starszych wersjach jądra.</string>
     <string name="settings_selinux_hide_warning_non_gki">Jądra inne niż GKI niosą większe ryzyko i mogą spowodować błąd uruchamiania. Upewnij się, że masz kopię zapasową danych.</string>
-    <string name="warning_of_meta_module_summary">Ten moduł chce zamontować /system, metamoduł zajmie się tym. W przeciwnym razie może nie działać.</string>
-    <string name="warning_of_meta_module_title">Wymaga meta modułu</string>
     <string name="settings_jailbreak_mode">Tryb jailbreak</string>
     <string name="settings_jailbreak_mode_summary">Ładuje moduł KernelPatch na niezmodyfikowanym jądrze. W tym trybie patchowanie jest niedozwolone.</string>
     <string name="settings_jailbreak_soft_reboot">Miękki restart</string>

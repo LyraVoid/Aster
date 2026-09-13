@@ -1,32 +1,35 @@
 package me.bmax.apatch.ui.module
 
 import com.topjohnwu.superuser.io.SuFile
+import me.bmax.apatch.util.isMagicMountEnabled
 
-enum class MetaModuleWarning {
+enum class ModuleMountWarning {
     NOT_INSTALLED,
     PENDING_REMOVAL,
     DISABLED,
 }
 
-internal fun resolveMetaModuleWarning(
+internal fun resolveModuleMountWarning(
     requiresMount: Boolean,
     metaModulePropPresent: Boolean,
     metaModuleRemoved: Boolean,
     metaModuleDisabled: Boolean,
-): MetaModuleWarning? = when {
-    !requiresMount -> null
-    !metaModulePropPresent -> MetaModuleWarning.NOT_INSTALLED
-    metaModuleRemoved -> MetaModuleWarning.PENDING_REMOVAL
-    metaModuleDisabled -> MetaModuleWarning.DISABLED
+    magicMountEnabled: Boolean = false,
+): ModuleMountWarning? = when {
+    !requiresMount || magicMountEnabled -> null
+    !metaModulePropPresent -> ModuleMountWarning.NOT_INSTALLED
+    metaModuleRemoved -> ModuleMountWarning.PENDING_REMOVAL
+    metaModuleDisabled -> ModuleMountWarning.DISABLED
     else -> null
 }
 
-internal fun probeMetaModuleWarning(moduleIds: List<String>): MetaModuleWarning? {
+internal fun probeModuleMountWarning(moduleIds: List<String>): ModuleMountWarning? {
     if (moduleIds.isEmpty()) return null
 
     // SuFile can throw when the main root shell failed to initialize. An unknown
     // result must degrade to no warning instead of crashing the module screen.
     return runCatching {
+        if (isMagicMountEnabled()) return@runCatching null
         val requiresMount = moduleIds.any { moduleId ->
             val moduleDir = "/data/adb/modules/$moduleId"
             val hasSystem = SuFile.open("$moduleDir/system").isDirectory
@@ -38,7 +41,7 @@ internal fun probeMetaModuleWarning(moduleIds: List<String>): MetaModuleWarning?
             null
         } else {
             val metaDir = "/data/adb/metamodule"
-            resolveMetaModuleWarning(
+            resolveModuleMountWarning(
                 requiresMount = true,
                 metaModulePropPresent = SuFile.open("$metaDir/module.prop").isFile,
                 metaModuleRemoved = SuFile.open("$metaDir/remove").isFile,

@@ -139,15 +139,12 @@
     <string name="light_green_theme">Ijo muda</string>
     <string name="lime_theme">Lime</string>
     <string name="log_saved">Log disimpen</string>
-    <string name="meta_module_disabled">modul ora dipasang, amarga metamodul dipateni</string>
-    <string name="meta_module_removed">modul ora dipasang, amarga metamodul dibusak</string>
     <string name="metamodule_uninstall_confirm">Apa sampeyan yakin arep mbusak modul %s? Tindakan iki bakal mengaruhi kabeh modul, lan fitur tartamtu sing diwenehake dening metamodul (kayata mounting) ora bakal bisa digunakake maneh.</string>
     <string name="mode_select_page_install_inactive_slot">Pasang menyang slot non-aktif (Sawise OTA)</string>
     <string name="mode_select_page_install_inactive_slot_warning">Piranti sampeyan bakal **DIPAKSA** boot menyang slot non-aktif sawise mbalek!\nMung gunakake opsi iki sawise OTA rampung.\nTerusake?</string>
     <string name="mode_select_page_patch_and_install">Tambal lan pasang</string>
     <string name="mode_select_page_select_file">Pilih gambar boot kanggo di-patch</string>
     <string name="mode_select_page_title">Pasang</string>
-    <string name="no_meta_module_installed">modul ora dipasang, amarga metamodul durung dipasang</string>
     <string name="orange_theme">Oranye</string>
     <string name="patch">Tambal</string>
     <string name="patch_config_title">Tambalan</string>
@@ -219,8 +216,6 @@
     <string name="success">Sukses</string>
     <string name="system_default">Standar sistem</string>
     <string name="teal_theme">Tosca</string>
-    <string name="warning_of_meta_module_summary">Modul iki pengin mount /system, modul meta bakal ngatasi. Yen ora, bisa uga ora bisa digunakake.</string>
-    <string name="warning_of_meta_module_title">Mbutuhake modul Meta</string>
     <string name="yellow_theme">Kuning</string>
     <string name="settings_jailbreak_mode">Mode jailbreak</string>
     <string name="settings_jailbreak_mode_summary">Unggah modul KernelPatch ing kernel asli. Ora diidini patching ing mode iki.</string>

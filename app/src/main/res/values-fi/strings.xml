@@ -204,10 +204,7 @@
     <string name="app_name" translatable="false">APatch</string>
     <string name="back">Takaisin</string>
     <string name="learn_more">Lue lisää</string>
-    <string name="meta_module_disabled">moduulia ei liitetty, koska metamoduuli on poistettu käytöstä</string>
-    <string name="meta_module_removed">moduulia ei liitetty, koska metamoduuli poistetaan</string>
     <string name="metamodule_uninstall_confirm">Haluatko varmasti poistaa moduulin %s? Tämä toiminto vaikuttaa kaikkiin moduuleihin, ja tietyt metamoduulin tarjoamat ominaisuudet (kuten liittäminen) eivät enää toimi.</string>
-    <string name="no_meta_module_installed">moduulia ei liitetty, koska metamoduulia ei ole asennettu</string>
     <string name="patch_custom_superkey">Mukautettu SuperKey</string>
     <string name="patch_custom_superkey_summary">voit edelleen käyttää superkey-managerin root-toimintoa, nyt vahvistamme managerin allekirjoituksen ytimen avulla</string>
     <string name="search">Haku</string>
@@ -220,8 +217,6 @@
     <string name="settings_selinux_hide_warning_title">Varoitus</string>
     <string name="settings_selinux_hide_warning_below_5_10">Tätä toimintoa on testattu vain ytimillä 5.10 ja uudemmilla, ja se voi olla epävakaa vanhemmissa ydinversioissa.</string>
     <string name="settings_selinux_hide_warning_non_gki">Muut kuin GKI-ytimet aiheuttavat suuremman riskin ja voivat aiheuttaa käynnistyksen epäonnistumisen. Varmista, että tietosi on varmuuskopioitu.</string>
-    <string name="warning_of_meta_module_summary">Tämä moduuli haluaa liittää /system-kansion, metamoduuli hoitaa sen. Muuten se ei ehkä toimi.</string>
-    <string name="warning_of_meta_module_title">Vaatii metamoduulin</string>
     <string name="settings_jailbreak_mode">Jailbreak-tila</string>
     <string name="settings_jailbreak_mode_summary">Lataa KernelPatch-moduuli muokkaamattomaan ytimeen. Tässä tilassa korjaaminen ei ole sallittua.</string>
     <string name="settings_jailbreak_soft_reboot">Pehmeä uudelleenkäynnistys</string>

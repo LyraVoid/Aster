@@ -307,10 +307,7 @@
     <string name="apm_undo">復原</string>
     <string name="back">返回</string>
     <string name="learn_more">了解更多</string>
-    <string name="meta_module_disabled">模組未掛載，因為元模組已停用</string>
-    <string name="meta_module_removed">模組未掛載，因為元模組即將刪除</string>
     <string name="metamodule_uninstall_confirm">"您確定要解除安裝模組 %s 嗎？此操作將影響所有模組，而且元模組提供的某些功能（如掛載）將不再運作。  "</string>
-    <string name="no_meta_module_installed">模組未掛載，因為未安裝元模組</string>
     <string name="patch_custom_superkey">自訂 SuperKey</string>
     <string name="patch_custom_superkey_summary">仍可使用 superkey 管理員的 root 權限，現在我們由核心驗證管理員簽名</string>
     <string name="search">搜尋</string>
@@ -323,8 +320,6 @@
     <string name="settings_selinux_hide_warning_title">警告</string>
     <string name="settings_selinux_hide_warning_below_5_10">此功能僅在 5.10 及以上內核測試過，在較低的內核版本上可能不穩定。</string>
     <string name="settings_selinux_hide_warning_non_gki">非 GKI 內核風險更大，可能導致無法開機。請確保已備份資料。</string>
-    <string name="warning_of_meta_module_summary">此模組想要掛載 /system，元模組會處理此事。否則，它可能無法正常運作。</string>
-    <string name="warning_of_meta_module_title">需要元模組</string>
     <string name="settings_jailbreak_mode">越獄模式</string>
     <string name="settings_jailbreak_mode_summary">在未修補的核心上載入 KernelPatch 模組。該模式下不允許修補。</string>
     <string name="settings_jailbreak_soft_reboot">軟重啟</string>
@@ -470,4 +465,9 @@
     <string name="theme_spec_2025_unsupported">該配色方案沒有 2025 版本，按 2021 處理。</string>
     <string name="navigation_show_entry">顯示%1$s入口</string>
     <string name="navigation_show_entry_summary">在導覽與左右滑動中顯示；首頁和設定始終保留</string>
+    <string name="settings_magic_mount">Magic mount</string>
+    <string name="settings_magic_mount_summary">啟用內建模組掛載，取代元模組掛載。變更後需重新啟動生效。</string>
+    <string name="module_mount_unavailable">掛載方式無法使用。請開啟 Magic mount 或安裝掛載元模組，然後重新啟動。</string>
+    <string name="module_mount_meta_disabled">Magic mount 已關閉，元模組也已停用。請啟用一種掛載方式，然後重新啟動。</string>
+    <string name="module_mount_meta_removing">Magic mount 已關閉，元模組待解除安裝。請開啟 Magic mount 或保留元模組，然後重新啟動。</string>
 </resources>

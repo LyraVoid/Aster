@@ -206,10 +206,7 @@
     <string name="apm_undo">Desfazer</string>
     <string name="back">Voltar</string>
     <string name="learn_more">Saber mais</string>
-    <string name="meta_module_disabled">módulo não montado, porque o metamódulo está desativado</string>
-    <string name="meta_module_removed">módulo não montado, porque o metamódulo está a ser eliminado</string>
     <string name="metamodule_uninstall_confirm">&quot;Tem a certeza de que deseja desinstalar o módulo %s? Esta ação afetará todos os módulos, e determinadas funcionalidades fornecidas pelo metamódulo (como a montagem) deixarão de funcionar.  &quot;</string>
-    <string name="no_meta_module_installed">módulo não montado, porque o metamódulo não está instalado</string>
     <string name="patch_custom_superkey">SuperKey personalizada</string>
     <string name="patch_custom_superkey_summary">ainda é possível usar o root do gestor superkey; agora verificamos a assinatura do gestor pelo kernel</string>
     <string name="search">Pesquisar</string>
@@ -222,8 +219,6 @@
     <string name="settings_selinux_hide_warning_title">Aviso</string>
     <string name="settings_selinux_hide_warning_below_5_10">Esta função só foi testada em kernels 5.10 ou superiores e pode ser instável em versões inferiores.</string>
     <string name="settings_selinux_hide_warning_non_gki">Kernels não-GKI apresentam um risco maior e podem causar falhas no arranque. Certifique-se de que os seus dados estão com backup.</string>
-    <string name="warning_of_meta_module_summary">Este módulo quer montar /system; o módulo meta irá tratar disso. Caso contrário, pode não funcionar.</string>
-    <string name="warning_of_meta_module_title">Requer módulo Meta</string>
     <string name="settings_jailbreak_mode">Modo jailbreak</string>
     <string name="settings_jailbreak_mode_summary">Carrega o módulo KernelPatch num kernel original. Não é permitido aplicar patches neste modo.</string>
     <string name="settings_jailbreak_soft_reboot">Reinicialização suave</string>

@@ -191,14 +191,11 @@
     <string name="kpm_control_paramters">Parametere</string>
     <string name="kpm_unload">Last ut</string>
     <string name="learn_more">Lær mer</string>
-    <string name="meta_module_disabled">modulen er ikke montert, fordi metamodulen er deaktivert</string>
-    <string name="meta_module_removed">modulen er ikke montert, fordi metamodulen slettes</string>
     <string name="metamodule_uninstall_confirm">"Er du sikker på at du vil avinstallere modulen %s? Denne handlingen vil påvirke alle moduler, og visse funksjoner fra metamodulen (som montering) vil ikke lenger fungere.  "</string>
     <string name="mode_select_page_install_inactive_slot">Installer til inaktivt spor (Etter OTA)</string>
     <string name="mode_select_page_install_inactive_slot_warning">Enheten din vil bli **TVUNGET** til å starte på det inaktive sporet etter en omstart!\nBruk kun dette alternativet etter at OTA er fullført.\nFortsette?</string>
     <string name="mode_select_page_patch_and_install">Patch og installer</string>
     <string name="mode_select_page_select_file">Velg et oppstartsbilde å patche</string>
-    <string name="no_meta_module_installed">modulen er ikke montert, fordi metamodulen ikke er installert</string>
     <string name="patch_custom_superkey">Egendefinert SuperKey</string>
     <string name="patch_custom_superkey_summary">Du kan fortsatt bruke superkey-manageren for root; nå verifiserer kjernen managerens signatur.</string>
     <string name="pink_theme">Rosa</string>
@@ -219,8 +216,6 @@
     <string name="settings_selinux_hide_warning_below_5_10">Denne funksjonen er kun testet på kjerne 5.10 og nyere, og kan være ustabil på lavere kjerneversjoner.</string>
     <string name="settings_selinux_hide_warning_non_gki">Ikke-GKI-kjerner har en høyere risiko og kan føre til oppstartsfeil. Sørg for at dataene dine er sikkerhetskopiert.</string>
     <string name="teal_theme">Blågrønn</string>
-    <string name="warning_of_meta_module_summary">Denne modulen ønsker å montere /system; metamodulen vil håndtere det. Ellers kan den kanskje ikke fungere.</string>
-    <string name="warning_of_meta_module_title">Krever metamodul</string>
     <string name="yellow_theme">Gul</string>
     <string name="settings_jailbreak_mode">Jailbreak-modus</string>
     <string name="settings_jailbreak_mode_summary">Last KernelPatch-modulen på en uendret kjerne. Patching er ikke tillatt i denne modusen.</string>

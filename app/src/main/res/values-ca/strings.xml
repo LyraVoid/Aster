@@ -180,15 +180,12 @@
     <string name="light_blue_theme">Blau clar</string>
     <string name="light_green_theme">Verd clar</string>
     <string name="lime_theme">Llima</string>
-    <string name="meta_module_disabled">"el mòdul no s\'ha muntat perquè el metamòdul està desactivat"</string>
-    <string name="meta_module_removed">"el mòdul no s\'ha muntat perquè el metamòdul s\'està eliminant"</string>
     <string name="metamodule_uninstall_confirm">&quot;Esteu segur que voleu desinstal·lar el mòdul %s? Aquesta acció afectarà tots els mòduls, i algunes funcions proporcionades pel metamòdul (com el muntatge) deixaran de funcionar.  &quot;</string>
     <string name="mode_select_page_install_inactive_slot">"Instal·la a la ranura inactiva (després de l\'OTA)"</string>
     <string name="mode_select_page_install_inactive_slot_warning">"El dispositiu es **FORÇARÀ** a arrencar a la ranura inactiva actual després de reiniciar!\nUtilitzeu aquesta opció només després d\'haver fet l\'OTA.\nContinueu?"</string>
     <string name="mode_select_page_patch_and_install">Aplica el pegat i instal·la</string>
     <string name="mode_select_page_select_file">"Selecciona una imatge d\'arrencada per aplicar-hi el pegat"</string>
     <string name="mode_select_page_title">Instal·la</string>
-    <string name="no_meta_module_installed">"el mòdul no s\'ha muntat perquè el metamòdul no està instal·lat"</string>
     <string name="orange_theme">Taronja</string>
     <string name="patch_custom_superkey">SuperKey personalitzada</string>
     <string name="patch_custom_superkey_summary">Encara podeu utilitzar el gestor de root de la superkey; ara el nucli verifica la signatura del gestor.</string>
@@ -219,8 +216,6 @@
     <string name="su_pkg_excluded_setting_summary">"Activar aquesta opció permetrà a APatch restaurar qualsevol fitxer modificat pels mòduls d\'aquesta aplicació."</string>
     <string name="su_selinux_via_hook">Esquiva mitjançant hook</string>
     <string name="teal_theme">Blau verdós</string>
-    <string name="warning_of_meta_module_summary">"Aquest mòdul vol muntar /system; el metamòdul s\'encarregarà d\'això. En cas contrari, potser no funcionarà."</string>
-    <string name="warning_of_meta_module_title">Es requereix el metamòdul</string>
     <string name="yellow_theme">Groc</string>
     <string name="settings_jailbreak_mode">Mode jailbreak</string>
     <string name="settings_jailbreak_mode_summary">"Carregueu el mòdul KernelPatch en un nucli d'origen. No es permet l'aplicació de pegats en aquest mode."</string>

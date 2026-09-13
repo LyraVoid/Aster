@@ -18,6 +18,9 @@ import me.bmax.apatch.APApplication.Companion.SUPERCMD
 import me.bmax.apatch.BuildConfig
 import me.bmax.apatch.apApp
 import me.bmax.apatch.ui.screen.MODULE_TYPE
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import java.io.File
 import java.util.Properties
 
@@ -230,6 +233,23 @@ fun migrateStockBootBackup() {
             "mkdir -p /data/adb/ap && cp /data/user/*/me.bmax.apatch/patch/ori.img /data/adb/ap/ 2>/dev/null && rm -f /data/user/*/me.bmax.apatch/patch/ori.img; true"
         ).exec()
     }
+}
+
+fun isMagicMountEnabled(): Boolean {
+    val marker = SuFile(APApplication.MAGIC_MOUNT_FILE)
+    marker.shell = getRootShell()
+    return marker.exists()
+}
+
+private val magicMountRevision = MutableStateFlow(0)
+internal val magicMountChanges = magicMountRevision.asStateFlow()
+
+fun setMagicMountEnabled(enabled: Boolean): Boolean {
+    val success = rootShellForResult(
+        "${if (enabled) "touch" else "rm -f"} ${APApplication.MAGIC_MOUNT_FILE}",
+    ).isSuccess
+    if (success) magicMountRevision.update { it + 1 }
+    return success
 }
 
 fun hasMetaModule(): Boolean {

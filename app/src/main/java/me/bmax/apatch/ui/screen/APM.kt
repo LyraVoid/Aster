@@ -65,7 +65,7 @@ import me.bmax.apatch.ui.component.MissingLayerNotice
 import me.bmax.apatch.ui.component.rememberConfirmDialog
 import me.bmax.apatch.ui.component.rememberLoadingDialog
 import me.bmax.apatch.ui.module.APModuleContentState
-import me.bmax.apatch.ui.module.MetaModuleWarning
+import me.bmax.apatch.ui.module.ModuleMountWarning
 import me.bmax.apatch.ui.module.ModuleSortGroup
 import me.bmax.apatch.ui.module.ModuleSortPriorityGroups
 import me.bmax.apatch.ui.module.resolveAPModuleContentState
@@ -423,10 +423,10 @@ private fun APModuleList(
     val changelogText = stringResource(R.string.apm_changelog)
     val downloadingText = stringResource(R.string.apm_downloading)
     val startDownloadingText = stringResource(R.string.apm_start_downloading)
-    val metaModuleWarningText = when (viewModel.metaModuleWarning) {
-        MetaModuleWarning.NOT_INSTALLED -> stringResource(R.string.no_meta_module_installed)
-        MetaModuleWarning.PENDING_REMOVAL -> stringResource(R.string.meta_module_removed)
-        MetaModuleWarning.DISABLED -> stringResource(R.string.meta_module_disabled)
+    val moduleMountWarningText = when (viewModel.moduleMountWarning) {
+        ModuleMountWarning.NOT_INSTALLED -> stringResource(R.string.module_mount_unavailable)
+        ModuleMountWarning.PENDING_REMOVAL -> stringResource(R.string.module_mount_meta_removing)
+        ModuleMountWarning.DISABLED -> stringResource(R.string.module_mount_meta_disabled)
         null -> null
     }
     val contentState = resolveAPModuleContentState(
@@ -439,7 +439,7 @@ private fun APModuleList(
     val context = LocalContext.current
     val loadingDialog = rememberLoadingDialog()
     val confirmDialog = rememberConfirmDialog()
-    var warningDismissed by rememberSaveable { mutableStateOf(false) }
+    var warningDismissed by rememberSaveable(viewModel.moduleMountWarning) { mutableStateOf(false) }
 
     suspend fun onModuleUpdate(
         module: APModuleViewModel.ModuleInfo,
@@ -590,15 +590,15 @@ private fun APModuleList(
                 end = 4.dp,
             ),
         ) {
-            if (metaModuleWarningText != null && !warningDismissed) {
-                item(key = "meta-module-warning") {
+            if (moduleMountWarningText != null && !warningDismissed) {
+                item(key = "module-mount-warning") {
                     AnimatedVisibility(
                         visible = true,
                         enter = fadeIn() + expandVertically(),
                         exit = fadeOut() + shrinkVertically(),
                     ) {
-                        MetaModuleWarningCard(
-                            text = metaModuleWarningText,
+                        ModuleMountWarningCard(
+                            text = moduleMountWarningText,
                             onClosed = { warningDismissed = true },
                         )
                     }

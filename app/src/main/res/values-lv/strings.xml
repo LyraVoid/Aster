@@ -158,14 +158,11 @@
     <string name="kpm_unload_confirm">Izlādēt moduli %s?</string>
     <string name="learn_more">Uzzināt vairāk</string>
     <string name="log_saved">Żurnāli saglabāti</string>
-    <string name="meta_module_disabled">modulis nav montēts, jo metamodulis ir atspējots</string>
-    <string name="meta_module_removed">modulis nav montēts, jo metamodulis tiek dzēsts</string>
     <string name="metamodule_uninstall_confirm">Vai tiešām vēlaties atinstalēt moduli %s? Šī darbība ietekmēs visus moduļus, un dažas metamoduļa funkcijas (piemēram, montēšana) vairs nedarbosies.</string>
     <string name="mode_select_page_install_inactive_slot">Instalēt neaktīvajā nodalījumā (pēc OTA)</string>
     <string name="mode_select_page_install_inactive_slot_warning">Jūsu ierīce pēc restartēšanas tiks **PIESPIESTA** sāknēties pašreizējā neaktīvajā nodalījumā!\nIzmantojiet šo opciju tikai pēc OTA pabeigšanas.\nTurpināt?</string>
     <string name="mode_select_page_patch_and_install">Ielāpīt un instalēt</string>
     <string name="mode_select_page_select_file">Atlasiet sāknēšanas attēlu ielāpīšanai</string>
-    <string name="no_meta_module_installed">modulis nav montēts, jo metamodulis nav instalēts</string>
     <string name="patch_config_title">Ielāpi</string>
     <string name="patch_custom_superkey">Pielāgots SuperKey</string>
     <string name="patch_custom_superkey_summary">joprojām var izmantot superkey pārvaldnieka root, tagad mēs verificējam pārvaldnieka parakstu ar kodolu</string>
@@ -220,8 +217,6 @@
     <string name="su_show_system_apps">Rādīt sistēmas lietotnes</string>
     <string name="su_title">Superlietotājs</string>
     <string name="super_key">SuperKey</string>
-    <string name="warning_of_meta_module_summary">Šis modulis vēlas montēt /system, metamodulis to apstrādās. Pretējā gadījumā tas var nedarboties.</string>
-    <string name="warning_of_meta_module_title">Nepieciešams Meta modulis</string>
     <string name="settings_jailbreak_mode">Jailbreak režīms</string>
     <string name="settings_jailbreak_mode_summary">Ielādējiet KernelPatch moduli oriģinālajā kodolā. Šajā režīmā ielāpīšana nav atļauta.</string>
     <string name="settings_jailbreak_soft_reboot">Mīkstā pārstartēšana</string>

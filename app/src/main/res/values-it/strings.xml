@@ -206,10 +206,7 @@
     <string name="apm_undo">Annulla</string>
     <string name="back">Indietro</string>
     <string name="learn_more">Scopri di più</string>
-    <string name="meta_module_disabled">modulo non montato, perché il metamodulo è disabilitato</string>
-    <string name="meta_module_removed">modulo non montato, perché il metamodulo è in fase di eliminazione</string>
     <string name="metamodule_uninstall_confirm">&quot;Vuoi davvero disinstallare il modulo %s? Questa azione influirà su tutti i moduli e alcune funzioni fornite dal metamodulo (come il montaggio) non funzioneranno più.  &quot;</string>
-    <string name="no_meta_module_installed">modulo non montato, perché il metamodulo non è installato</string>
     <string name="patch_custom_superkey">SuperKey personalizzata</string>
     <string name="patch_custom_superkey_summary">puoi ancora usare il root del gestore superkey; ora verifichiamo la firma del gestore tramite il kernel</string>
     <string name="search">Cerca</string>
@@ -222,8 +219,6 @@
     <string name="settings_selinux_hide_warning_title">Avviso</string>
     <string name="settings_selinux_hide_warning_below_5_10">Questa funzione è stata testata solo su kernel 5.10 e superiori e potrebbe essere instabile su versioni inferiori.</string>
     <string name="settings_selinux_hide_warning_non_gki">I kernel non GKI comportano un rischio maggiore e possono causare errori di avvio. Assicurati di aver eseguito un backup dei dati.</string>
-    <string name="warning_of_meta_module_summary">Questo modulo vuole montare /system; il modulo meta lo gestirà. In caso contrario, potrebbe non funzionare.</string>
-    <string name="warning_of_meta_module_title">Richiede il modulo Meta</string>
     <string name="settings_jailbreak_mode">Modalità jailbreak</string>
     <string name="settings_jailbreak_mode_summary">Carica il modulo KernelPatch su un kernel non modificato. Il patching non è consentito in questa modalità.</string>
     <string name="settings_jailbreak_soft_reboot">Riavvio soft</string>

@@ -132,15 +132,12 @@
     <string name="light_green_theme">Šviesiai žalia</string>
     <string name="lime_theme">Laimas</string>
     <string name="log_saved">Žurnalai išsaugoti</string>
-    <string name="meta_module_disabled">modulis neprijungtas, nes metamodulis išjungtas</string>
-    <string name="meta_module_removed">modulis neprijungtas, nes metamodulis pašalintas</string>
     <string name="metamodule_uninstall_confirm">&quot;Ar tikrai norite pašalinti modulį %s? Šis veiksmas paveiks visus modulius, o kai kurios metamodulio funkcijos (pvz., prijungimas) nebeveiks.&quot;</string>
     <string name="mode_select_page_install_inactive_slot">Diegti į neaktyvią skiltį (po OTA)</string>
     <string name="mode_select_page_install_inactive_slot_warning">Po perkrovimo jūsų įrenginys bus **PRIVERSTAS** paleisti į dabartinę neaktyvią skiltį!\nŠią parinktį naudokite tik baigę OTA.\nTęsti?</string>
     <string name="mode_select_page_patch_and_install">Pataisyti ir įdiegti</string>
     <string name="mode_select_page_select_file">Pasirinkite paleidimo atvaizdį, kurį norite pataisyti</string>
     <string name="mode_select_page_title">Diegti</string>
-    <string name="no_meta_module_installed">modulis neprijungtas, nes metamodulis neįdiegtas</string>
     <string name="orange_theme">Oranžinė</string>
     <string name="patch">Pataisyti</string>
     <string name="patch_config_title">Pataisymai</string>
@@ -219,8 +216,6 @@
     <string name="super_key">SuperKey</string>
     <string name="system_default">Sistemos numatytoji</string>
     <string name="teal_theme">Žalsvai mėlyna</string>
-    <string name="warning_of_meta_module_summary">Šis modulis nori prijungti /system, tuo pasirūpins metamodulis. Priešingu atveju jis gali neveikti.</string>
-    <string name="warning_of_meta_module_title">Reikia metamodulio</string>
     <string name="yellow_theme">Geltona</string>
     <string name="settings_jailbreak_mode">Jailbreak režimas</string>
     <string name="settings_jailbreak_mode_summary">Įkelkite KernelPatch modulį į nepakeistą branduolį. Šiame režime taisyti neleidžiama.</string>

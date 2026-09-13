@@ -206,10 +206,7 @@
     <string name="apm_undo">Annuler</string>
     <string name="back">Retour</string>
     <string name="learn_more">En savoir plus</string>
-    <string name="meta_module_disabled">module non monté, car le métamodule est désactivé</string>
-    <string name="meta_module_removed">module non monté, car le métamodule est en cours de suppression</string>
     <string name="metamodule_uninstall_confirm">&quot;Voulez-vous vraiment désinstaller le module %s ? Cette action affectera tous les modules, et certaines fonctionnalités fournies par le métamodule (comme le montage) ne fonctionneront plus.  &quot;</string>
-    <string name="no_meta_module_installed">"module non monté, car le métamodule n'est pas installé"</string>
     <string name="patch_custom_superkey">SuperKey personnalisée</string>
     <string name="patch_custom_superkey_summary">"il est toujours possible d'utiliser le gestionnaire de root superkey ; nous vérifions désormais la signature du gestionnaire via le noyau"</string>
     <string name="search">Rechercher</string>
@@ -222,8 +219,6 @@
     <string name="settings_selinux_hide_warning_title">Avertissement</string>
     <string name="settings_selinux_hide_warning_below_5_10">"Cette fonction n'est testée que sur les noyaux 5.10 et plus et peut être instable sur les versions de noyau inférieures."</string>
     <string name="settings_selinux_hide_warning_non_gki">"Les noyaux non-GKI présentent un risque plus élevé et peuvent provoquer un échec de démarrage. Assurez-vous d'avoir sauvegardé vos données."</string>
-    <string name="warning_of_meta_module_summary">"Ce module veut monter /system ; le module meta s'en chargera. Sinon, il risque de ne pas fonctionner."</string>
-    <string name="warning_of_meta_module_title">Module Meta requis</string>
     <string name="settings_jailbreak_mode">Mode jailbreak</string>
     <string name="settings_jailbreak_mode_summary">"Chargez le module KernelPatch sur un noyau d'origine. Le patching n'est pas autorisé dans ce mode."</string>
     <string name="settings_jailbreak_soft_reboot">Redémarrage en douceur</string>

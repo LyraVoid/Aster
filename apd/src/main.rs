@@ -6,10 +6,12 @@ mod event;
 mod insmod;
 mod late_load;
 mod lua;
+mod magic_mount;
 mod magica;
 mod metamodule;
 mod module;
 mod module_config;
+mod module_layout;
 mod package;
 #[cfg(any(target_os = "linux", target_os = "android"))]
 mod pty;

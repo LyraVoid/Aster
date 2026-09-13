@@ -206,10 +206,7 @@
     <string name="apm_undo">Скасувати</string>
     <string name="back">Назад</string>
     <string name="learn_more">Дізнатися більше</string>
-    <string name="meta_module_disabled">модуль не змонтовано, оскільки метамодуль вимкнено</string>
-    <string name="meta_module_removed">модуль не змонтовано, оскільки метамодуль видаляється</string>
     <string name="metamodule_uninstall_confirm">Ви впевнені, що хочете видалити модуль %s? Ця дія вплине на всі модулі, і певні функції, які надає метамодуль (наприклад, монтування), більше не працюватимуть.</string>
-    <string name="no_meta_module_installed">модуль не змонтовано, оскільки метамодуль не встановлено</string>
     <string name="patch_custom_superkey">Власний SuperKey</string>
     <string name="patch_custom_superkey_summary">ви все ще можете використовувати root через менеджер superkey, тепер ми перевіряємо підпис менеджера ядром</string>
     <string name="search">Пошук</string>
@@ -222,8 +219,6 @@
     <string name="settings_selinux_hide_warning_title">Попередження</string>
     <string name="settings_selinux_hide_warning_below_5_10">Ця функція протестована лише на ядрі 5.10 і вище та може бути нестабільною на старіших версіях ядра.</string>
     <string name="settings_selinux_hide_warning_non_gki">Ядра не-GKI несуть більший ризик і можуть спричинити збій завантаження. Переконайтеся, що ваші дані збережено у резервній копії.</string>
-    <string name="warning_of_meta_module_summary">Цей модуль хоче змонтувати /system, метамодуль це зробить. Інакше він може не працювати.</string>
-    <string name="warning_of_meta_module_title">Потрібен метамодуль</string>
     <string name="settings_jailbreak_mode">Режим джейлбрейка</string>
     <string name="settings_jailbreak_mode_summary">Завантажує модуль KernelPatch на стокове ядро. У цьому режимі патчинг заборонено.</string>
     <string name="settings_jailbreak_soft_reboot">Мяке перезавантаження</string>

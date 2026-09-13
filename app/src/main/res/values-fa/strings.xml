@@ -204,10 +204,7 @@
     <string name="app_name" translatable="false">APatch</string>
     <string name="back">بازگشت</string>
     <string name="learn_more">بیشتر بدانید</string>
-    <string name="meta_module_disabled">ماژول نصب نشده است، زیرا متا ماژول غیرفعال است</string>
-    <string name="meta_module_removed">ماژول نصب نشده است، زیرا متا ماژول در حال حذف است</string>
     <string name="metamodule_uninstall_confirm">"آیا مطمئن هستید که می‌خواهید ماژول %s را حذف نصب کنید؟ این عمل بر همه ماژول‌ها تأثیر می‌گذارد و برخی از قابلیت‌های ارائه‌شده توسط متا ماژول (مانند نصب) دیگر کار نخواهند کرد.  "</string>
-    <string name="no_meta_module_installed">ماژول نصب نشده است، زیرا متا ماژول نصب نشده است</string>
     <string name="patch_custom_superkey">ابر کلید سفارشی</string>
     <string name="patch_custom_superkey_summary">همچنان می‌توانید از root ابر کلید استفاده کنید؛ اکنون امضای مدیر توسط هسته تأیید می‌شود</string>
     <string name="search">جستجو</string>
@@ -220,8 +217,6 @@
     <string name="settings_selinux_hide_warning_title">هشدار</string>
     <string name="settings_selinux_hide_warning_below_5_10">این قابلیت فقط روی هسته 5.10 و بالاتر آزمایش شده است و ممکن است روی نسخه‌های پایین‌تر هسته ناپایدار باشد.</string>
     <string name="settings_selinux_hide_warning_non_gki">هسته‌های غیر GKI خطر بیشتری دارند و ممکن است باعث از کار افتادن بوت شوند. مطمئن شوید از داده‌های خود نسخه پشتیبان تهیه کرده‌اید.</string>
-    <string name="warning_of_meta_module_summary">این ماژول می‌خواهد /system را mount کند؛ متا ماژول این کار را انجام می‌دهد. در غیر این صورت ممکن است کار نکند.</string>
-    <string name="warning_of_meta_module_title">نیاز به متا ماژول</string>
     <string name="settings_jailbreak_mode">حالت جیلبریک</string>
     <string name="settings_jailbreak_mode_summary">ماژول KernelPatch را روی یک کرنل اصلی بارگذاری کنید. در این حالت اعمال وصله مجاز نیست.</string>
     <string name="settings_jailbreak_soft_reboot">ریاستارت نرم</string>

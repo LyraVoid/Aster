@@ -138,15 +138,12 @@
     <string name="light_green_theme">Verde claro</string>
     <string name="lime_theme">Lima</string>
     <string name="log_saved">Rexistros gardados</string>
-    <string name="meta_module_disabled">módulo non montado, porque o metamódulo está desactivado</string>
-    <string name="meta_module_removed">módulo non montado, porque o metamódulo está a ser eliminado</string>
     <string name="metamodule_uninstall_confirm">"Estás seguro de que queres desinstalar o módulo %s? Esta acción afectará a todos os módulos e algunhas funcións que proporciona o metamódulo (como o montaxe) xa non funcionarán."</string>
     <string name="mode_select_page_install_inactive_slot">Instalar no slot inactivo (despois da OTA)</string>
     <string name="mode_select_page_install_inactive_slot_warning">O teu dispositivo será **FORZADO** a iniciar no slot inactivo actual despois dun reinicio!\nUsa esta opción só despois de que a OTA estea feita.\nQueres continuar?</string>
     <string name="mode_select_page_patch_and_install">Parchear e instalar</string>
     <string name="mode_select_page_select_file">Selecciona unha imaxe de arranque para parchear</string>
     <string name="mode_select_page_title">Instalar</string>
-    <string name="no_meta_module_installed">módulo non montado, porque o metamódulo non está instalado</string>
     <string name="orange_theme">Laranxa</string>
     <string name="patch_config_title">Parches</string>
     <string name="patch_custom_superkey">SuperKey personalizado</string>
@@ -219,8 +216,6 @@
     <string name="success">Éxito</string>
     <string name="super_key">SuperKey</string>
     <string name="teal_theme">Verde azulado</string>
-    <string name="warning_of_meta_module_summary">Este módulo quere montar /system, o metamódulo encargarase diso. Se non, pode que non funcione.</string>
-    <string name="warning_of_meta_module_title">Require o metamódulo</string>
     <string name="yellow_theme">Amarelo</string>
     <string name="settings_jailbreak_mode">Modo jailbreak</string>
     <string name="settings_jailbreak_mode_summary">Cargue o módulo KernelPatch nun kernel orixinal. Non se permite parchear neste modo.</string>

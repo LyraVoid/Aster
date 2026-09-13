@@ -120,11 +120,6 @@
     <string name="apm_undo">撤销</string>
     <string name="apm_uninstall_confirm">确认要卸载“%s”模块吗？</string>
     <string name="metamodule_uninstall_confirm">"您确定要卸载模块 %s 吗？此操作将影响所有模块，并且元模块提供的某些功能（如挂载）将不再工作。  "</string>
-    <string name="warning_of_meta_module_title">需要元模块</string>
-    <string name="warning_of_meta_module_summary">这个模块需要挂载一些文件。需要安装元模块，使它正常工作</string>
-    <string name="meta_module_disabled">模块未挂载，因为元模块已禁用</string>
-    <string name="meta_module_removed">模块未挂载，因为元模块即将删除</string>
-    <string name="no_meta_module_installed">模块未挂载，因为未安装元模块</string>
     <string name="apm_version">版本</string>
     <string name="apm_start_downloading">开始下载 %s</string>
     <string name="apm_overlay_fs_not_available">模块功能不可用，因为内核禁用了 OverlayFS！</string>
@@ -475,4 +470,9 @@
     <string name="theme_spec_2025_unsupported">该配色方案没有 2025 版本，按 2021 处理。</string>
     <string name="navigation_show_entry">显示%1$s入口</string>
     <string name="navigation_show_entry_summary">在导航与左右滑动中显示；首页和设置始终保留</string>
+    <string name="settings_magic_mount">Magic mount</string>
+    <string name="settings_magic_mount_summary">启用内置模块挂载，替代元模块挂载。更改后需重启生效。</string>
+    <string name="module_mount_unavailable">挂载方式不可用。请开启 Magic mount 或安装挂载元模块，然后重启。</string>
+    <string name="module_mount_meta_disabled">Magic mount 已关闭，元模块也已禁用。请启用一种挂载方式，然后重启。</string>
+    <string name="module_mount_meta_removing">Magic mount 已关闭，元模块待卸载。请开启 Magic mount 或保留元模块，然后重启。</string>
 </resources>

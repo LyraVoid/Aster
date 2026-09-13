@@ -6,6 +6,9 @@ pub const BINARY_DIR: &str = concatcp!(WORKING_DIR, "bin/");
 pub const APATCH_LOG_FOLDER: &str = concatcp!(WORKING_DIR, "log/");
 
 pub const AP_RC_PATH: &str = concatcp!(WORKING_DIR, ".aprc");
+pub const MAGIC_MOUNT_FILE: &str = concatcp!(ADB_DIR, ".magic_mount_enable");
+pub const AP_OVERLAY_SOURCE: &str = "APatch";
+pub const SKIP_MOUNT_FILE_NAME: &str = "skip_mount";
 pub const GLOBAL_NAMESPACE_FILE: &str = concatcp!(ADB_DIR, ".global_namespace_enable");
 pub const DAEMON_PATH: &str = concatcp!(ADB_DIR, "apd");
 

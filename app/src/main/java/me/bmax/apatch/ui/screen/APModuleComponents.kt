@@ -268,7 +268,7 @@ internal fun APModuleIconAction(
 }
 
 @Composable
-internal fun MetaModuleWarningCard(
+internal fun ModuleMountWarningCard(
     text: String,
     onClosed: () -> Unit,
 ) {

@@ -204,10 +204,7 @@
     <string name="apm_undo">Ongedaan maken</string>
     <string name="back">Terug</string>
     <string name="learn_more">Meer informatie</string>
-    <string name="meta_module_disabled">module niet gemonteerd, omdat metamodule is uitgeschakeld</string>
-    <string name="meta_module_removed">module niet gemonteerd, omdat metamodule wordt verwijderd</string>
     <string name="metamodule_uninstall_confirm">&quot;Weet u zeker dat u module %s wilt verwijderen? Deze actie heeft invloed op alle modules, en bepaalde functies die door de metamodule worden geleverd (zoals mounten) werken niet meer.  &quot;</string>
-    <string name="no_meta_module_installed">module niet gemonteerd, omdat metamodule niet is geïnstalleerd</string>
     <string name="patch_custom_superkey">Aangepaste SuperKey</string>
     <string name="patch_custom_superkey_summary">je kunt nog steeds de superkey-manager-root gebruiken; nu verifiëren we de handtekening van de manager via de kernel</string>
     <string name="search">Zoeken</string>
@@ -220,8 +217,6 @@
     <string name="settings_selinux_hide_warning_title">Waarschuwing</string>
     <string name="settings_selinux_hide_warning_below_5_10">Deze functie is alleen getest op kernel 5.10 en hoger en kan onstabiel zijn op lagere kernelversies.</string>
     <string name="settings_selinux_hide_warning_non_gki">Niet-GKI-kernels brengen een groter risico met zich mee en kunnen opstartfouten veroorzaken. Zorg ervoor dat uw gegevens zijn geback-upt.</string>
-    <string name="warning_of_meta_module_summary">Deze module wil /system mounten; de meta-module zal dat afhandelen. Anders werkt het mogelijk niet.</string>
-    <string name="warning_of_meta_module_title">Meta-module vereist</string>
     <string name="settings_jailbreak_mode">Jailbreak-modus</string>
     <string name="settings_jailbreak_mode_summary">Laadt de KernelPatch-module op een ongewijzigde kernel. Patchen is in deze modus niet toegestaan.</string>
     <string name="settings_jailbreak_soft_reboot">Zachte herstart</string>

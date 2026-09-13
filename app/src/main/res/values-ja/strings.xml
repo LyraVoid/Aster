@@ -206,10 +206,7 @@
     <string name="apm_undo">元に戻す</string>
     <string name="back">戻る</string>
     <string name="learn_more">もっと詳しく</string>
-    <string name="meta_module_disabled">メタモジュールが無効のため、モジュールはマウントされていません</string>
-    <string name="meta_module_removed">メタモジュールが削除中のため、モジュールはマウントされていません</string>
     <string name="metamodule_uninstall_confirm">&quot;%s モジュールをアンインストールしますか？この操作はすべてのモジュールに影響し、メタモジュールが提供する一部の機能（マウントなど）は動作しなくなります。  &quot;</string>
-    <string name="no_meta_module_installed">メタモジュールがインストールされていないため、モジュールはマウントされていません</string>
     <string name="patch_custom_superkey">カスタム SuperKey</string>
     <string name="patch_custom_superkey_summary">superkey マネージャーの root を引き続き使用できます。現在はカーネルがマネージャーの署名を検証します</string>
     <string name="search">検索</string>
@@ -222,8 +219,6 @@
     <string name="settings_selinux_hide_warning_title">警告</string>
     <string name="settings_selinux_hide_warning_below_5_10">この機能はカーネル5.10以上でのみテストされており、それより低いバージョンでは不安定になる可能性があります。</string>
     <string name="settings_selinux_hide_warning_non_gki">非GKIカーネルはリスクが高く、起動に失敗する可能性があります。データのバックアップを確認してください。</string>
-    <string name="warning_of_meta_module_summary">このモジュールは /system をマウントしようとします。メタモジュールがそれを処理します。そうしないと、動作しない可能性があります。</string>
-    <string name="warning_of_meta_module_title">Meta モジュールが必要</string>
     <string name="settings_jailbreak_mode">ジェイルブレイクモード</string>
     <string name="settings_jailbreak_mode_summary">純正カーネルに KernelPatch モジュールを読み込みます。このモードではパッチ適用はできません。</string>
     <string name="settings_jailbreak_soft_reboot">ソフトリブート</string>

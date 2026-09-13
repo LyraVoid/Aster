@@ -189,15 +189,12 @@
     <string name="light_blue_theme">Világoskék</string>
     <string name="light_green_theme">Világoszöld</string>
     <string name="lime_theme">Citromzöld</string>
-    <string name="meta_module_disabled">A modul nincs csatlakoztatva, mert a metamodul ki van kapcsolva</string>
-    <string name="meta_module_removed">A modul nincs csatlakoztatva, mert a metamodul törlés alatt áll</string>
     <string name="metamodule_uninstall_confirm">"Biztosan el akarod távolítani a(z) %s modult? Ez a művelet minden modulra hatással lesz, és a metamodul egyes funkciói (például a mountolás) többé nem fognak működni.  "</string>
     <string name="mode_select_page_install_inactive_slot">Telepítés inaktív helyre (OTA után)</string>
     <string name="mode_select_page_install_inactive_slot_warning">Eszközöd **KÉNYSZERÍTETT** módon a jelenlegi inaktív helyre fog bootolni újraindítás után!\nEzt az opciót csak az OTA befejezése után használd.\nFolytatod?</string>
     <string name="mode_select_page_patch_and_install">Patch és telepítés</string>
     <string name="mode_select_page_select_file">Válassz boot-rendszerképet a patcheléshez</string>
     <string name="mode_select_page_title">Telepítés</string>
-    <string name="no_meta_module_installed">A modul nincs csatlakoztatva, mert a metamodul nincs telepítve</string>
     <string name="orange_theme">Narancs</string>
     <string name="patch_custom_superkey">Egyedi SuperKey</string>
     <string name="patch_custom_superkey_summary">Továbbra is használható a SuperKey-kezelő a root eléréshez; mostantól a kernel ellenőrzi a kezelő aláírását.</string>
@@ -219,8 +216,6 @@
     <string name="settings_selinux_hide_warning_below_5_10">Ez a funkció csak 5.10-es vagy újabb kernelen lett tesztelve, és alacsonyabb kernelverziókon instabil lehet.</string>
     <string name="settings_selinux_hide_warning_non_gki">A nem GKI kernelek nagyobb kockázatot hordoznak, és rendszerindítási hibát okozhatnak. Győződjön meg róla, hogy az adatai biztonsági mentése megtörtént.</string>
     <string name="teal_theme">Kékeszöld</string>
-    <string name="warning_of_meta_module_summary">Ez a modul a /system fájlrendszert szeretné csatlakoztatni; a metamodul ezt kezelni fogja. Ellenkező esetben lehet, hogy nem fog működni.</string>
-    <string name="warning_of_meta_module_title">Meta modul szükséges</string>
     <string name="yellow_theme">Sárga</string>
     <string name="settings_jailbreak_mode">Jailbreak mód</string>
     <string name="settings_jailbreak_mode_summary">A KernelPatch modul betöltése érintetlen kernelen. Ebben a módban a patchelés nem engedélyezett.</string>

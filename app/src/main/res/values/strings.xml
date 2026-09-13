@@ -253,11 +253,6 @@
     <string name="apm_load_failed">Could not load the module list</string>
     <string name="apm_retry">Retry</string>
 
-    <string name="warning_of_meta_module_title">Require Meta module</string>
-    <string name="warning_of_meta_module_summary">This module want to mount /system, meta module will handle that. Otherwise, it might not work.</string>
-    <string name="meta_module_disabled">module not mounted, because metamodule disabled</string>
-    <string name="meta_module_removed">module not mounted, because metamodule being delete</string>
-    <string name="no_meta_module_installed">module not mounted, because metamodule not installed</string>
 
     <string name="hide_apatch_manager">Hide APatch Manager</string>
     <string name="hide_apatch_manager_summary">Install a proxy app with a random package ID and custom app label</string>
@@ -540,4 +535,9 @@
     <string name="theme_spec_2025_unsupported">This style has no 2025 form; the 2021 tones are used.</string>
     <string name="navigation_show_entry">Show %1$s entry</string>
     <string name="navigation_show_entry_summary">Show in navigation and swipe between pages; Home and Settings always remain</string>
+    <string name="settings_magic_mount">Magic mount</string>
+    <string name="settings_magic_mount_summary">Enable built-in module mounting instead of the metamodule. Changes apply after reboot.</string>
+    <string name="module_mount_unavailable">Mounting is unavailable. Enable Magic mount or install a mounting metamodule, then reboot.</string>
+    <string name="module_mount_meta_disabled">Magic mount is off and the metamodule is disabled. Enable a mounting method, then reboot.</string>
+    <string name="module_mount_meta_removing">Magic mount is off and the metamodule is pending removal. Enable Magic mount or keep the metamodule, then reboot.</string>
 </resources>

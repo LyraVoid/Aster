@@ -204,10 +204,7 @@
     <string name="apm_undo">Αναίρεση</string>
     <string name="back">Πίσω</string>
     <string name="learn_more">Μάθετε περισσότερα</string>
-    <string name="meta_module_disabled">η ενότητα δεν προσαρτήθηκε, επειδή το metamodule είναι απενεργοποιημένο</string>
-    <string name="meta_module_removed">η ενότητα δεν προσαρτήθηκε, επειδή το metamodule διαγράφηκε</string>
     <string name="metamodule_uninstall_confirm">&quot;Είστε σίγουροι ότι θέλετε να απεγκαταστήσετε την ενότητα %s; Αυτή η ενέργεια θα επηρεάσει όλες τις ενότητες και ορισμένες λειτουργίες που παρέχονται από το metamodule (όπως η προσάρτηση) δεν θα λειτουργούν πλέον.&quot;</string>
-    <string name="no_meta_module_installed">η ενότητα δεν προσαρτήθηκε, επειδή το metamodule δεν είναι εγκατεστημένο</string>
     <string name="patch_custom_superkey">Προσαρμοσμένο ΥπέρΚλειδί</string>
     <string name="patch_custom_superkey_summary">μπορείτε ακόμα να χρησιμοποιείτε τη διαχείριση root με το ΥπέρΚλειδί, τώρα ο πυρήνας επαληθεύει την υπογραφή του διαχειριστή</string>
     <string name="search">Αναζήτηση</string>
@@ -220,8 +217,6 @@
     <string name="settings_selinux_hide_warning_title">Προειδοποίηση</string>
     <string name="settings_selinux_hide_warning_below_5_10">Αυτή η δυνατότητα έχει δοκιμαστεί μόνο σε πυρήνα 5.10 και νεότερο και μπορεί να είναι ασταθής σε παλαιότερες εκδόσεις πυρήνα.</string>
     <string name="settings_selinux_hide_warning_non_gki">Οι πυρήνες μη-GKI ενέχουν μεγαλύτερο κίνδυνο και μπορεί να προκαλέσουν αποτυχία εκκίνησης. Βεβαιωθείτε ότι τα δεδομένα σας έχουν δημιουργηθεί αντίγραφα ασφαλείας.</string>
-    <string name="warning_of_meta_module_summary">Αυτή η ενότητα θέλει να προσαρτήσει το /system, το meta module θα το διαχειριστεί. Διαφορετικά, μπορεί να μην λειτουργήσει.</string>
-    <string name="warning_of_meta_module_title">Απαιτείται Meta module</string>
     <string name="settings_jailbreak_mode">Λειτουργία jailbreak</string>
     <string name="settings_jailbreak_mode_summary">Φορτώστε τη μονάδα KernelPatch σε έναν γνήσιο πυρήνα. Δεν επιτρέπεται το patching σε αυτή τη λειτουργία.</string>
     <string name="settings_jailbreak_soft_reboot">Μαλακή επανεκκίνηση</string>

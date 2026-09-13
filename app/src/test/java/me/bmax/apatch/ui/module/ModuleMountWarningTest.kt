@@ -4,12 +4,12 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-class MetaModuleWarningTest {
+class ModuleMountWarningTest {
 
     @Test
     fun returnsNullWhenNoModuleNeedsMounting() {
         assertNull(
-            resolveMetaModuleWarning(
+            resolveModuleMountWarning(
                 requiresMount = false,
                 metaModulePropPresent = false,
                 metaModuleRemoved = false,
@@ -21,8 +21,8 @@ class MetaModuleWarningTest {
     @Test
     fun reportsMissingMetaModule() {
         assertEquals(
-            MetaModuleWarning.NOT_INSTALLED,
-            resolveMetaModuleWarning(
+            ModuleMountWarning.NOT_INSTALLED,
+            resolveModuleMountWarning(
                 requiresMount = true,
                 metaModulePropPresent = false,
                 metaModuleRemoved = false,
@@ -34,8 +34,8 @@ class MetaModuleWarningTest {
     @Test
     fun reportsPendingRemovalBeforeDisabledState() {
         assertEquals(
-            MetaModuleWarning.PENDING_REMOVAL,
-            resolveMetaModuleWarning(
+            ModuleMountWarning.PENDING_REMOVAL,
+            resolveModuleMountWarning(
                 requiresMount = true,
                 metaModulePropPresent = true,
                 metaModuleRemoved = true,
@@ -47,8 +47,8 @@ class MetaModuleWarningTest {
     @Test
     fun reportsDisabledMetaModule() {
         assertEquals(
-            MetaModuleWarning.DISABLED,
-            resolveMetaModuleWarning(
+            ModuleMountWarning.DISABLED,
+            resolveModuleMountWarning(
                 requiresMount = true,
                 metaModulePropPresent = true,
                 metaModuleRemoved = false,
@@ -60,7 +60,7 @@ class MetaModuleWarningTest {
     @Test
     fun returnsNullWhenMetaModuleIsHealthy() {
         assertNull(
-            resolveMetaModuleWarning(
+            resolveModuleMountWarning(
                 requiresMount = true,
                 metaModulePropPresent = true,
                 metaModuleRemoved = false,
@@ -68,4 +68,32 @@ class MetaModuleWarningTest {
             ),
         )
     }
+    @Test
+    fun magicMountSupersedesEveryMetamoduleState() {
+        listOf(false, true).forEach { present ->
+            listOf(false, true).forEach { removed ->
+                listOf(false, true).forEach { disabled ->
+                    assertNull(resolveModuleMountWarning(
+                        requiresMount = true,
+                        metaModulePropPresent = present,
+                        metaModuleRemoved = removed,
+                        metaModuleDisabled = disabled,
+                        magicMountEnabled = true,
+                    ))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun turningMagicMountOffRestoresTheMissingBackendWarning() {
+        assertEquals(ModuleMountWarning.NOT_INSTALLED, resolveModuleMountWarning(
+            requiresMount = true,
+            metaModulePropPresent = false,
+            metaModuleRemoved = false,
+            metaModuleDisabled = false,
+            magicMountEnabled = false,
+        ))
+    }
+
 }
