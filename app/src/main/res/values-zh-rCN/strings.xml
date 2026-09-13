@@ -475,4 +475,27 @@
     <string name="module_mount_unavailable">挂载方式不可用。请开启 Magic mount 或安装挂载元模块，然后重启。</string>
     <string name="module_mount_meta_disabled">Magic mount 已关闭，元模块也已禁用。请启用一种挂载方式，然后重启。</string>
     <string name="module_mount_meta_removing">Magic mount 已关闭，元模块待卸载。请开启 Magic mount 或保留元模块，然后重启。</string>
+
+    <string name="runtime_safety_title">受保护的运行时操作</string>
+    <string name="runtime_safety_summary">状态隐藏与模块资源卸载，支持预检和恢复</string>
+    <string name="runtime_safety_description">默认关闭。先预检，再试运行 60 秒，检查效果后可保留到本次开机结束。安全模式会关闭功能并尝试恢复，重启后不会自动启用。同一时间只能运行一项。</string>
+    <string name="runtime_safety_unavailable">正在加载或功能不可用，请在首页更新配套 AndroidPatch。</string>
+    <string name="runtime_safety_safe_mode">安全检测已阻止启用，退出安全模式后仍保持关闭。</string>
+    <string name="runtime_safety_preview">预检完成，尚未修改。</string>
+    <string name="runtime_safety_applying">正在应用，已记录恢复信息…</string>
+    <string name="runtime_safety_trial">正在试运行，60 秒后自动恢复，除非选择保留。</string>
+    <string name="runtime_safety_active">已保留到本次开机结束，可随时恢复。</string>
+    <string name="runtime_safety_recovery_failed">恢复未完成，备份已保留，请查看日志后重试恢复。</string>
+    <string name="runtime_safety_restoring">正在恢复…</string>
+    <string name="runtime_safety_off">已关闭</string>
+    <string name="runtime_safety_hide_description">仅修改已存在的四项启动状态展示属性，不会真正锁定引导程序，也不修改 ADB、调试或日志配置。</string>
+    <string name="runtime_safety_hide_preview">预检状态隐藏</string>
+    <string name="runtime_safety_umount_description">仅支持私有、只读的模块媒体或字体文件挂载。拒绝目录、关键路径、叠加挂载及未知来源；卸载前保留恢复副本。</string>
+    <string name="runtime_safety_module_path">模块内路径，例如 mymodule/system/media/bootanimation.zip</string>
+    <string name="runtime_safety_umount_preview">预检资源卸载</string>
+    <string name="runtime_safety_start_trial">开始 60 秒试运行</string>
+    <string name="runtime_safety_keep">本次开机保留</string>
+    <string name="runtime_safety_restore">恢复并关闭</string>
+    <string name="runtime_safety_logs">查看操作日志</string>
+    <string name="runtime_safety_logs_empty">暂无操作日志。</string>
 </resources>

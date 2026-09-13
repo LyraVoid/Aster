@@ -24,6 +24,11 @@ struct Args {
 
 #[derive(clap::Subcommand, Debug)]
 enum Commands {
+    /// Reversible, current-boot-only runtime operations
+    RuntimeSafety {
+        #[command(subcommand)]
+        action: crate::runtime_safety::Action,
+    },
     /// Manage APatch modules
     Module {
         #[command(subcommand)]
@@ -233,6 +238,7 @@ pub fn run() -> Result<()> {
     }
 
     let result = match cli.command {
+        Commands::RuntimeSafety { action } => crate::runtime_safety::run(action),
         Commands::PostFsData => event::on_post_data_fs(cli.superkey),
 
         Commands::BootCompleted => event::on_boot_completed(cli.superkey),

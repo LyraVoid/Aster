@@ -56,6 +56,8 @@ pub fn on_post_data_fs(superkey: Option<String>) -> Result<()> {
     info!("Re-privilege apd profile after injecting sepolicy");
     supercall::privilege_apd_profile(&superkey);
 
+    crate::runtime_safety::boot_check();
+
     // Clear all temporary module configs early
     if let Err(e) = crate::module_config::clear_all_temp_configs() {
         warn!("clear temp configs failed: {e}");
@@ -260,6 +262,7 @@ fn run_stage(stage: &str, superkey: Option<String>, block: bool) {
 
 pub fn on_services(superkey: Option<String>) -> Result<()> {
     info!("on_services triggered!");
+    crate::runtime_safety::boot_check();
     run_stage("service", superkey, false);
 
     Ok(())
@@ -289,6 +292,7 @@ fn run_uid_monitor() {
 
 pub fn on_boot_completed(superkey: Option<String>) -> Result<()> {
     info!("on_boot_completed triggered!");
+    crate::runtime_safety::boot_check();
 
     run_stage("boot-completed", superkey, false);
 
@@ -298,6 +302,7 @@ pub fn on_boot_completed(superkey: Option<String>) -> Result<()> {
 
 pub fn start_uid_listener() -> Result<()> {
     info!("start_uid_listener triggered!");
+    crate::runtime_safety::start_recovery_monitor();
     println!("[start_uid_listener] Registering...");
 
     // create inotify instance

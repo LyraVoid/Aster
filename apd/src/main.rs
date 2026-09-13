@@ -18,6 +18,7 @@ mod package;
 mod pty;
 mod resetprop;
 mod restorecon;
+mod runtime_safety;
 mod sepolicy;
 mod supercall;
 mod utils;

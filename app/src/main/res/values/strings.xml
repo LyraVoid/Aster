@@ -540,4 +540,27 @@
     <string name="module_mount_unavailable">Mounting is unavailable. Enable Magic mount or install a mounting metamodule, then reboot.</string>
     <string name="module_mount_meta_disabled">Magic mount is off and the metamodule is disabled. Enable a mounting method, then reboot.</string>
     <string name="module_mount_meta_removing">Magic mount is off and the metamodule is pending removal. Enable Magic mount or keep the metamodule, then reboot.</string>
+
+    <string name="runtime_safety_title">Guarded runtime operations</string>
+    <string name="runtime_safety_summary">Status hiding and module resource unmounting, with preview and recovery</string>
+    <string name="runtime_safety_description">Off by default. Preview first, then try for 60 seconds. Keep only after checking the result. Safe mode disables both features and attempts recovery. Reboot never re-enables them. Only one session can run at a time.</string>
+    <string name="runtime_safety_unavailable">Loading or unavailable. Install the matching AndroidPatch version from Home.</string>
+    <string name="runtime_safety_safe_mode">Safety check blocked activation. Features stay off after leaving safe mode.</string>
+    <string name="runtime_safety_preview">Preview ready; nothing has been changed.</string>
+    <string name="runtime_safety_applying">Applying with a recovery record…</string>
+    <string name="runtime_safety_trial">Trial running. Automatic restore after 60 seconds unless you choose Keep.</string>
+    <string name="runtime_safety_active">Kept for this boot. You can restore at any time.</string>
+    <string name="runtime_safety_recovery_failed">Recovery incomplete. Backups are retained; check the log before retrying.</string>
+    <string name="runtime_safety_restoring">Restoring…</string>
+    <string name="runtime_safety_off">Off</string>
+    <string name="runtime_safety_hide_description">Changes four boot-status display properties when present. Does not relock the bootloader or change ADB, debugging, or logging settings.</string>
+    <string name="runtime_safety_hide_preview">Preview status hiding</string>
+    <string name="runtime_safety_umount_description">Only private, read-only module mounts of media or font files are supported. Directories, critical paths, stacked mounts and unknown sources are rejected. A recovery copy is kept before unmounting.</string>
+    <string name="runtime_safety_module_path">Module path, e.g. mymodule/system/media/bootanimation.zip</string>
+    <string name="runtime_safety_umount_preview">Preview resource unmount</string>
+    <string name="runtime_safety_start_trial">Start 60-second trial</string>
+    <string name="runtime_safety_keep">Keep for this boot</string>
+    <string name="runtime_safety_restore">Restore and turn off</string>
+    <string name="runtime_safety_logs">View operation log</string>
+    <string name="runtime_safety_logs_empty">No operation log yet.</string>
 </resources>

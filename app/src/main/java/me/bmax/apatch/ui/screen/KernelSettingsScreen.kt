@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.Natives
+import com.ramcosta.composedestinations.generated.destinations.RuntimeSafetyScreenDestination
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.settings.resolveSettingsFeatureAvailability
 import me.bmax.apatch.ui.shell.LocalAsterCapabilities
@@ -194,6 +195,14 @@ fun KernelSettingsScreen(navigator: DestinationsNavigator) {
                                     }
                                 }
                             },
+                        )
+                    }
+
+                    if (kPatchReady && aPatchReady) {
+                        ArrowPreference(
+                            title = stringResource(R.string.runtime_safety_title),
+                            summary = stringResource(R.string.runtime_safety_summary),
+                            onClick = { navigator.navigate(RuntimeSafetyScreenDestination) },
                         )
                     }
 
