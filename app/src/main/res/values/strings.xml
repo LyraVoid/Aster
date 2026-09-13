@@ -477,4 +477,29 @@
     <string name="home_refresh_requested">Refreshing status</string>
     <string name="home_update_current">Already up to date</string>
 
+    <string name="online_module_title">Module store</string>
+    <string name="online_module_source_title">Module source</string>
+    <string name="online_module_source_official">Official index</string>
+    <string name="online_module_source_official_summary">Served by the manager itself</string>
+    <string name="online_module_source_cluster">Repository cluster</string>
+    <string name="online_module_source_cluster_summary">Pick a repository from the community list</string>
+    <string name="online_module_source_custom">Custom repository</string>
+    <string name="online_module_source_custom_summary">Type the address of a repository you trust</string>
+    <string name="online_module_select_repo">Select a repository</string>
+    <string name="online_module_repo_url_title">Repository address</string>
+    <string name="online_module_repo_url_summary">The address must serve a module index at json/modules.json</string>
+    <string name="online_module_repo_url_hint">https://example.com/repo/</string>
+    <string name="online_module_module_count">%1$d modules</string>
+    <string name="online_module_default_repo">Default repository</string>
+    <string name="online_module_default_repo_summary">Bundled with the manager</string>
+    <string name="online_module_load_error">Could not read the module list</string>
+    <string name="online_module_download">Download</string>
+    <string name="online_module_download_start">Downloading %1$s</string>
+    <string name="online_module_download_install">Download and install</string>
+
+    <string name="repo_module_by_author">by %1$s</string>
+    <string name="repo_module_link_homepage">Homepage</string>
+    <string name="repo_module_link_source">Source code</string>
+    <string name="repo_module_link_support">Support</string>
+    <string name="repo_module_versions">Released versions</string>
 </resources>

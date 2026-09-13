@@ -405,4 +405,30 @@
     <string name="home_layer_error">讀取失敗</string>
     <string name="home_layer_blocked">無法使用</string>
     <string name="home_layer_unknown">未知</string>
+
+    <string name="online_module_title">模組倉庫</string>
+    <string name="online_module_source_title">模組來源</string>
+    <string name="online_module_source_official">官方索引</string>
+    <string name="online_module_source_official_summary">由管理器自己的介面提供</string>
+    <string name="online_module_source_cluster">倉庫集群</string>
+    <string name="online_module_source_cluster_summary">從社群倉庫清單中選擇一個</string>
+    <string name="online_module_source_custom">自訂倉庫</string>
+    <string name="online_module_source_custom_summary">手動填寫你信任的倉庫位址</string>
+    <string name="online_module_select_repo">選擇倉庫</string>
+    <string name="online_module_repo_url_title">倉庫位址</string>
+    <string name="online_module_repo_url_summary">倉庫需在 json/modules.json 提供模組索引</string>
+    <string name="online_module_repo_url_hint">https://example.com/repo/</string>
+    <string name="online_module_module_count">%1$d 個模組</string>
+    <string name="online_module_default_repo">預設倉庫</string>
+    <string name="online_module_default_repo_summary">隨管理器內建</string>
+    <string name="online_module_load_error">無法讀取模組清單</string>
+    <string name="online_module_download">下載</string>
+    <string name="online_module_download_start">正在下載 %1$s</string>
+    <string name="online_module_download_install">下載並安裝</string>
+
+    <string name="repo_module_by_author">作者 %1$s</string>
+    <string name="repo_module_link_homepage">首頁</string>
+    <string name="repo_module_link_source">原始碼</string>
+    <string name="repo_module_link_support">支援</string>
+    <string name="repo_module_versions">發行版本</string>
 </resources>

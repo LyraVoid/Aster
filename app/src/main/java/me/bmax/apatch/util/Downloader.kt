@@ -13,6 +13,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.core.net.toUri
 import me.bmax.apatch.apApp
 import androidx.core.content.ContextCompat
+import java.io.File
 
 @SuppressLint("Range")
 fun download(
@@ -45,10 +46,22 @@ fun download(
         }
     }
 
-    val request = DownloadManager.Request(url.toUri()).setDestinationInExternalPublicDir(
-        Environment.DIRECTORY_DOWNLOADS, fileName
-    ).setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+    val request = DownloadManager.Request(url.toUri())
+        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         .setMimeType("application/zip").setTitle(fileName).setDescription(description)
+
+    try {
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+    } catch (_: SecurityException) {
+        val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+        if (dir != null) {
+            request.setDestinationUri(Uri.fromFile(File(dir, fileName)))
+        } else {
+            request.setDestinationInExternalFilesDir(
+                context, Environment.DIRECTORY_DOWNLOADS, fileName
+            )
+        }
+    }
 
     downloadManager.enqueue(request)
 }
@@ -62,7 +75,7 @@ fun checkNewVersion(): LatestVersionInfo {
                 if (!response.isSuccessful) {
                     return defaultValue
                 }
-                val body = response.body?.string() ?: return defaultValue
+                val body = response.body.string()
 
                 val json = org.json.JSONObject(body)
                 val changelog = json.optString("body")

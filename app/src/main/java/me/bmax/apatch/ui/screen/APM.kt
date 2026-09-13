@@ -51,6 +51,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.ExecuteAPMActionScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.InstallScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.OnlineModuleScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -58,8 +59,8 @@ import kotlinx.coroutines.withContext
 import me.bmax.apatch.R
 import me.bmax.apatch.apApp
 import me.bmax.apatch.ui.WebUIActivity
-import me.bmax.apatch.ui.component.CapabilityNotice
 import me.bmax.apatch.ui.component.ConfirmResult
+import me.bmax.apatch.ui.component.MissingLayerNotice
 import me.bmax.apatch.ui.component.rememberConfirmDialog
 import me.bmax.apatch.ui.component.rememberLoadingDialog
 import me.bmax.apatch.ui.module.APModuleContentState
@@ -100,6 +101,7 @@ import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.icon.extended.Info
 import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.icon.extended.Sort
+import top.yukonga.miuix.kmp.icon.extended.Store
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -112,17 +114,17 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
     val capabilities = LocalAsterCapabilities.current
     if (!capabilities.kernelPatchReady) {
         MissingLayerNotice(
-            navigator = navigator,
             title = stringResource(R.string.su_kernel_patch_required_title),
             description = stringResource(R.string.capability_kernel_patch_required_desc),
+            onBackToHome = { navigator.navigate(HomeScreenDestination) },
         )
         return
     }
     if (!capabilities.androidPatchReady) {
         MissingLayerNotice(
-            navigator = navigator,
             title = stringResource(R.string.apm_not_installed),
             description = stringResource(R.string.capability_android_patch_required_desc),
+            onBackToHome = { navigator.navigate(HomeScreenDestination) },
         )
         return
     }
@@ -195,6 +197,7 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
                 onSortPriorityChange = viewModel::setSortPriorities,
                 showSortPriorityMenu = showSortPriorityMenu,
                 onShowSortPriorityMenuChange = { showSortPriorityMenu = it },
+                onOpenStore = { navigator.navigate(OnlineModuleScreenDestination) },
                 scrollBehavior = scrollBehavior,
             )
         },
@@ -268,6 +271,7 @@ private fun APModuleTopBar(
     onSortPriorityChange: (Set<ModuleSortGroup>) -> Unit,
     showSortPriorityMenu: Boolean,
     onShowSortPriorityMenuChange: (Boolean) -> Unit,
+    onOpenStore: () -> Unit,
     scrollBehavior: ScrollBehavior,
 ) {
     TopAppBar(
@@ -279,6 +283,12 @@ private fun APModuleTopBar(
         },
         scrollBehavior = scrollBehavior,
         actions = {
+            IconButton(onClick = onOpenStore) {
+                Icon(
+                    imageVector = MiuixIcons.Store,
+                    contentDescription = stringResource(R.string.online_module_title),
+                )
+            }
             // The choice belongs to the list, so it opens on the list's own top bar rather than
             // in a settings page somewhere else.
             Box {
@@ -727,28 +737,3 @@ private fun APModuleList(
     }
 }
 
-/**
- * The layer this page lists modules for is not installed, so the list would be empty with no
- * explanation. The navigation hides the entry in the same states; this page only appears if the
- * redirect to Home has not run yet.
- */
-@Composable
-private fun MissingLayerNotice(
-    navigator: DestinationsNavigator,
-    title: String,
-    description: String,
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 12.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        CapabilityNotice(
-            title = title,
-            description = description,
-            actionLabel = stringResource(R.string.su_back_to_home),
-            onAction = { navigator.navigate(HomeScreenDestination) },
-        )
-    }
-}

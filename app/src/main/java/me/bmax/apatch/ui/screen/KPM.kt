@@ -54,8 +54,8 @@ import me.bmax.apatch.APApplication
 import me.bmax.apatch.Natives
 import me.bmax.apatch.R
 import me.bmax.apatch.apApp
-import me.bmax.apatch.ui.component.CapabilityNotice
 import me.bmax.apatch.ui.component.ConfirmResult
+import me.bmax.apatch.ui.component.MissingLayerNotice
 import me.bmax.apatch.ui.component.LoadingDialogHandle
 import me.bmax.apatch.ui.component.rememberConfirmDialog
 import me.bmax.apatch.ui.component.rememberLoadingDialog
@@ -109,7 +109,11 @@ private data class UninstallResult(
 @Composable
 fun KPModuleScreen(navigator: DestinationsNavigator) {
     if (!LocalAsterCapabilities.current.kernelPatchReady) {
-        MissingKernelPatchNotice(navigator)
+        MissingLayerNotice(
+            title = stringResource(R.string.su_kernel_patch_required_title),
+            description = stringResource(R.string.capability_kernel_patch_required_desc),
+            onBackToHome = { navigator.navigate(HomeScreenDestination) },
+        )
         return
     }
 
@@ -650,23 +654,3 @@ fun KPMControlDialog(
     }
 }
 
-/**
- * KernelPatch is gone, so there is no kernel to list modules for. The navigation entry is hidden in
- * this state as well; this page only appears if the redirect to Home has not run yet.
- */
-@Composable
-private fun MissingKernelPatchNotice(navigator: DestinationsNavigator) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 12.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        CapabilityNotice(
-            title = stringResource(R.string.su_kernel_patch_required_title),
-            description = stringResource(R.string.capability_kernel_patch_required_desc),
-            actionLabel = stringResource(R.string.su_back_to_home),
-            onAction = { navigator.navigate(HomeScreenDestination) },
-        )
-    }
-}

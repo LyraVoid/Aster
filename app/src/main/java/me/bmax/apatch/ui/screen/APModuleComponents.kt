@@ -223,7 +223,7 @@ internal fun APModuleCard(
 }
 
 @Composable
-private fun APModuleBadge(
+internal fun APModuleBadge(
     text: String,
     containerColor: Color = MiuixTheme.colorScheme.tertiaryContainer,
     contentColor: Color = MiuixTheme.colorScheme.onTertiaryContainer,
@@ -245,7 +245,7 @@ private fun APModuleBadge(
 }
 
 @Composable
-private fun APModuleIconAction(
+internal fun APModuleIconAction(
     icon: ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
