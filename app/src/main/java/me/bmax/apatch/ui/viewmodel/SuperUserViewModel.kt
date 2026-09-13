@@ -347,14 +347,15 @@ class SuperUserViewModel : ViewModel() {
         } else {
             config.copy(allow = 0, profile = config.profile.copy(uid = app.uid))
         }
-        PkgConfig.changeConfig(newConfig)
-        if (granted) {
-            Natives.grantSu(app.uid, 0, newConfig.profile.scontext)
-            Natives.setUidExclude(app.uid, 0)
-        } else {
-            Natives.revokeSu(app.uid)
+        PkgConfig.changeConfig(newConfig) {
+            if (granted) {
+                Natives.grantSu(app.uid, 0, newConfig.profile.scontext)
+                Natives.setUidExclude(app.uid, 0)
+            } else {
+                Natives.revokeSu(app.uid)
+            }
+            updateAppConfig(app, newConfig)
         }
-        updateAppConfig(app, newConfig)
     }
 
     fun setRootGranted(item: SuperUserItem, granted: Boolean) {
@@ -375,12 +376,13 @@ class SuperUserViewModel : ViewModel() {
         } else {
             config.copy(exclude = 0, profile = config.profile.copy(uid = app.uid))
         }
-        if (excluded) {
-            Natives.revokeSu(app.uid)
+        PkgConfig.changeConfig(newConfig) {
+            if (excluded) {
+                Natives.revokeSu(app.uid)
+            }
+            Natives.setUidExclude(app.uid, newConfig.exclude)
+            updateAppConfig(app, newConfig)
         }
-        PkgConfig.changeConfig(newConfig)
-        Natives.setUidExclude(app.uid, newConfig.exclude)
-        updateAppConfig(app, newConfig)
     }
 
     fun setExcluded(item: SuperUserItem, excluded: Boolean) {

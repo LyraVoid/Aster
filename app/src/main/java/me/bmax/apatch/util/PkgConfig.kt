@@ -8,7 +8,6 @@ import kotlinx.parcelize.Parcelize
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.Natives
 import java.io.File
-import java.io.FileWriter
 import kotlin.concurrent.thread
 
 object PkgConfig {
@@ -48,14 +47,19 @@ object PkgConfig {
         }
     }
 
-    fun readConfigs(): HashMap<Int, Config> {
+    fun readConfigs(): HashMap<Int, Config> = readConfigs(strict = false)
+
+    private fun readConfigs(strict: Boolean): HashMap<Int, Config> {
         val configs = HashMap<Int, Config>()
         val file = File(APApplication.PACKAGE_CONFIG_FILE)
         if (file.exists()) {
-            file.readLines().filter { it.isNotBlank() }.forEach {
+            val lines = file.readLines()
+            if (strict) check(lines.firstOrNull() == CSV_HEADER) { "Invalid package configuration header" }
+            lines.filter { it.isNotBlank() && it != CSV_HEADER }.forEach {
                 Log.d(TAG, it)
                 val p = Config.fromLine(it)
                 if (p == null) {
+                    check(!strict) { "Invalid package configuration record" }
                     Log.w(TAG, "Skip malformed package_config line: $it")
                 } else if (!p.isDefault()) {
                     configs[p.profile.uid] = p
@@ -66,36 +70,36 @@ object PkgConfig {
     }
 
     private fun writeConfigs(configs: HashMap<Int, Config>) {
-        val file = File(APApplication.PACKAGE_CONFIG_FILE)
-        if (!file.parentFile?.exists()!!) file.parentFile?.mkdirs()
-        val writer = FileWriter(file, false)
-        writer.write(CSV_HEADER + '\n')
-        configs.values.forEach {
-            if (!it.isDefault()) {
-                writer.write(it.toLine() + '\n')
-            }
+        val content = buildString {
+            appendLine(CSV_HEADER)
+            configs.values.filterNot { it.isDefault() }.forEach { appendLine(it.toLine()) }
         }
-        writer.flush()
-        writer.close()
+        PackageConfigStorage.writeAtomically(File(APApplication.PACKAGE_CONFIG_FILE), content)
     }
 
-    fun changeConfig(config: Config) {
+    fun changeConfig(config: Config, apply: () -> Unit = {}) {
         thread {
             synchronized(PkgConfig.javaClass) {
                 Natives.su()
-                val configs = readConfigs()
-                val uid = config.profile.uid
-                // Root App should not be excluded
-                if (config.allow == 1) {
-                    config.exclude = 0
+                try {
+                    PackageConfigStorage.withLock(File(APApplication.PACKAGE_CONFIG_FILE)) {
+                        val configs = readConfigs(strict = true)
+                        val uid = config.profile.uid
+                        // Root App should not be excluded.
+                        if (config.allow == 1) config.exclude = 0
+                        if (config.isDefault()) {
+                            configs.remove(uid)
+                        } else {
+                            configs[uid] = config
+                        }
+                        writeConfigs(configs)
+                        // Keep the native change inside the same transaction so APD
+                        // cannot restore an older profile between persistence and apply.
+                        apply()
+                    }
+                } catch (error: Exception) {
+                    Log.e(TAG, "Cannot complete package configuration update", error)
                 }
-                if (config.allow == 0 && configs[uid] != null && config.exclude != 0) {
-                    configs.remove(uid)
-                } else {
-                    Log.d(TAG, "change config: $config")
-                    configs[uid] = config
-                }
-                writeConfigs(configs)
             }
         }
     }

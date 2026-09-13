@@ -341,6 +341,9 @@ pub fn start_uid_listener() -> Result<()> {
 
     watcher.watch(dir.as_ref(), RecursiveMode::NonRecursive)?;
 
+    // Register first, so changes during the initial refresh remain queued.
+    refresh_ap_package_list(c"su", &mutex);
+
     let mut debounce = false;
     while let Ok(delayed) = rx.recv() {
         if delayed {
