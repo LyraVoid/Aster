@@ -19,6 +19,8 @@ import me.bmax.apatch.R
 import me.bmax.apatch.ui.shell.GlobalLayout
 import me.bmax.apatch.ui.shell.LocalFloatingNavigationInset
 import me.bmax.apatch.ui.shell.NavigationMode
+import me.bmax.apatch.ui.shell.PrimaryDestination
+import me.bmax.apatch.ui.shell.rememberNavigationEntryPreferences
 import me.bmax.apatch.ui.shell.rememberGlobalLayout
 import me.bmax.apatch.ui.shell.rememberNavigationMode
 import me.bmax.apatch.ui.shell.rememberVisualFlag
@@ -36,7 +38,6 @@ import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.icon.extended.Sidebar
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.preference.ArrowPreference
-import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -53,6 +54,7 @@ import top.yukonga.miuix.kmp.utils.overScrollVertical
 fun NavigationSettingsScreen(navigator: DestinationsNavigator) {
     val globalLayout by rememberGlobalLayout()
     val navigationMode by rememberNavigationMode()
+    val entryPreferences = rememberNavigationEntryPreferences()
     val floatingPreferred by rememberVisualFlag("floating_navigation", false)
     val floatingBlur by rememberVisualFlag("floating_blur", true)
     val floatingGlass by rememberVisualFlag("floating_glass", true)
@@ -82,6 +84,24 @@ fun NavigationSettingsScreen(navigator: DestinationsNavigator) {
                     LocalFloatingNavigationInset.current + 32.dp,
             ),
         ) {
+            item(key = "entries") {
+                SettingsCard {
+                    listOf(
+                        PrimaryDestination.KModule to "show_nav_kpm",
+                        PrimaryDestination.SuperUser to "show_nav_superuser",
+                        PrimaryDestination.AModule to "show_nav_apm",
+                    ).forEach { (destination, key) ->
+                        SwitchPreference(
+                            title = stringResource(R.string.navigation_show_entry, stringResource(destination.label)),
+                            summary = stringResource(R.string.navigation_show_entry_summary),
+                            checked = entryPreferences.shows(destination),
+                            onCheckedChange = { setVisualFlag(key, it) },
+                            startAction = { SettingsIcon(destination.icon) },
+                        )
+                    }
+                }
+            }
+
             item(key = "shell") {
                 SettingsCard {
                     SwitchPreference(

@@ -69,7 +69,10 @@ enum class PrimaryDestination(
  */
 internal fun visiblePrimaryDestinations(
     capabilities: AsterNavigationCapabilities,
-): List<PrimaryDestination> = PrimaryDestination.entries.filter { it.isVisible(capabilities) }
+    preferences: NavigationEntryPreferences = NavigationEntryPreferences(),
+): List<PrimaryDestination> = PrimaryDestination.entries.filter {
+    it.isVisible(capabilities) && preferences.shows(it)
+}
 
 internal fun PrimaryDestination.isVisible(
     capabilities: AsterNavigationCapabilities,

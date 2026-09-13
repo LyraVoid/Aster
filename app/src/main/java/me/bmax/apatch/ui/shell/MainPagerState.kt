@@ -1,8 +1,5 @@
 package me.bmax.apatch.ui.shell
 
-import androidx.compose.animation.core.EaseInOut
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -10,17 +7,15 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.unit.Density
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 
 @Stable
 class MainPagerState(
     val pagerState: PagerState,
     private val coroutineScope: CoroutineScope,
-    private val density: Density,
 ) {
     var selectedPage by mutableIntStateOf(pagerState.currentPage)
         private set
@@ -71,27 +66,52 @@ class MainPagerState(
     }
 
     private fun doAnimateToPage(targetIndex: Int) {
-        navJob?.cancel()
+        if (targetIndex !in 0 until pagerState.pageCount) return
+        val previousJob = navJob
+        navJob = null
+        previousJob?.cancel()
         selectedPage = targetIndex
         isNavigating = true
 
-        val distance = abs(targetIndex - pagerState.currentPage).coerceAtLeast(2)
-        val duration = 100 * distance + 100
-
-        navJob = coroutineScope.launch {
+        // Install the job before starting it: cancellation of an older transition must never
+        // reset the selection of a newer one, even on the immediate UI dispatcher.
+        val job = coroutineScope.launch(start = CoroutineStart.LAZY) {
             val myJob = coroutineContext[Job]
             try {
-                pagerState.animateScrollToPage(
-                    page = targetIndex,
-                    animationSpec = tween(easing = EaseInOut, durationMillis = duration)
-                )
+                pagerState.scroll {
+                    with(pagerState) { updateTargetPage(targetIndex) }
+                    // Capture the position after acquiring the scroll lock, including a gesture's
+                    // fractional offset. animateScrollToPage may pre-jump on long distances.
+                    animatePrimaryPageScroll(
+                        currentPage = pagerState.currentPage,
+                        currentOffset = pagerState.currentPageOffsetFraction,
+                        targetPage = targetIndex,
+                        pageStride = pagerState.layoutInfo.pageSize + pagerState.layoutInfo.pageSpacing,
+                    )
+                }
             } finally {
                 if (navJob == myJob) {
                     isNavigating = false
                     selectedPage = pagerState.currentPage
+                    navJob = null
                 }
             }
         }
+        navJob = job
+        job.start()
+    }
+
+    /** Remap by identity before applying a changed list, without animating across removed pages. */
+    fun updateDestinations(previous: List<PrimaryDestination>, next: List<PrimaryDestination>) {
+        val destination = previous.getOrNull(selectedPage) ?: PrimaryDestination.Home
+        val target = next.indexOf(destination).coerceAtLeast(0)
+        val previousJob = navJob
+        navJob = null // The cancelled animation must not overwrite the remapped selection.
+        previousJob?.cancel()
+        isNavigating = false
+        pageBackStack.removeAll { it !in next }
+        selectedPage = target
+        pagerState.requestScrollToPage(target)
     }
 
     fun syncPage() {

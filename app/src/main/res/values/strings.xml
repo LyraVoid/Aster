@@ -538,4 +538,6 @@
     <string name="theme_spec_2025">M3 Expressive 2025</string>
     <string name="theme_spec_2025_summary">The 2025 tones: stronger accents, clearer steps between surfaces.</string>
     <string name="theme_spec_2025_unsupported">This style has no 2025 form; the 2021 tones are used.</string>
+    <string name="navigation_show_entry">Show %1$s entry</string>
+    <string name="navigation_show_entry_summary">Show in navigation and swipe between pages; Home and Settings always remain</string>
 </resources>

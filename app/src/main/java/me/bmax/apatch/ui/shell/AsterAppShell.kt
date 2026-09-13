@@ -63,6 +63,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -109,15 +110,27 @@ fun AsterAppShell(
         it.uiState.collectAsStateWithLifecycle().value
     }
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val visibleDestinations = remember(capabilities) { visiblePrimaryDestinations(capabilities) }
+    val entryPreferences = rememberNavigationEntryPreferences()
+    val requestedDestinations = remember(capabilities, entryPreferences) {
+        visiblePrimaryDestinations(capabilities, entryPreferences)
+    }
+    val visibleDestinationsState = remember { mutableStateOf(requestedDestinations) }
+    var visibleDestinations by visibleDestinationsState
     val pagerState = rememberPagerState(
         initialPage = 0,
         pageCount = { visibleDestinations.size },
     )
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
-    val mainPagerState = remember(pagerState, coroutineScope, density) {
-        MainPagerState(pagerState, coroutineScope, density)
+    val mainPagerState = remember(pagerState, coroutineScope) {
+        MainPagerState(pagerState, coroutineScope)
+    }
+
+    LaunchedEffect(requestedDestinations) {
+        if (visibleDestinations != requestedDestinations) {
+            mainPagerState.updateDestinations(visibleDestinations, requestedDestinations)
+            visibleDestinations = requestedDestinations
+        }
     }
 
     val currentRoute = backStackEntry?.destination?.route
@@ -134,7 +147,10 @@ fun AsterAppShell(
     }
     // Panorama mode owns its chrome: the wallpaper scene on Home, floating navigation everywhere
     // else. Standard mode keeps the classic shell untouched.
-    val sceneActive = panorama && onHome
+    val homeVisibility = if (isMainScreen) {
+        homePageVisibility(pagerState.currentPage, pagerState.currentPageOffsetFraction)
+    } else if (onHome) 1f else 0f
+    val sceneActive = panorama && homeVisibility > 0.5f
     val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
     val darkTheme = me.bmax.apatch.ui.theme.LocalThemeModeState.current.isDark
     androidx.compose.runtime.DisposableEffect(activity, sceneActive, darkTheme) {
@@ -146,14 +162,14 @@ fun AsterAppShell(
             controller?.isAppearanceLightNavigationBars = !darkTheme
         }
     }
-    val primaryPage = isMainScreen || PrimaryDestination.entries.any { it.direction.route == currentRoute }
+    val primaryPage = isMainScreen || visibleDestinations.any { it.direction.route == currentRoute }
     // Capabilities can arrive after the user is already on a page: sending them home beats leaving
     // a screen the navigation no longer offers.
-    LaunchedEffect(visibleDestinations, backStackEntry) {
+    LaunchedEffect(capabilities, backStackEntry) {
         val route = backStackEntry?.destination?.route ?: return@LaunchedEffect
         val current = PrimaryDestination.entries.firstOrNull { it.direction.route == route }
             ?: return@LaunchedEffect
-        if (current !in visibleDestinations) {
+        if (!current.isVisible(capabilities)) {
             navController.navigate(MainScreenDestination.route) {
                 popUpTo(MainScreenDestination.route) { saveState = false }
                 launchSingleTop = true
@@ -175,7 +191,9 @@ fun AsterAppShell(
 
     val floatingPreferred by rememberVisualFlag("floating_navigation", false)
     val floatingShell = panorama || floatingPreferred
-    val floatingNavigation = floatingShell && primaryPage && !sceneActive
+    val floatingHost = floatingShell && primaryPage
+    val floatingSceneVisibility = if (panorama) 1f - homeVisibility else 1f
+    val floatingNavigation = floatingHost && floatingSceneVisibility > 0f
     val blurEnabled by rememberVisualFlag("floating_blur", true)
     val glassEnabled by rememberVisualFlag("floating_glass", true)
     val autoHide by rememberVisualFlag("floating_auto_hide", false)
@@ -201,11 +219,14 @@ fun AsterAppShell(
     val floatingNavigationHeight = 76.dp
     // YumeBox animates the space it reserves for its floating bar; snapping it would shove the page
     // up the instant we leave the home scene.
-    val reservedContentBottom by animateDpAsState(
-        targetValue = if (floatingNavigation) floatingNavigationHeight else 0.dp,
+    val floatingHostInset by animateDpAsState(
+        targetValue = if (floatingHost) floatingNavigationHeight else 0.dp,
         animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing),
         label = "floating_navigation_reserved_height",
     )
+    // Scene chrome shares the pager's coordinate instead of starting a second animation as
+    // soon as a distant target is selected. Returning from Settings keeps the bar until Home arrives.
+    val reservedContentBottom = floatingHostInset * floatingSceneVisibility
     // The shell hosts the snackbar, so it has to stay clear of whatever chrome sits at the bottom:
     // the floating capsule, or the standard navigation bar. The scaffold below already adds the
     // system inset, so the standard bar only contributes the height it uses above that inset.
@@ -242,10 +263,8 @@ fun AsterAppShell(
             val useCompactShell = maxWidth < CompactNavigationBreakpoint
             val railState = rememberNavigationRailState()
             val sceneRailWidth = (maxWidth * 0.25f - 28.dp).coerceIn(56.dp, 80.dp)
-            val homePageDistance = kotlin.math.abs(pagerState.currentPage + pagerState.currentPageOffsetFraction)
-            val homeVisibility = (1f - homePageDistance).coerceIn(0f, 1f)
             val sceneProgress by animateFloatAsState(
-                if (sceneActive && sceneExpanded && homeVisibility > 0.01f) 1f else 0f,
+                if (panorama && sceneExpanded && (isMainScreen || onHome)) 1f else 0f,
                 tween(360, easing = FastOutSlowInEasing), label = "scene_sidebar",
             )
             val effectiveSceneProgress = sceneProgress * homeVisibility
@@ -269,7 +288,7 @@ fun AsterAppShell(
 
             if (panorama && effectiveSceneProgress > 0.01f) {
                 HomeSceneRail(
-                    capabilities = capabilities,
+                    destinations = visibleDestinations,
                     currentDestination = currentDestination,
                     onSelectDestination = onSelectDestination,
                     onAppearance = { homeSceneHost.openAppearance?.invoke() },
@@ -306,6 +325,7 @@ fun AsterAppShell(
                             LocalSceneActive provides (panorama && effectiveSceneProgress > 0.01f),
                             LocalHomeSceneHostState provides homeSceneHost,
                             LocalMainPagerState provides mainPagerState,
+                            LocalPrimaryDestinations provides visibleDestinationsState,
                             LocalAsterCapabilities provides capabilities,
                         ) {
                             content(
@@ -355,17 +375,23 @@ fun AsterAppShell(
                 }
             }
 
-            AnimatedVisibility(visible = floatingNavigation && !hidden,
+            AnimatedVisibility(visible = floatingHost && !hidden,
                 modifier = Modifier.align(Alignment.BottomCenter), enter = fadeIn(), exit = fadeOut()) {
-                AsterFloatingNavigation(
-                    destinations = visibleDestinations,
-                    currentDestination = currentDestination,
-                    backdrop = backdrop,
-                    blurEnabled = blurEnabled && Build.VERSION.SDK_INT >= 31,
-                    glassEnabled = blurEnabled && glassEnabled && Build.VERSION.SDK_INT >= 33,
-                    onSelectDestination = onSelectDestination,
-                    modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)).padding(horizontal = 12.dp, vertical = 12.dp),
-                )
+                // Discard drag/indicator coordinates when the entry layout changes.
+                if (floatingSceneVisibility > 0f) key(visibleDestinations) {
+                    AsterFloatingNavigation(
+                        destinations = visibleDestinations,
+                        currentDestination = currentDestination,
+                        backdrop = backdrop,
+                        blurEnabled = blurEnabled && Build.VERSION.SDK_INT >= 31,
+                        glassEnabled = blurEnabled && glassEnabled && Build.VERSION.SDK_INT >= 33,
+                        onSelectDestination = onSelectDestination,
+                        modifier = Modifier.graphicsLayer {
+                            alpha = floatingSceneVisibility
+                            translationY = size.height * (1f - floatingSceneVisibility)
+                        }.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)).padding(horizontal = 12.dp, vertical = 12.dp),
+                    )
+                }
             }
         }
     }

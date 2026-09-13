@@ -112,7 +112,7 @@ import me.bmax.apatch.ui.home.HomeWallpaperState
 import me.bmax.apatch.ui.shell.LocalAsterCapabilities
 import me.bmax.apatch.ui.shell.LocalMainPagerState
 import me.bmax.apatch.ui.shell.PrimaryDestination
-import me.bmax.apatch.ui.shell.visiblePrimaryDestinations
+import me.bmax.apatch.ui.shell.LocalPrimaryDestinations
 import me.bmax.apatch.ui.home.HomeWallpaperViewModel
 import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
 import me.bmax.apatch.ui.home.androidVersion
@@ -198,7 +198,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
     val sceneMode = globalLayout == GlobalLayout.Panorama
     val mainPagerState = LocalMainPagerState.current
     val capabilities = LocalAsterCapabilities.current
-    val visibleDestinations = remember(capabilities) { visiblePrimaryDestinations(capabilities) }
+    val visibleDestinations = LocalPrimaryDestinations.current.value
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val sceneHostState = LocalHomeSceneHostState.current
@@ -280,14 +280,14 @@ fun HomeScreen(navigator: DestinationsNavigator) {
         navigator.navigate(InstallModeSelectScreenDestination)
     }
     val onApmClick = dropUnlessResumed {
-        if (mainPagerState != null) {
+        if (mainPagerState != null && PrimaryDestination.AModule in visibleDestinations) {
             mainPagerState.animateToDestination(PrimaryDestination.AModule, visibleDestinations)
         } else {
             navigator.navigate(APModuleScreenDestination)
         }
     }
     val onKpmClick = dropUnlessResumed {
-        if (mainPagerState != null) {
+        if (mainPagerState != null && PrimaryDestination.KModule in visibleDestinations) {
             mainPagerState.animateToDestination(PrimaryDestination.KModule, visibleDestinations)
         } else {
             navigator.navigate(KPModuleScreenDestination)

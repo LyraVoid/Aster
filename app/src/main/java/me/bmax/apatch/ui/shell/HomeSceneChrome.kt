@@ -246,7 +246,7 @@ internal fun HomeSceneBackdrop(
 
 @Composable
 internal fun HomeSceneRail(
-    capabilities: AsterNavigationCapabilities,
+    destinations: List<PrimaryDestination>,
     currentDestination: PrimaryDestination?,
     onSelectDestination: (PrimaryDestination) -> Unit,
     onAppearance: () -> Unit,
@@ -269,7 +269,7 @@ internal fun HomeSceneRail(
         }
         Spacer(Modifier.weight(1f))
         val showLabels by rememberVisualFlag(SceneRailLabelsFlag, true)
-        visiblePrimaryDestinations(capabilities)
+        destinations
             .filter { it != PrimaryDestination.Home }
             .forEach { destination ->
                 val selected = currentDestination == destination

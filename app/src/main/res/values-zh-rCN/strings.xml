@@ -473,4 +473,6 @@
     <string name="theme_spec_2025">M3 Expressive 2025</string>
     <string name="theme_spec_2025_summary">2025 年的色调规则，强调色更醒目、层次更分明。</string>
     <string name="theme_spec_2025_unsupported">该配色方案没有 2025 版本，按 2021 处理。</string>
+    <string name="navigation_show_entry">显示%1$s入口</string>
+    <string name="navigation_show_entry_summary">在导航与左右滑动中显示；首页和设置始终保留</string>
 </resources>
