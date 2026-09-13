@@ -512,7 +512,9 @@ private fun HomeScenePanel(
             HomePrimaryAction.UPDATE_APATCH -> onInstallApatch()
             HomePrimaryAction.RETRY_CHECK -> onRefresh()
             HomePrimaryAction.REBOOT -> onShowRebootChange(true)
-            HomePrimaryAction.SOFT_REBOOT -> onDangerousReboot("soft")
+            // A framework restart, not one of the modes that need a confirmation: use the
+            // same reason the reboot menu sends so the CLI takes the apd soft-reboot path.
+            HomePrimaryAction.SOFT_REBOOT -> onReboot("soft_reboot")
             HomePrimaryAction.NONE -> Unit
         }
     }

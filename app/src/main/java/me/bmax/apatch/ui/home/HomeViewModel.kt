@@ -27,8 +27,7 @@ import me.bmax.apatch.util.checkNewVersion
 import me.bmax.apatch.util.installJailbreak
 import me.bmax.apatch.util.listModules
 import me.bmax.apatch.util.migrateStockBootBackup
-import me.bmax.apatch.util.reboot
-import me.bmax.apatch.util.softReboot
+import me.bmax.apatch.util.reboot as rebootDevice
 import org.json.JSONArray
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
@@ -129,12 +128,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         APApplication.uninstallApatch()
     }
 
+    /**
+     * Reboot the device, optionally into one of the special modes the CLI understands. The CLI
+     * helper is named exactly like this wrapper, so it is imported under an alias; calling the plain
+     * name re-entered this function and recursed until the stack overflowed.
+     */
     fun reboot(reason: String = "") {
-        reboot(reason)
-    }
-
-    fun softReboot() {
-        softReboot()
+        rebootDevice(reason)
     }
 
     fun triggerJailbreak() {
