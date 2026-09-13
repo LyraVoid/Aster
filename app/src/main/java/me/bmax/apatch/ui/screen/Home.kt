@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -69,6 +70,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -117,8 +119,11 @@ import me.bmax.apatch.ui.home.resolveUpdateLayer
 import me.bmax.apatch.ui.home.resolveUpdateVersions
 import me.bmax.apatch.ui.shell.GlobalLayout
 import me.bmax.apatch.ui.shell.GlobalLayoutDialog
+import me.bmax.apatch.ui.shell.HomeLayoutDialog
+import me.bmax.apatch.ui.shell.HomeLayout
 import me.bmax.apatch.ui.shell.LocalHomeSceneHostState
 import me.bmax.apatch.ui.shell.rememberGlobalLayout
+import me.bmax.apatch.ui.shell.rememberHomeLayout
 import me.bmax.apatch.ui.theme.LocalThemeModeState
 import me.bmax.apatch.ui.theme.WallpaperColorTheme
 import me.bmax.apatch.ui.theme.rememberWallpaperColorThemeState
@@ -185,6 +190,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val wallpaperState by wallpaperViewModel.uiState.collectAsStateWithLifecycle()
     val globalLayout by rememberGlobalLayout()
+    val homeLayout by rememberHomeLayout()
     val sceneMode = globalLayout == GlobalLayout.Panorama
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -390,6 +396,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     }
 
                     KStatusCard(
+                        layout = homeLayout,
                         state = state,
                         onMainCardClick = onMainCardClick,
                         onApmClick = onApmClick,
@@ -426,7 +433,8 @@ fun HomeScreen(navigator: DestinationsNavigator) {
         HomeWallpaperSheet(
             show = showWallpaperSheet,
             state = wallpaperState,
-            homeLayout = globalLayout,
+            homeLayoutFamily = globalLayout,
+            homeLayout = homeLayout,
             onDismissRequest = { showWallpaperSheet = false },
             onNightEnabledChange = wallpaperViewModel::setNightEnabled,
             onChooseImage = launchWallpaperPicker,
@@ -972,41 +980,47 @@ private fun HomeTopBar(
     onReboot: (String) -> Unit,
     onDangerousReboot: (String) -> Unit,
 ) {
-    TopAppBar(
-        title = stringResource(R.string.app_name),
-        scrollBehavior = scrollBehavior,
-        actions = {
-            IconButton(onClick = onAppearance) {
+    val title = stringResource(R.string.app_name)
+
+    // How the page lays its head out does not reach the bar: every layout keeps the large title
+    // that leaves as the page scrolls, and every layout is offered the same two actions.
+    val actions: @Composable RowScope.() -> Unit = {
+        IconButton(onClick = onAppearance) {
+            Icon(
+                imageVector = MiuixIcons.Photos,
+                contentDescription = stringResource(R.string.home_appearance),
+            )
+        }
+
+        Box {
+            IconButton(onClick = { onShowMoreChange(true) }) {
                 Icon(
-                    imageVector = MiuixIcons.Photos,
-                    contentDescription = stringResource(R.string.home_appearance),
+                    imageVector = MiuixIcons.More,
+                    contentDescription = stringResource(R.string.home_more),
                 )
             }
 
-            Box {
-                IconButton(onClick = { onShowMoreChange(true) }) {
-                    Icon(
-                        imageVector = MiuixIcons.More,
-                        contentDescription = stringResource(R.string.home_more),
-                    )
-                }
+            HomeActionsSheet(
+                showMore = showMore,
+                showReboot = showReboot,
+                onShowMoreChange = onShowMoreChange,
+                onShowRebootChange = onShowRebootChange,
+                canReboot = canReboot,
+                canUninstall = canUninstall,
+                onUninstallClick = onUninstallClick,
+                onInstallClick = onInstallClick,
+                onFeedback = onFeedback,
+                onAbout = onAbout,
+                onReboot = onReboot,
+                onDangerousReboot = onDangerousReboot,
+            )
+        }
+    }
 
-                HomeActionsSheet(
-                    showMore = showMore,
-                    showReboot = showReboot,
-                    onShowMoreChange = onShowMoreChange,
-                    onShowRebootChange = onShowRebootChange,
-                    canReboot = canReboot,
-                    canUninstall = canUninstall,
-                    onUninstallClick = onUninstallClick,
-                    onInstallClick = onInstallClick,
-                    onFeedback = onFeedback,
-                    onAbout = onAbout,
-                    onReboot = onReboot,
-                    onDangerousReboot = onDangerousReboot,
-                )
-            }
-        },
+    TopAppBar(
+        title = title,
+        scrollBehavior = scrollBehavior,
+        actions = actions,
     )
 }
 
@@ -1292,7 +1306,8 @@ private fun SceneChoiceRow(
 private fun HomeWallpaperSheet(
     show: Boolean,
     state: HomeWallpaperState,
-    homeLayout: GlobalLayout,
+    homeLayoutFamily: GlobalLayout,
+    homeLayout: HomeLayout,
     onDismissRequest: () -> Unit,
     onNightEnabledChange: (Boolean) -> Unit,
     onChooseImage: (HomeWallpaperSlot) -> Unit,
@@ -1345,21 +1360,38 @@ private fun HomeWallpaperSheet(
             // Which family Home is drawn in is one choice with as many answers as there are
             // families, so it is offered as a list rather than as a switch, and the same list the
             // Settings row opens.
-            var choosingLayout by remember { mutableStateOf(false) }
+            var choosingLayoutFamily by remember { mutableStateOf(false) }
             SceneChoiceRow(
                 title = stringResource(R.string.global_layout_title),
-                value = stringResource(homeLayout.label),
-                onClick = { choosingLayout = true },
+                value = stringResource(homeLayoutFamily.label),
+                onClick = { choosingLayoutFamily = true },
             )
             GlobalLayoutDialog(
-                show = choosingLayout,
-                selected = homeLayout,
-                onDismissRequest = { choosingLayout = false },
+                show = choosingLayoutFamily,
+                selected = homeLayoutFamily,
+                onDismissRequest = { choosingLayoutFamily = false },
             )
+
+            // How the standard Home lays its head out is that Home's own choice, so its row
+            // travels with the family it belongs to, the way the rail switches travel with the scene
+            // they belong to.
+            if (homeLayoutFamily == GlobalLayout.Standard) {
+                var choosingLayout by remember { mutableStateOf(false) }
+                SceneChoiceRow(
+                    title = stringResource(R.string.home_layout_title),
+                    value = stringResource(homeLayout.label),
+                    onClick = { choosingLayout = true },
+                )
+                HomeLayoutDialog(
+                    show = choosingLayout,
+                    selected = homeLayout,
+                    onDismissRequest = { choosingLayout = false },
+                )
+            }
 
             // The rail extras only exist in panorama mode, so their switches travel with the mode
             // they belong to.
-            if (homeLayout == GlobalLayout.Panorama) {
+            if (homeLayoutFamily == GlobalLayout.Panorama) {
                 val showSceneClock by me.bmax.apatch.ui.shell.rememberVisualFlag(
                     me.bmax.apatch.ui.shell.SceneRailClockFlag,
                     true,
@@ -1717,6 +1749,7 @@ private const val WorkCardTintLight = 0.12f
 
 @Composable
 private fun KStatusCard(
+    layout: HomeLayout,
     state: HomeUiState,
     onMainCardClick: () -> Unit,
     onApmClick: () -> Unit,
@@ -1770,11 +1803,16 @@ private fun KStatusCard(
         else -> MiuixIcons.Help
     }
 
+    // The working mode is a word of its own on the screens this page takes its shapes from, so it is
+    // kept apart from the title and only the layouts that say it separately join it back.
+    val workingMode = when (conclusion) {
+        HomeConclusion.FULL_APATCH -> "<Full>"
+        HomeConclusion.KERNEL_PATCH_ONLY -> "<Half>"
+        else -> null
+    }
+
     val title = when {
-        isWorking -> {
-            val mode = if (conclusion == HomeConclusion.FULL_APATCH) "<Full>" else "<Half>"
-            "${stringResource(R.string.home_working)} $mode"
-        }
+        isWorking -> "${stringResource(R.string.home_working)} $workingMode"
 
         // Name the patch that is behind: the conclusion on its own only says that something is.
         conclusion == HomeConclusion.NEED_UPDATE && updateLayer != null ->
@@ -1801,102 +1839,338 @@ private fun KStatusCard(
         else -> null
     }
 
+    val showApm = state.capability.kernelPatch.isUsable() &&
+        state.capability.androidPatch.isUsable()
+    val showKpm = state.capability.kernelPatch.isUsable()
+    val isBusy = state.capability.kernelPatch == RootLayerState.BUSY
+
+    // What the list layout's button offers is the same thing the card itself opens, said in the
+    // words the state asks for.
+    val mainActionRes = when (conclusion) {
+        HomeConclusion.FULL_APATCH,
+        HomeConclusion.KERNEL_PATCH_ONLY -> R.string.home_ap_cando_uninstall
+
+        HomeConclusion.NEED_UPDATE -> R.string.home_ap_cando_update
+        HomeConclusion.NEED_REBOOT -> R.string.home_ap_cando_reboot
+        else -> R.string.home_ap_cando_install
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (layout == HomeLayout.Large) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    colors = CardDefaults.defaultColors(color = cardBg),
+                    onClick = onMainCardClick,
+                    showIndication = true,
+                    pressFeedbackType = PressFeedbackType.Tilt,
+                ) {
+                    StatusCardLarge(
+                        title = title,
+                        subtitle = subtitle,
+                        isWorking = isWorking,
+                        icon = decoIcon,
+                        iconColor = decoIconColor,
+                    )
+                }
+
+                if (showApm || showKpm) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        if (showApm) {
+                            ModuleCountCard(
+                                label = stringResource(R.string.apm),
+                                count = state.apmCount,
+                                onClick = onApmClick,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                            )
+                        }
+                        if (showKpm) {
+                            ModuleCountCard(
+                                label = stringResource(R.string.kpm),
+                                count = state.kpmCount,
+                                onClick = onKpmClick,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            // The other two layouts give the state a line of its own, the way the screens they
+            // come from do, and leave the counts to the tab that owns them.
+            if (layout == HomeLayout.Compact) {
+                StatusCardCompact(
+                    title = if (isWorking) stringResource(R.string.home_working) else title,
+                    subtitle = subtitle,
+                    mode = workingMode,
+                    isWorking = isWorking,
+                    icon = decoIcon,
+                    iconColor = decoIconColor,
+                    cardColor = cardBg,
+                    onClick = onMainCardClick,
+                )
+            } else {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.defaultColors(color = cardBg),
+                    onClick = onMainCardClick,
+                    showIndication = true,
+                    pressFeedbackType = PressFeedbackType.Tilt,
+                ) {
+                    StatusCardListRow(
+                        title = title,
+                        subtitle = subtitle,
+                        isWorking = isWorking,
+                        icon = decoIcon,
+                        iconColor = decoIconColor,
+                        actionLabel = stringResource(mainActionRes),
+                        actionEnabled = !isBusy,
+                        onAction = onMainCardClick,
+                    )
+                }
+            }
+
+        }
+    }
+}
+
+/**
+ * The state drawn as the tall card it has always been, with the mark of the state large behind the
+ * words.
+ */
+@Composable
+private fun StatusCardLarge(
+    title: String,
+    subtitle: String?,
+    isWorking: Boolean,
+    icon: ImageVector,
+    iconColor: Color,
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .offset(38.dp, 45.dp),
+            contentAlignment = Alignment.BottomEnd,
+        ) {
+            StatusCardIcon(
+                isWorking = isWorking,
+                icon = icon,
+                iconColor = iconColor,
+                size = 170.dp,
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(Modifier.height(2.dp))
+            if (subtitle != null) {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = subtitle,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * The same state read as a list row, which is the shape the rest of the page speaks in: the mark of
+ * the state leads, the words follow it, and the action the state asks for ends the row.
+ */
+@Composable
+private fun StatusCardListRow(
+    title: String,
+    subtitle: String?,
+    isWorking: Boolean,
+    icon: ImageVector,
+    iconColor: Color,
+    actionLabel: String,
+    actionEnabled: Boolean,
+    onAction: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        StatusCardIcon(
+            isWorking = isWorking,
+            icon = icon,
+            iconColor = iconColor,
+            size = 28.dp,
+        )
+        Spacer(Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MiuixTheme.textStyles.body1,
+                fontWeight = FontWeight.SemiBold,
+            )
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+            }
+        }
+        Spacer(Modifier.width(12.dp))
+        Button(
+            enabled = actionEnabled,
+            colors = ButtonDefaults.buttonColorsPrimary(),
+            onClick = onAction,
+        ) {
+            Text(text = actionLabel)
+        }
+    }
+}
+
+/**
+ * The state drawn the way the home screen of KernelSU draws it: one card across the page, the state
+ * and its version in the top corner, the working mode at the foot, and the mark of the state large
+ * in the corner it is turned towards. The card is sized by what it says rather than by a height of
+ * its own, so it stays a card beside the ones below it instead of becoming a line.
+ */
+@Composable
+private fun StatusCardCompact(
+    title: String,
+    subtitle: String?,
+    mode: String?,
+    isWorking: Boolean,
+    icon: ImageVector,
+    iconColor: Color,
+    cardColor: Color,
+    onClick: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(IntrinsicSize.Min),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
         Card(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-            colors = CardDefaults.defaultColors(color = cardBg),
-            onClick = onMainCardClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.defaultColors(color = cardColor),
+            onClick = onClick,
             showIndication = true,
             pressFeedbackType = PressFeedbackType.Tilt,
         ) {
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .offset(38.dp, 45.dp),
+                        .offset(27.dp, 31.dp),
                     contentAlignment = Alignment.BottomEnd,
                 ) {
-                    if (isWorking) {
-                        Icon(
-                            modifier = Modifier.size(170.dp),
-                            painter = painterResource(R.drawable.status_check_circle_outline),
-                            tint = decoIconColor,
-                            contentDescription = null,
-                        )
-                    } else {
-                        Icon(
-                            modifier = Modifier.size(170.dp),
-                            imageVector = decoIcon,
-                            tint = decoIconColor,
-                            contentDescription = null,
+                    StatusCardIcon(
+                        isWorking = isWorking,
+                        icon = icon,
+                        iconColor = iconColor,
+                        size = 110.dp,
+                    )
+                }
+
+                if (mode != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        contentAlignment = Alignment.BottomStart,
+                    ) {
+                        Text(
+                            text = mode,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
                         )
                     }
                 }
-                Column(
+
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    contentAlignment = Alignment.TopStart,
                 ) {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = title,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    if (subtitle != null) {
+                    Column {
                         Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = subtitle,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                            text = title,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.SemiBold,
                         )
+                        Spacer(Modifier.height(1.dp))
+                        if (subtitle != null) {
+                            Text(
+                                text = subtitle,
+                                fontSize = 15.sp,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+}
 
-        val showApm = state.capability.kernelPatch.isUsable() &&
-            state.capability.androidPatch.isUsable()
-        val showKpm = state.capability.kernelPatch.isUsable()
-        if (showApm || showKpm) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                if (showApm) {
-                    ModuleCountCard(
-                        label = stringResource(R.string.apm),
-                        count = state.apmCount,
-                        onClick = onApmClick,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                    )
-                }
-                if (showKpm) {
-                    ModuleCountCard(
-                        label = stringResource(R.string.kpm),
-                        count = state.kpmCount,
-                        onClick = onKpmClick,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                    )
-                }
-            }
-        }
+/**
+ * The mark of the state at whichever size the shape of the header asks for. While the patch is
+ * working it is the drawn circle, so the reader sees the patch itself rather than an icon that
+ * stands for it.
+ */
+@Composable
+private fun StatusCardIcon(
+    isWorking: Boolean,
+    icon: ImageVector,
+    iconColor: Color,
+    size: Dp,
+) {
+    if (isWorking) {
+        Icon(
+            modifier = Modifier.size(size),
+            painter = painterResource(R.drawable.status_check_circle_outline),
+            tint = iconColor,
+            contentDescription = null,
+        )
+    } else {
+        Icon(
+            modifier = Modifier.size(size),
+            imageVector = icon,
+            tint = iconColor,
+            contentDescription = null,
+        )
     }
 }
 

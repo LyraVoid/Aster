@@ -23,9 +23,11 @@ import me.bmax.apatch.R
 import me.bmax.apatch.ui.settings.resolveSettingsFeatureAvailability
 import me.bmax.apatch.ui.shell.GlobalLayout
 import me.bmax.apatch.ui.shell.GlobalLayoutDialog
+import me.bmax.apatch.ui.shell.HomeLayoutDialog
 import me.bmax.apatch.ui.shell.LocalAsterCapabilities
 import me.bmax.apatch.ui.shell.LocalFloatingNavigationInset
 import me.bmax.apatch.ui.shell.rememberGlobalLayout
+import me.bmax.apatch.ui.shell.rememberHomeLayout
 import me.bmax.apatch.ui.theme.SystemDynamicColorKey
 import me.bmax.apatch.ui.theme.displayName
 import me.bmax.apatch.ui.theme.label
@@ -36,6 +38,7 @@ import me.bmax.apatch.ui.theme.themeColorSourceOf
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.HorizontalSplit
 import top.yukonga.miuix.kmp.icon.extended.Layers
 import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.icon.extended.ScreenMirroring
@@ -58,11 +61,13 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
     val capabilities = LocalAsterCapabilities.current
     val prefs = APApplication.sharedPreferences
     val globalLayout by rememberGlobalLayout()
+    val homeLayout by rememberHomeLayout()
     // Only the source of the colour is shown here; the colour itself, and how it is spread over
     // the scheme, are picked on the page this row opens.
     val wallpaperColorTheme = rememberWallpaperColorThemeState()
     val themeColorScheme = rememberThemeColorSchemeState()
     var showGlobalLayoutDialog by rememberSaveable { mutableStateOf(false) }
+    var showHomeLayoutDialog by rememberSaveable { mutableStateOf(false) }
     var nightFollowSystem by rememberSaveable {
         mutableStateOf(prefs.getBoolean("night_mode_follow_sys", true))
     }
@@ -128,6 +133,18 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
                         startAction = { SettingsIcon(MiuixIcons.ScreenMirroring) },
                         onClick = { showGlobalLayoutDialog = true },
                     )
+
+                    // How the standard Home is headed is the standard Home's own choice, so its row
+                    // sits under the family it belongs to and is only there while that family is the
+                    // one in use: the panorama Home draws its own scene chrome instead.
+                    if (globalLayout == GlobalLayout.Standard) {
+                        ArrowPreference(
+                            title = stringResource(R.string.home_layout_title),
+                            summary = stringResource(homeLayout.label),
+                            startAction = { SettingsIcon(MiuixIcons.HorizontalSplit) },
+                            onClick = { showHomeLayoutDialog = true },
+                        )
+                    }
                 }
             }
 
@@ -169,6 +186,12 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
             show = showGlobalLayoutDialog,
             selected = globalLayout,
             onDismissRequest = { showGlobalLayoutDialog = false },
+        )
+
+        HomeLayoutDialog(
+            show = showHomeLayoutDialog,
+            selected = homeLayout,
+            onDismissRequest = { showHomeLayoutDialog = false },
         )
     }
 }

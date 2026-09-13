@@ -450,6 +450,13 @@
     <string name="global_layout_panorama_summary">Wallpaper scene on Home, floating navigation on other pages.</string>
     <string name="global_layout_standard">Standard</string>
     <string name="global_layout_standard_summary">Classic bottom bar or sidebar layout on every page.</string>
+    <string name="home_layout_title">Home layout</string>
+    <string name="home_layout_large">Large card</string>
+    <string name="home_layout_large_summary">One tall status card, with the module counts stacked beside it.</string>
+    <string name="home_layout_compact">Single row</string>
+    <string name="home_layout_compact_summary">The status across the whole page, with the working mode at its foot.</string>
+    <string name="home_layout_list">List</string>
+    <string name="home_layout_list_summary">The status as a row, with the action it asks for at the end of it.</string>
     <string name="navigation_mode_auto">Automatic</string>
     <string name="navigation_mode_bottom">Bottom navigation</string>
     <string name="navigation_mode_sidebar">Sidebar navigation</string>

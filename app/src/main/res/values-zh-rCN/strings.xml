@@ -354,6 +354,13 @@
     <string name="global_layout_panorama_summary">首页是壁纸场景，其他页面使用悬浮导航。</string>
     <string name="global_layout_standard">标准首页</string>
     <string name="global_layout_standard_summary">所有页面使用传统的底部导航或侧栏导航。</string>
+    <string name="home_layout_title">首页布局</string>
+    <string name="home_layout_large">大卡片</string>
+    <string name="home_layout_large_summary">状态是一张大卡，模块数量摞在它右边。</string>
+    <string name="home_layout_compact">单行</string>
+    <string name="home_layout_compact_summary">状态横跨整页，工作模式在卡片下沿。</string>
+    <string name="home_layout_list">列表</string>
+    <string name="home_layout_list_summary">状态排成一行，动作按钮放在行末。</string>
     <string name="navigation_mode_auto">自动适配</string>
     <string name="navigation_mode_bottom">底部导航</string>
     <string name="navigation_mode_sidebar">侧栏导航</string>

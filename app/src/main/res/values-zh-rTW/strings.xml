@@ -349,6 +349,13 @@
     <string name="global_layout_panorama_summary">首頁是壁紙場景，其他頁面使用懸浮導覽。</string>
     <string name="global_layout_standard">標準首頁</string>
     <string name="global_layout_standard_summary">所有頁面使用傳統的底部導覽或側欄導覽。</string>
+    <string name="home_layout_title">首頁版面</string>
+    <string name="home_layout_large">大卡片</string>
+    <string name="home_layout_large_summary">狀態是一張大卡，模組數量疊在它右邊。</string>
+    <string name="home_layout_compact">單行</string>
+    <string name="home_layout_compact_summary">狀態橫跨整頁，工作模式在卡片下緣。</string>
+    <string name="home_layout_list">清單</string>
+    <string name="home_layout_list_summary">狀態排成一列，動作按鈕放在列末。</string>
     <string name="navigation_mode_auto">自動適應</string>
     <string name="navigation_mode_bottom">底部導覽</string>
     <string name="navigation_mode_sidebar">側欄導覽</string>
