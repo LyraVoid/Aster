@@ -14,6 +14,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import me.bmax.apatch.apApp
 import me.bmax.apatch.ui.module.MetaModuleWarning
+import me.bmax.apatch.ui.module.ModuleSortFacts
+import me.bmax.apatch.ui.module.moduleSortComparator
 import me.bmax.apatch.ui.module.probeMetaModuleWarning
 import me.bmax.apatch.util.HanziToPinyin
 import me.bmax.apatch.util.hasMagisk
@@ -66,14 +68,21 @@ class APModuleViewModel : ViewModel() {
     private val collator = Collator.getInstance(Locale.getDefault())
 
     val moduleList by derivedStateOf {
-        val comparator = compareByDescending<ModuleInfo> { it.metamodule && it.enabled }
-            .thenBy(collator) { it.id }
+        val comparator = compareBy<ModuleInfo, ModuleSortFacts>(moduleSortComparator(collator)) { it.sortFacts() }
 
         modules.filter {
             it.id.contains(search, true) || it.name.contains(search, true) ||
                 it.pinyin.contains(search, true)
         }.sortedWith(comparator)
     }
+
+    private fun ModuleInfo.sortFacts() = ModuleSortFacts(
+        id = id,
+        name = name,
+        metaModule = metamodule,
+        hasWebUi = hasWebUi,
+        hasActionScript = hasActionScript,
+    )
 
     val totalModuleCount: Int
         get() = modules.size
