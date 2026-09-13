@@ -3,7 +3,12 @@ package me.bmax.apatch.ui.shell
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.database.ContentObserver
 import android.os.BatteryManager
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
+import android.text.format.DateFormat
 import androidx.annotation.StringRes
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -31,6 +36,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.produceState
@@ -147,8 +153,44 @@ internal enum class SceneClockStyle(
 }
 
 private val ClockFormatterHour = DateTimeFormatter.ofPattern("HH")
+private val ClockFormatterHour12 = DateTimeFormatter.ofPattern("h")
 private val ClockFormatterMinute = DateTimeFormatter.ofPattern("mm")
 private val ClockFormatterTime = DateTimeFormatter.ofPattern("HH:mm")
+private val ClockFormatterTime12 = DateTimeFormatter.ofPattern("h:mm")
+
+/** The hour on its own, in the shape [is24Hour] asks for. */
+internal fun sceneHourText(time: LocalTime, is24Hour: Boolean): String =
+    time.format(if (is24Hour) ClockFormatterHour else ClockFormatterHour12)
+
+/** The whole time, in the shape [is24Hour] asks for. */
+internal fun sceneTimeText(time: LocalTime, is24Hour: Boolean): String =
+    time.format(if (is24Hour) ClockFormatterTime else ClockFormatterTime12)
+
+/** The half of the day, or null while a 24-hour clock says it with the number alone. */
+internal fun sceneMeridiemText(time: LocalTime, is24Hour: Boolean, locale: Locale): String? =
+    if (is24Hour) null else time.format(DateTimeFormatter.ofPattern("a", locale))
+
+/**
+ * Whether the phone reads a 12-hour clock. It is a setting someone can flip with the scene already
+ * on screen, so it is watched instead of read once at composition.
+ */
+@Composable
+private fun rememberSystem24Hour(): State<Boolean> {
+    val context = LocalContext.current
+    return produceState(initialValue = DateFormat.is24HourFormat(context), key1 = context) {
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                value = DateFormat.is24HourFormat(context)
+            }
+        }
+        context.contentResolver.registerContentObserver(
+            Settings.System.getUriFor(Settings.System.TIME_12_24),
+            false,
+            observer,
+        )
+        awaitDispose { context.contentResolver.unregisterContentObserver(observer) }
+    }
+}
 
 @Composable
 internal fun HomeSceneBackdrop(
@@ -330,15 +372,35 @@ private fun SceneClock(style: SceneClockStyle) {
     // Read from the configuration rather than the process default, so a language change is a
     // recomposition instead of something the clock only notices the next time it ticks.
     val locale = LocalConfiguration.current.locales[0]
+    val is24Hour by rememberSystem24Hour()
     val weekday = remember(now.dayOfWeek, locale) {
         now.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, locale)
     }
     val date = remember(now.toLocalDate(), locale) { sceneDate(now, locale) }
+    val hour = remember(now, is24Hour) { sceneHourText(now.toLocalTime(), is24Hour) }
+    val time = remember(now, is24Hour) { sceneTimeText(now.toLocalTime(), is24Hour) }
+    val meridiem = remember(now, is24Hour, locale) {
+        sceneMeridiemText(now.toLocalTime(), is24Hour, locale)
+    }
+    // A 12-hour clock has a second thing to say about the time, and the rail is narrow enough that
+    // it cannot go on the same line as the numbers; it joins the date instead, which is the line
+    // three of the four styles draw underneath.
+    val dateLine = if (meridiem == null) {
+        date
+    } else {
+        stringResource(R.string.home_scene_clock_meridiem_date, meridiem, date)
+    }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         when (style) {
             SceneClockStyle.Stacked -> {
-                SceneClockLine(now.format(ClockFormatterHour), 30.sp)
+                // This shape has no date line to hide the marker in, so it takes a line of its own
+                // above the numbers, where it reads as the start of the time.
+                if (meridiem != null) {
+                    SceneClockLine(meridiem, 11.sp, alpha = 0.82f)
+                    Spacer(Modifier.height(4.dp))
+                }
+                SceneClockLine(hour, 30.sp)
                 Box(
                     Modifier
                         .padding(vertical = 6.dp)
@@ -351,18 +413,19 @@ private fun SceneClock(style: SceneClockStyle) {
 
             SceneClockStyle.Inline -> {
                 // 22sp keeps "HH:mm" inside the narrowest rail the shell can ask for.
-                SceneClockLine(now.format(ClockFormatterTime), 22.sp)
+                SceneClockLine(time, 22.sp)
                 Spacer(Modifier.height(4.dp))
-                SceneClockLine(date, 11.sp, alpha = 0.82f)
+                SceneClockLine(dateLine, 11.sp, alpha = 0.82f)
             }
 
             SceneClockStyle.Analog -> {
                 SceneClockDial(now.toLocalTime())
                 Spacer(Modifier.height(6.dp))
-                SceneClockLine(date, 11.sp, alpha = 0.82f)
+                SceneClockLine(dateLine, 11.sp, alpha = 0.82f)
             }
 
             SceneClockStyle.DateOnly -> {
+                // Nothing here says a time, so nothing here marks the half of the day either.
                 SceneClockLine(weekday, 20.sp)
                 Spacer(Modifier.height(2.dp))
                 SceneClockLine(date, 11.sp, alpha = 0.82f)

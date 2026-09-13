@@ -332,6 +332,7 @@
     <string name="home_scene_clock_style_analog_summary">A watch face instead of the numbers.</string>
     <string name="home_scene_clock_style_date">Date only</string>
     <string name="home_scene_clock_style_date_summary">The weekday and the date, without the time.</string>
+    <string name="home_scene_clock_meridiem_date">%1$s · %2$s</string>
     <string name="home_scene_clock_switch">Scene clock and battery</string>
     <string name="home_scene_clock_switch_summary">Show the scene clock and battery at the top of the rail.</string>
     <string name="home_wallpaper_choose">Choose image</string>
