@@ -69,6 +69,12 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
         const val SU_PATH_FILE = APATCH_FOLDER + "su_path"
         const val SAFEMODE_FILE = "/dev/.safemode"
         private const val NEED_REBOOT_FILE = "/dev/.need_reboot"
+        /**
+         * Longest stack trace handed to the crash screen. A run-away recursion repeats one frame
+         * thousands of times, and a trace that large cannot cross the binder limit, so the report
+         * would fail and the app would disappear without a word.
+         */
+        private const val MAX_CRASH_TRACE_LENGTH = 64 * 1024
         const val GLOBAL_NAMESPACE_FILE = "/data/adb/.global_namespace_enable"
         const val SUCOMPAT_FILE = "/data/adb/ap/sucompat"
         const val SELINUX_HIDE_FILE = APATCH_FOLDER + "selinux_hide"
@@ -441,7 +447,7 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
     }
 
     override fun uncaughtException(t: Thread, e: Throwable) {
-        val exceptionMessage = Log.getStackTraceString(e)
+        val exceptionMessage = Log.getStackTraceString(e).take(MAX_CRASH_TRACE_LENGTH)
         val threadName = t.name
         Log.e(TAG, "Error on thread $threadName:\n $exceptionMessage")
         val intent = Intent(this, CrashHandleActivity::class.java).apply {
