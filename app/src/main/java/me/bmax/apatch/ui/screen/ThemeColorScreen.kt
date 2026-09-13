@@ -224,14 +224,16 @@ fun ThemeColorScreen(navigator: DestinationsNavigator) {
 
             item(key = "palette") {
                 SettingsSectionCard(title = stringResource(R.string.theme_color_title)) {
-                    val styles = ThemePaletteStyle.entries
                     OverlayDropdownPreference(
+                        entry = themeColorStyleEntry(
+                            selectedStyle = scheme.style,
+                            seed = previewSeed,
+                            spec = scheme.spec,
+                            dark = isDark,
+                        ) { style -> ThemeColorScheme.setStyle(style) },
                         title = stringResource(R.string.theme_color_style),
                         summary = stringResource(scheme.style.summary),
-                        items = styles.map { it.displayName },
-                        selectedIndex = styles.indexOf(scheme.style).coerceAtLeast(0),
                         startAction = { SettingsIcon(MiuixIcons.GridView) },
-                        onSelectedIndexChange = { index -> ThemeColorScheme.setStyle(styles[index]) },
                     )
 
                     val specs = ThemeColorSpec.entries
@@ -397,10 +399,100 @@ private fun ThemeColorPreviewCard(
 }
 
 /**
+ * The styles, each one shown as itself.
+ *
+ * A style is a way of spreading a colour, and its name says nothing about what that looks like, so
+ * every row carries three dots in the colours it would build. They are worked out by the same code
+ * that would paint the app with it, from the same seed the preview above is drawn with, so the list
+ * is a comparison rather than nine names.
+ *
+ * Three colours are enough to tell them apart: the two accents the style takes from the seed, and
+ * the third hue, which is the one a style moves furthest away. The scheme has no plain third role
+ * to ask for — Miuix keeps only its container — so the container stands in for it.
+ */
+@Composable
+private fun themeColorStyleEntry(
+    selectedStyle: ThemePaletteStyle,
+    seed: Int,
+    spec: ThemeColorSpec,
+    dark: Boolean,
+    onSelect: (ThemePaletteStyle) -> Unit,
+): DropdownEntry = DropdownEntry(
+    ThemePaletteStyle.entries.map { style ->
+        DropdownItem(
+            text = style.displayName,
+            selected = style == selectedStyle,
+            icon = { cellModifier ->
+                ThemeColorStyleDots(
+                    modifier = cellModifier,
+                    seed = seed,
+                    style = style,
+                    // The palette a style cannot build to 2025 is built to 2021 in the app too, and
+                    // the dots have to go with same one the app would use.
+                    spec = spec.effectiveFor(style),
+                    dark = dark,
+                )
+            },
+            onClick = { onSelect(style) },
+        )
+    },
+)
+
+/**
+ * The three colours of one style: the palette it makes out of [seed], drawn small.
+ *
+ * Nothing here is a picture of a palette. A nested theme is asked for the colours of this style,
+ * which is exactly what the app asks for when it paints itself.
+ */
+@Composable
+private fun ThemeColorStyleDots(
+    modifier: Modifier,
+    seed: Int,
+    style: ThemePaletteStyle,
+    spec: ThemeColorSpec,
+    dark: Boolean,
+) {
+    val controller = remember(seed, style, spec, dark) {
+        ThemeController(
+            colorSchemeMode = if (dark) ColorSchemeMode.MonetDark else ColorSchemeMode.MonetLight,
+            keyColor = Color(seed),
+            colorSpec = spec,
+            paletteStyle = style,
+        )
+    }
+
+    MiuixTheme(controller = controller) {
+        Row(
+            modifier = modifier,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(ThemeColorStyleDotGap),
+        ) {
+            ThemeColorStyleDot(MiuixTheme.colorScheme.primary)
+            ThemeColorStyleDot(MiuixTheme.colorScheme.secondary)
+            ThemeColorStyleDot(MiuixTheme.colorScheme.tertiaryContainer)
+        }
+    }
+}
+
+@Composable
+private fun ThemeColorStyleDot(color: Color) {
+    Box(
+        modifier = Modifier
+            .size(ThemeColorStyleDotSize)
+            .clip(CircleShape)
+            .background(color),
+    )
+}
+
+/**
  * How tall the colour menu is allowed to get before it scrolls. Nineteen colours are more rows than
  * a popup should be tall, and the list is scrollable anyway.
  */
 private val ThemeColorPresetMenuHeight = 380.dp
+
+/** One of the three dots that stand for a style, and the gap that keeps them apart. */
+private val ThemeColorStyleDotSize = 12.dp
+private val ThemeColorStyleDotGap = 4.dp
 
 /** The colour dot in the menu: the one thing that tells nineteen colours apart. */
 private val ThemeColorPresetDot = 20.dp
