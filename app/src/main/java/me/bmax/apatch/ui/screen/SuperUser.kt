@@ -81,6 +81,7 @@ import top.yukonga.miuix.kmp.icon.extended.Sort
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 @Destination<RootGraph>
@@ -354,6 +355,12 @@ private fun SuperUserAppItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp),
+        pressFeedbackType = PressFeedbackType.Sink,
+        showIndication = false,
+        // The card is the target of a tap, not the label inside it: every app opens wherever it is
+        // touched, and the press is answered by the card itself rather than by a highlight across
+        // its middle. Granting root stays on the switch alone.
+        onClick = { showExcludeSetting = !showExcludeSetting },
     ) {
         Column(
             modifier = Modifier
@@ -378,10 +385,7 @@ private fun SuperUserAppItem(
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .padding(horizontal = 12.dp)
-                        .clickable(enabled = !item.isAllowed) {
-                            showExcludeSetting = !showExcludeSetting
-                        },
+                        .padding(horizontal = 12.dp),
                 ) {
                     Text(
                         text = item.label,
@@ -422,7 +426,9 @@ private fun SuperUserAppItem(
                 )
             }
 
-            AnimatedVisibility(visible = showExcludeSetting && !item.isAllowed) {
+            // Exclusion reaches an app that holds root too: turning it on takes the root away and
+            // leaves the app excluded, and the row says so straight away.
+            AnimatedVisibility(visible = showExcludeSetting) {
                 SwitchPreference(
                     modifier = Modifier
                         .fillMaxWidth()
