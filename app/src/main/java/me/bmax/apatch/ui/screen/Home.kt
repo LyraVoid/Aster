@@ -94,6 +94,7 @@ import me.bmax.apatch.ui.home.HomeEvent
 import me.bmax.apatch.ui.home.HomePrimaryAction
 import me.bmax.apatch.ui.home.HomeSelinuxStatus
 import me.bmax.apatch.ui.home.HomeUiState
+import me.bmax.apatch.ui.home.HomeUpdateLayer
 import me.bmax.apatch.ui.home.HomeUpdateState
 import me.bmax.apatch.ui.home.HomeViewModel
 import me.bmax.apatch.ui.home.HomeWallpaperCrop
@@ -111,6 +112,8 @@ import me.bmax.apatch.ui.home.androidVersion
 import me.bmax.apatch.ui.home.canUninstallAnything
 import me.bmax.apatch.ui.home.displayName
 import me.bmax.apatch.ui.home.needsRootAccess
+import me.bmax.apatch.ui.home.resolveUpdateLayer
+import me.bmax.apatch.ui.home.resolveUpdateVersions
 import me.bmax.apatch.ui.shell.GlobalLayout
 import me.bmax.apatch.ui.shell.GlobalLayoutDialog
 import me.bmax.apatch.ui.shell.LocalHomeSceneHostState
@@ -788,16 +791,32 @@ private fun SceneStatusStrip(
             .getOrNull()
             ?.takeIf { it.isNotBlank() && it != "0" }
     }
+    val updateLayer = resolveUpdateLayer(state.capability)
+    val updateVersions = rememberUpdateVersions(state, updateLayer, managerVersion.second)
     val kpatchValue = when (state.conclusion) {
         HomeConclusion.FULL_APATCH,
         HomeConclusion.KERNEL_PATCH_ONLY -> installedKpatchVersion
             ?: stringResource(R.string.kpatch_version, managerVersion.first)
 
-        HomeConclusion.NEED_UPDATE -> "${Version.installedKPVString()} → ${Version.buildKPVString()}"
+        // Only the kernel patch column may announce a kernel patch update; when the system patch is
+        // the one behind, this column keeps reporting the version that is actually installed.
+        HomeConclusion.NEED_UPDATE -> if (updateLayer == HomeUpdateLayer.KERNEL_PATCH) {
+            updateVersions?.let { stringResource(R.string.kpatch_version_update, it.first, it.second) }
+                ?: stringResource(R.string.home_layer_need_update)
+        } else {
+            installedKpatchVersion ?: stringResource(R.string.kpatch_version, managerVersion.first)
+        }
+
         HomeConclusion.NOT_INSTALLED -> stringResource(R.string.home_not_installed)
         HomeConclusion.NEED_REBOOT -> stringResource(R.string.home_ap_cando_reboot)
         HomeConclusion.CHECKING -> stringResource(R.string.home_status_checking)
         else -> stringResource(R.string.home_click_to_install)
+    }
+    val apatchValue = if (updateLayer == HomeUpdateLayer.ANDROID_PATCH) {
+        updateVersions?.let { stringResource(R.string.kpatch_version_update, it.first, it.second) }
+            ?: stringResource(R.string.home_layer_need_update)
+    } else {
+        stringResource(state.capability.androidPatch.labelRes())
     }
 
     Row(
@@ -819,7 +838,7 @@ private fun SceneStatusStrip(
         )
         SceneStatusColumn(
             title = stringResource(R.string.android_patch),
-            value = stringResource(state.capability.androidPatch.labelRes()),
+            value = apatchValue,
             modifier = Modifier.weight(1f),
         )
     }
@@ -1693,8 +1712,25 @@ private fun KStatusCard(
     val isDark = themeMode.isDark
     val isMonet = themeMode.isDynamicColor
 
-    val isWorking = state.conclusion == HomeConclusion.FULL_APATCH ||
-        state.conclusion == HomeConclusion.KERNEL_PATCH_ONLY
+    // The card reports the kernel patch, so a system patch that is behind is not its business: that
+    // one has its own card right below. Letting the shared conclusion through would make this card
+    // claim an update for the other layer, and would offer to install it.
+    val updateLayer = resolveUpdateLayer(state.capability)
+    val conclusion = if (
+        state.conclusion == HomeConclusion.NEED_UPDATE &&
+        updateLayer == HomeUpdateLayer.ANDROID_PATCH
+    ) {
+        if (state.capability.androidPatch.isUsable()) {
+            HomeConclusion.FULL_APATCH
+        } else {
+            HomeConclusion.KERNEL_PATCH_ONLY
+        }
+    } else {
+        state.conclusion
+    }
+
+    val isWorking = conclusion == HomeConclusion.FULL_APATCH ||
+        conclusion == HomeConclusion.KERNEL_PATCH_ONLY
 
     val cardBg = when {
         isWorking -> when {
@@ -1702,8 +1738,8 @@ private fun KStatusCard(
             isDark -> Color(0xFF1A3825)
             else -> Color(0xFFDFFAE4)
         }
-        state.conclusion == HomeConclusion.NEED_UPDATE -> MiuixTheme.colorScheme.secondaryContainer
-        state.conclusion == HomeConclusion.NEED_REBOOT -> MiuixTheme.colorScheme.errorContainer
+        conclusion == HomeConclusion.NEED_UPDATE -> MiuixTheme.colorScheme.secondaryContainer
+        conclusion == HomeConclusion.NEED_REBOOT -> MiuixTheme.colorScheme.errorContainer
         else -> MiuixTheme.colorScheme.secondaryContainer
     }
 
@@ -1713,32 +1749,45 @@ private fun KStatusCard(
         } else {
             Color(0xFF36D167)
         }
-        state.conclusion == HomeConclusion.NEED_UPDATE -> MiuixTheme.colorScheme.secondary
-        state.conclusion == HomeConclusion.NEED_REBOOT -> MiuixTheme.colorScheme.error
+        conclusion == HomeConclusion.NEED_UPDATE -> MiuixTheme.colorScheme.secondary
+        conclusion == HomeConclusion.NEED_REBOOT -> MiuixTheme.colorScheme.error
         else -> MiuixTheme.colorScheme.outline
     }
 
     val decoIcon = when {
-        state.conclusion == HomeConclusion.NEED_UPDATE -> MiuixIcons.Update
-        state.conclusion == HomeConclusion.NEED_REBOOT -> MiuixIcons.Reset
-        state.conclusion == HomeConclusion.CHECKING -> MiuixIcons.Refresh
+        conclusion == HomeConclusion.NEED_UPDATE -> MiuixIcons.Update
+        conclusion == HomeConclusion.NEED_REBOOT -> MiuixIcons.Reset
+        conclusion == HomeConclusion.CHECKING -> MiuixIcons.Refresh
         else -> MiuixIcons.Help
     }
 
-    val titleRes = when {
-        isWorking -> R.string.home_working
-        state.conclusion == HomeConclusion.NEED_UPDATE -> R.string.home_need_update
-        state.conclusion == HomeConclusion.NEED_REBOOT -> R.string.home_ap_cando_reboot
-        state.conclusion == HomeConclusion.CHECKING -> R.string.home_status_checking
-        state.conclusion == HomeConclusion.CHECK_FAILED -> R.string.home_status_check_failed
-        else -> R.string.home_not_installed
+    val title = when {
+        isWorking -> {
+            val mode = if (conclusion == HomeConclusion.FULL_APATCH) "<Full>" else "<Half>"
+            "${stringResource(R.string.home_working)} $mode"
+        }
+
+        // Name the patch that is behind: the conclusion on its own only says that something is.
+        conclusion == HomeConclusion.NEED_UPDATE && updateLayer != null ->
+            stringResource(R.string.home_layer_update, stringResource(updateLayer.labelRes()))
+
+        conclusion == HomeConclusion.NEED_UPDATE -> stringResource(R.string.home_need_update)
+        conclusion == HomeConclusion.NEED_REBOOT -> stringResource(R.string.home_ap_cando_reboot)
+        conclusion == HomeConclusion.CHECKING -> stringResource(R.string.home_status_checking)
+        conclusion == HomeConclusion.CHECK_FAILED -> stringResource(R.string.home_status_check_failed)
+        else -> stringResource(R.string.home_not_installed)
     }
 
     val managerVersion = remember { Version.getManagerVersion() }
-    val subtitle = when (state.conclusion) {
+    val updateVersions = rememberUpdateVersions(state, updateLayer, managerVersion.second)
+    val subtitle = when (conclusion) {
         HomeConclusion.FULL_APATCH,
         HomeConclusion.KERNEL_PATCH_ONLY -> stringResource(R.string.kpatch_version, managerVersion.first)
-        HomeConclusion.NEED_UPDATE -> "${Version.installedKPVString()} → ${Version.buildKPVString()}"
+
+        HomeConclusion.NEED_UPDATE -> updateVersions?.let {
+            stringResource(R.string.kpatch_version_update, it.first, it.second)
+        }
+
         HomeConclusion.NOT_INSTALLED -> stringResource(R.string.home_click_to_install)
         else -> null
     }
@@ -1789,12 +1838,7 @@ private fun KStatusCard(
                 ) {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = if (isWorking) {
-                            val mode = if (state.conclusion == HomeConclusion.FULL_APATCH) "<Full>" else "<Half>"
-                            "${stringResource(titleRes)} $mode"
-                        } else {
-                            stringResource(titleRes)
-                        },
+                        text = title,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -2703,6 +2747,48 @@ private fun HomeConclusion.icon(): ImageVector = when (this) {
     HomeConclusion.BUSY -> MiuixIcons.Refresh
     HomeConclusion.JAILBREAK -> MiuixIcons.Unlock
     HomeConclusion.UNKNOWN -> MiuixIcons.Help
+}
+
+/**
+ * The versions a pending update would move, read once per state.
+ *
+ * Reading the kernel patch version goes through the root supercall, so it is only asked for when a
+ * layer is actually behind and something is going to print it.
+ */
+@Composable
+private fun rememberUpdateVersions(
+    state: HomeUiState,
+    updateLayer: HomeUpdateLayer?,
+    managerVersionCode: Long,
+): Pair<String, String>? = remember(state.conclusion, updateLayer) {
+    // Each layer is read on its own: the kernel patch version goes through the root supercall, so it
+    // is only asked for when the kernel patch is the layer a caller is about to print.
+    when (updateLayer) {
+        HomeUpdateLayer.KERNEL_PATCH -> resolveUpdateVersions(
+            layer = HomeUpdateLayer.KERNEL_PATCH,
+            installedKernelPatch = Version.installedKPVString(),
+            builtKernelPatch = Version.buildKPVString(),
+            installedSystemPatch = "",
+            managerVersionCode = managerVersionCode,
+        )
+
+        HomeUpdateLayer.ANDROID_PATCH -> resolveUpdateVersions(
+            layer = HomeUpdateLayer.ANDROID_PATCH,
+            installedKernelPatch = "",
+            builtKernelPatch = "",
+            installedSystemPatch = state.capability.details.androidPatchVersion?.toString()
+                ?: Version.installedApdVString,
+            managerVersionCode = managerVersionCode,
+        )
+
+        null -> null
+    }
+}
+
+@StringRes
+private fun HomeUpdateLayer.labelRes(): Int = when (this) {
+    HomeUpdateLayer.KERNEL_PATCH -> R.string.kernel_patch
+    HomeUpdateLayer.ANDROID_PATCH -> R.string.android_patch
 }
 
 @StringRes

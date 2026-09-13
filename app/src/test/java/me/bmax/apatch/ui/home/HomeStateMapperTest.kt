@@ -9,6 +9,7 @@ import me.bmax.apatch.root.RootMode
 import me.bmax.apatch.util.LatestVersionInfo
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -271,6 +272,135 @@ class HomeStateMapperTest {
             assertEquals(HomePrimaryAction.RETRY_CHECK, state.primaryAction)
             assertEquals(false, state.copy(capability = state.capability.copy(phase = RootCheckPhase.CHECKING)).needsRootAccess())
         }
+    }
+
+    @Test
+    fun `a behind system patch offers the system patch update`() {
+        val state = HomeStateMapper.map(
+            capability = readyCapability(
+                kernelPatch = RootLayerState.AVAILABLE,
+                androidPatch = RootLayerState.NEED_UPDATE,
+                mode = RootMode.FULL_APATCH,
+            ).copy(attention = setOf(RootAttention.NEED_UPDATE)),
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+        )
+
+        assertEquals(HomeConclusion.NEED_UPDATE, state.conclusion)
+        assertEquals(HomePrimaryAction.UPDATE_APATCH, state.primaryAction)
+    }
+
+    @Test
+    fun `update layer follows the layer that is behind`() {
+        assertEquals(
+            HomeUpdateLayer.ANDROID_PATCH,
+            resolveUpdateLayer(
+                readyCapability(
+                    kernelPatch = RootLayerState.AVAILABLE,
+                    androidPatch = RootLayerState.NEED_UPDATE,
+                    mode = RootMode.FULL_APATCH,
+                ),
+            ),
+        )
+        assertEquals(
+            HomeUpdateLayer.KERNEL_PATCH,
+            resolveUpdateLayer(
+                readyCapability(
+                    kernelPatch = RootLayerState.NEED_UPDATE,
+                    androidPatch = RootLayerState.AVAILABLE,
+                    mode = RootMode.FULL_APATCH,
+                ),
+            ),
+        )
+        assertNull(
+            resolveUpdateLayer(
+                readyCapability(
+                    kernelPatch = RootLayerState.AVAILABLE,
+                    androidPatch = RootLayerState.AVAILABLE,
+                    mode = RootMode.FULL_APATCH,
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun `both layers behind name the kernel patch and offer it first`() {
+        val capability = readyCapability(
+            kernelPatch = RootLayerState.NEED_UPDATE,
+            androidPatch = RootLayerState.NEED_UPDATE,
+            mode = RootMode.FULL_APATCH,
+        ).copy(attention = setOf(RootAttention.NEED_UPDATE))
+
+        val state = HomeStateMapper.map(
+            capability = capability,
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+        )
+
+        assertEquals(HomeUpdateLayer.KERNEL_PATCH, resolveUpdateLayer(capability))
+        assertEquals(HomePrimaryAction.UPDATE_KERNEL_PATCH, state.primaryAction)
+    }
+
+    @Test
+    fun `each layer reports its own versions`() {
+        // The kernel patch is measured in KernelPatch versions, the system patch in the patch build
+        // the manager was compiled against. Both sides of the arrow have to come from one layer.
+        assertEquals(
+            "0.13.8" to "0.13.9",
+            resolveUpdateVersions(
+                layer = HomeUpdateLayer.KERNEL_PATCH,
+                installedKernelPatch = "0.13.8",
+                builtKernelPatch = "0.13.9",
+                installedSystemPatch = "0",
+                managerVersionCode = 11_350L,
+            ),
+        )
+        assertEquals(
+            "11349" to "11350",
+            resolveUpdateVersions(
+                layer = HomeUpdateLayer.ANDROID_PATCH,
+                installedKernelPatch = "0.13.8",
+                builtKernelPatch = "0.13.9",
+                installedSystemPatch = "11349",
+                managerVersionCode = 11_350L,
+            ),
+        )
+    }
+
+    @Test
+    fun `an unreadable version claims no update`() {
+        // The card printed the kernel patch versions whenever either layer was behind, so a system
+        // patch that was behind announced a kernel patch update. A version that could not be read is
+        // no better: it must not be shown as the near side of an arrow.
+        assertNull(
+            resolveUpdateVersions(
+                layer = HomeUpdateLayer.ANDROID_PATCH,
+                installedKernelPatch = "0.13.8",
+                builtKernelPatch = "0.13.9",
+                installedSystemPatch = "0",
+                managerVersionCode = 11_350L,
+            ),
+        )
+        assertNull(
+            resolveUpdateVersions(
+                layer = HomeUpdateLayer.KERNEL_PATCH,
+                installedKernelPatch = "0",
+                builtKernelPatch = "0.13.9",
+                installedSystemPatch = "11349",
+                managerVersionCode = 11_350L,
+            ),
+        )
+        assertNull(
+            resolveUpdateVersions(
+                layer = HomeUpdateLayer.KERNEL_PATCH,
+                installedKernelPatch = "unknown",
+                builtKernelPatch = "0.13.9",
+                installedSystemPatch = "11349",
+                managerVersionCode = 11_350L,
+            ),
+        )
     }
 
     private fun readyCapability(

@@ -96,14 +96,10 @@ internal object HomeStateMapper {
         capability.attention.contains(RootAttention.NEED_REBOOT) ->
             HomePrimaryAction.REBOOT
 
-        capability.attention.contains(RootAttention.NEED_UPDATE) -> when {
-            capability.kernelPatch == RootLayerState.NEED_UPDATE ->
-                HomePrimaryAction.UPDATE_KERNEL_PATCH
-
-            capability.androidPatch == RootLayerState.NEED_UPDATE ->
-                HomePrimaryAction.UPDATE_APATCH
-
-            else -> HomePrimaryAction.RETRY_CHECK
+        capability.attention.contains(RootAttention.NEED_UPDATE) -> when (resolveUpdateLayer(capability)) {
+            HomeUpdateLayer.KERNEL_PATCH -> HomePrimaryAction.UPDATE_KERNEL_PATCH
+            HomeUpdateLayer.ANDROID_PATCH -> HomePrimaryAction.UPDATE_APATCH
+            null -> HomePrimaryAction.RETRY_CHECK
         }
 
         capability.attention.contains(RootAttention.NEED_INSTALL) ->
@@ -129,6 +125,57 @@ internal object HomeStateMapper {
         return if (quiet) HomeDeviceDensity.COMPACT else HomeDeviceDensity.DIAGNOSTIC
     }
 }
+
+/**
+ * The layer a pending update belongs to.
+ *
+ * [RootAttention.NEED_UPDATE] is raised by either layer, which makes the conclusion alone a
+ * statement about "something" being behind. Everything that names a patch - the work card, the status
+ * strip, the primary action - has to go through here instead, or it reports an update for the layer
+ * it happens to talk about.
+ */
+internal enum class HomeUpdateLayer {
+    KERNEL_PATCH,
+    ANDROID_PATCH,
+}
+
+/**
+ * Which layer is behind, or null when both are current.
+ *
+ * Both layers can be behind at once. Installing the kernel patch comes first and the primary action
+ * offers it first, so the kernel patch wins the tie and the card names the same layer as the button.
+ */
+internal fun resolveUpdateLayer(capability: RootCapabilitySnapshot): HomeUpdateLayer? = when {
+    capability.kernelPatch == RootLayerState.NEED_UPDATE -> HomeUpdateLayer.KERNEL_PATCH
+    capability.androidPatch == RootLayerState.NEED_UPDATE -> HomeUpdateLayer.ANDROID_PATCH
+    else -> null
+}
+
+/**
+ * The versions a pending update would move, or null when the installed side cannot be read.
+ *
+ * The two layers are measured differently - the kernel patch by its KernelPatch version, the system
+ * patch by the patch build the manager was compiled against - so both sides of the arrow have to come
+ * from the same layer. A sentinel ("0", "unknown") means the read failed; printing it would claim an
+ * update for a layer that may well be current, which is exactly how the work card ended up announcing
+ * a kernel patch update while only the system patch was behind.
+ */
+internal fun resolveUpdateVersions(
+    layer: HomeUpdateLayer,
+    installedKernelPatch: String,
+    builtKernelPatch: String,
+    installedSystemPatch: String,
+    managerVersionCode: Long,
+): Pair<String, String>? = when (layer) {
+    HomeUpdateLayer.KERNEL_PATCH -> readableVersions(installedKernelPatch, builtKernelPatch)
+    HomeUpdateLayer.ANDROID_PATCH -> readableVersions(installedSystemPatch, managerVersionCode.toString())
+}
+
+private fun readableVersions(from: String, to: String): Pair<String, String>? =
+    if (from.isReadVersion() && to.isReadVersion()) from to to else null
+
+private fun String.isReadVersion(): Boolean =
+    isNotBlank() && this != "0" && !equals("unknown", ignoreCase = true)
 
 /** A detected patch is not proof that this manager has a usable root session. */
 internal fun HomeUiState.needsRootAccess(): Boolean =

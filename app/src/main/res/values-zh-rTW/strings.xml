@@ -67,6 +67,7 @@
     <string name="home_selinux_status_unknown">未知</string>
     <string name="home_selinux_status_permissive">允許執行</string>
     <string name="home_need_update">已有新版本可供使用</string>
+    <string name="home_layer_update">%s可更新</string>
     <string name="home_selinux_status">SELinux 狀態</string>
     <string name="apm_changelog">《更新紀錄》</string>
     <string name="apm_uninstall_failed">無法解除安裝 %s</string>
