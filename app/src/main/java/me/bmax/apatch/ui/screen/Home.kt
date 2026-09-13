@@ -141,6 +141,7 @@ import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.ArrowRight
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.Close
 import top.yukonga.miuix.kmp.icon.extended.Delete
@@ -163,6 +164,7 @@ import top.yukonga.miuix.kmp.icon.extended.Unlock
 import top.yukonga.miuix.kmp.icon.extended.Update
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.window.WindowBottomSheet
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.LocalContentColor
@@ -1227,6 +1229,41 @@ private fun SceneSwitchRow(
     }
 }
 
+/**
+ * A row that names the current choice and opens the list of them, so a setting with more than two
+ * values still reads like the switches around it.
+ */
+@Composable
+private fun SceneChoiceRow(
+    title: String,
+    value: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(text = title, style = MiuixTheme.textStyles.body1)
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = value,
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            )
+        }
+        Spacer(Modifier.width(16.dp))
+        Icon(
+            imageVector = MiuixIcons.Basic.ArrowRight,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = MiuixTheme.colorScheme.onSurfaceVariantActions,
+        )
+    }
+}
+
 @Composable
 private fun HomeWallpaperSheet(
     show: Boolean,
@@ -1311,6 +1348,45 @@ private fun HomeWallpaperSheet(
                         )
                     },
                 )
+                // The shape of the clock only matters while the clock is there, so the choice
+                // follows the switch the same way the rail options follow the mode they belong to.
+                if (showSceneClock) {
+                    val clockStyle by me.bmax.apatch.ui.shell.rememberVisualChoice(
+                        me.bmax.apatch.ui.shell.SceneClockStyleFlag,
+                        me.bmax.apatch.ui.shell.SceneClockStyle.Default.value,
+                    )
+                    var choosingClockStyle by remember { mutableStateOf(false) }
+                    // A row that names the shape in use and opens the list of them, the way
+                    // Settings offers every other either-or choice: four filled buttons would
+                    // shout louder than the switches around them.
+                    SceneChoiceRow(
+                        title = stringResource(R.string.home_scene_clock_style),
+                        value = stringResource(
+                            me.bmax.apatch.ui.shell.SceneClockStyle.fromValue(clockStyle).label,
+                        ),
+                        onClick = { choosingClockStyle = true },
+                    )
+                    OverlayDialog(
+                        show = choosingClockStyle,
+                        title = stringResource(R.string.home_scene_clock_style),
+                        onDismissRequest = { choosingClockStyle = false },
+                    ) {
+                        me.bmax.apatch.ui.shell.SceneClockStyle.entries.forEach { choice ->
+                            RadioButtonPreference(
+                                title = stringResource(choice.label),
+                                summary = stringResource(choice.summary),
+                                selected = choice.value == clockStyle,
+                                onClick = {
+                                    choosingClockStyle = false
+                                    me.bmax.apatch.ui.shell.setVisualChoice(
+                                        me.bmax.apatch.ui.shell.SceneClockStyleFlag,
+                                        choice.value,
+                                    )
+                                },
+                            )
+                        }
+                    }
+                }
                 SceneSwitchRow(
                     title = stringResource(R.string.home_scene_labels_switch),
                     summary = stringResource(R.string.home_scene_labels_switch_summary),
@@ -1397,13 +1473,13 @@ private fun HomeWallpaperSheet(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    WallpaperSlotButton(
+                    SceneChoiceButton(
                         label = stringResource(R.string.home_wallpaper_slot_light),
                         selected = editingSlot == HomeWallpaperSlot.LIGHT,
                         onClick = { editingSlot = HomeWallpaperSlot.LIGHT },
                         modifier = Modifier.weight(1f),
                     )
-                    WallpaperSlotButton(
+                    SceneChoiceButton(
                         label = stringResource(R.string.home_wallpaper_slot_night),
                         selected = editingSlot == HomeWallpaperSlot.NIGHT,
                         onClick = { editingSlot = HomeWallpaperSlot.NIGHT },
@@ -1544,9 +1620,9 @@ private fun HomeWallpaperSheet(
     }
 }
 
-/** Picks which of the two wallpapers the sheet is editing. */
+/** A pill for a small either/or choice in the appearance sheet. */
 @Composable
-private fun WallpaperSlotButton(
+private fun SceneChoiceButton(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,

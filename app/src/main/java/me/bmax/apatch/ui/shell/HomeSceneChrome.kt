@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import androidx.annotation.StringRes
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.Canvas
@@ -48,8 +49,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -57,13 +60,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlinx.coroutines.delay
+import me.bmax.apatch.R
 import me.bmax.apatch.ui.home.HomeWallpaperImage
 import me.bmax.apatch.ui.home.HomeWallpaperState
 import top.yukonga.miuix.kmp.basic.Icon
@@ -88,8 +97,58 @@ internal const val SceneRailClockFlag = "scene_rail_clock"
 /** Labels help on a photo, but they also crowd it; the appearance sheet can drop them. */
 internal const val SceneRailLabelsFlag = "scene_rail_labels"
 
+/** Which shape the scene clock takes; [SceneClockStyle] holds the values. */
+internal const val SceneClockStyleFlag = "scene_clock_style"
+
+/**
+ * The scene clock has a few shapes, and the rail is narrow enough that they are genuinely
+ * different designs rather than one design with options. The stored string is read through
+ * [fromValue], so a value written by a newer version falls back instead of breaking the rail.
+ */
+internal enum class SceneClockStyle(
+    val value: String,
+    @param:StringRes val label: Int,
+    @param:StringRes val summary: Int,
+) {
+    /** Hours over minutes, the shape the rail has always drawn. */
+    Stacked(
+        "stacked",
+        R.string.home_scene_clock_style_stacked,
+        R.string.home_scene_clock_style_stacked_summary,
+    ),
+
+    /** One line of time with the date under it. */
+    Inline(
+        "inline",
+        R.string.home_scene_clock_style_inline,
+        R.string.home_scene_clock_style_inline_summary,
+    ),
+
+    /** A watch face, with the date under it. */
+    Analog(
+        "analog",
+        R.string.home_scene_clock_style_analog,
+        R.string.home_scene_clock_style_analog_summary,
+    ),
+
+    /** The date alone, for someone who reads the time in the status bar. */
+    DateOnly(
+        "date",
+        R.string.home_scene_clock_style_date,
+        R.string.home_scene_clock_style_date_summary,
+    );
+
+    companion object {
+        val Default = Stacked
+
+        fun fromValue(value: String?): SceneClockStyle =
+            entries.firstOrNull { it.value == value } ?: Default
+    }
+}
+
 private val ClockFormatterHour = DateTimeFormatter.ofPattern("HH")
 private val ClockFormatterMinute = DateTimeFormatter.ofPattern("mm")
+private val ClockFormatterTime = DateTimeFormatter.ofPattern("HH:mm")
 
 @Composable
 internal fun HomeSceneBackdrop(
@@ -157,9 +216,13 @@ internal fun HomeSceneRail(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val showSceneClock by rememberVisualFlag(SceneRailClockFlag, true)
+        val clockStyleValue by rememberVisualChoice(
+            SceneClockStyleFlag,
+            SceneClockStyle.Default.value,
+        )
         Spacer(Modifier.height(28.dp))
         if (showSceneClock) {
-            SceneClock()
+            SceneClock(SceneClockStyle.fromValue(clockStyleValue))
             Spacer(Modifier.height(24.dp))
             SceneBattery()
         }
@@ -256,40 +319,145 @@ private fun SceneRailItem(
 }
 
 @Composable
-private fun SceneClock() {
-    val now by produceState(initialValue = LocalTime.now(), key1 = Unit) {
+private fun SceneClock(style: SceneClockStyle) {
+    // The date is part of three of the four styles, so the tick keeps a date as well as a time.
+    val now by produceState(initialValue = LocalDateTime.now(), key1 = Unit) {
         while (true) {
-            value = LocalTime.now()
+            value = LocalDateTime.now()
             delay(20_000)
         }
     }
+    // Read from the configuration rather than the process default, so a language change is a
+    // recomposition instead of something the clock only notices the next time it ticks.
+    val locale = LocalConfiguration.current.locales[0]
+    val weekday = remember(now.dayOfWeek, locale) {
+        now.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, locale)
+    }
+    val date = remember(now.toLocalDate(), locale) { sceneDate(now, locale) }
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = now.format(ClockFormatterHour),
-            style = TextStyle(
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Light,
-                color = SceneOnWallpaper.copy(alpha = 0.96f),
-                shadow = SceneTextShadow,
-            ),
+        when (style) {
+            SceneClockStyle.Stacked -> {
+                SceneClockLine(now.format(ClockFormatterHour), 30.sp)
+                Box(
+                    Modifier
+                        .padding(vertical = 6.dp)
+                        .width(16.dp)
+                        .height(1.dp)
+                        .background(SceneOnWallpaper.copy(alpha = 0.42f))
+                )
+                SceneClockLine(now.format(ClockFormatterMinute), 30.sp)
+            }
+
+            SceneClockStyle.Inline -> {
+                // 22sp keeps "HH:mm" inside the narrowest rail the shell can ask for.
+                SceneClockLine(now.format(ClockFormatterTime), 22.sp)
+                Spacer(Modifier.height(4.dp))
+                SceneClockLine(date, 11.sp, alpha = 0.82f)
+            }
+
+            SceneClockStyle.Analog -> {
+                SceneClockDial(now.toLocalTime())
+                Spacer(Modifier.height(6.dp))
+                SceneClockLine(date, 11.sp, alpha = 0.82f)
+            }
+
+            SceneClockStyle.DateOnly -> {
+                SceneClockLine(weekday, 20.sp)
+                Spacer(Modifier.height(2.dp))
+                SceneClockLine(date, 11.sp, alpha = 0.82f)
+            }
+        }
+    }
+}
+
+/**
+ * One line of the clock. It fills the rail so that a long date is shortened instead of drawn past
+ * the rail and over the page behind it, and centres itself because of that width.
+ */
+@Composable
+private fun SceneClockLine(text: String, fontSize: TextUnit, alpha: Float = 0.96f) {
+    Text(
+        text = text,
+        style = TextStyle(
+            fontSize = fontSize,
+            fontWeight = FontWeight.Light,
+            color = SceneOnWallpaper.copy(alpha = alpha),
+            shadow = SceneTextShadow,
+            textAlign = TextAlign.Center,
+        ),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+/**
+ * A watch face: a faint ring, four marks at the quarters and two hands. The ring and the marks are
+ * kept quiet so that the hands, which are what a dial is actually read from, stay the only solid
+ * thing about it.
+ */
+@Composable
+private fun SceneClockDial(time: LocalTime) {
+    Canvas(Modifier.size(46.dp)) {
+        val ring = 1.4.dp.toPx()
+        val radius = size.minDimension / 2f - ring
+        val center = Offset(size.width / 2f, size.height / 2f)
+
+        drawCircle(
+            color = SceneOnWallpaper.copy(alpha = 0.5f),
+            radius = radius,
+            center = center,
+            style = Stroke(width = ring),
         )
-        Box(
-            Modifier
-                .padding(vertical = 6.dp)
-                .width(16.dp)
-                .height(1.dp)
-                .background(SceneOnWallpaper.copy(alpha = 0.42f))
+        repeat(4) { index ->
+            val angle = Math.toRadians((index * 90f - 90f).toDouble())
+            drawCircle(
+                color = SceneOnWallpaper.copy(alpha = 0.55f),
+                radius = 1.dp.toPx(),
+                center = center + Offset(
+                    (cos(angle) * (radius - 5.dp.toPx())).toFloat(),
+                    (sin(angle) * (radius - 5.dp.toPx())).toFloat(),
+                ),
+            )
+        }
+
+        // The hour hand creeps with the minutes, so the face never looks stopped.
+        val minuteAngle = Math.toRadians((time.minute * 6f - 90f).toDouble())
+        val hourAngle = Math.toRadians(
+            ((time.hour % 12) * 30f + time.minute * 0.5f - 90f).toDouble()
         )
-        Text(
-            text = now.format(ClockFormatterMinute),
-            style = TextStyle(
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Light,
-                color = SceneOnWallpaper.copy(alpha = 0.96f),
-                shadow = SceneTextShadow,
+        drawLine(
+            color = SceneOnWallpaper.copy(alpha = 0.94f),
+            start = center,
+            end = center + Offset(
+                (cos(hourAngle) * radius * 0.5f).toFloat(),
+                (sin(hourAngle) * radius * 0.5f).toFloat(),
             ),
+            strokeWidth = 2.dp.toPx(),
+            cap = StrokeCap.Round,
+        )
+        drawLine(
+            color = SceneOnWallpaper.copy(alpha = 0.94f),
+            start = center,
+            end = center + Offset(
+                (cos(minuteAngle) * radius * 0.78f).toFloat(),
+                (sin(minuteAngle) * radius * 0.78f).toFloat(),
+            ),
+            strokeWidth = 1.5.dp.toPx(),
+            cap = StrokeCap.Round,
         )
     }
+}
+
+/**
+ * The month and day, written the way the phone's own locale writes it: the platform is asked for
+ * the shortest month-and-day pattern it uses, with a plain month and day as the fallback for the
+ * rare locale it has no pattern for.
+ */
+private fun sceneDate(now: LocalDateTime, locale: Locale): String {
+    val pattern = android.text.format.DateFormat.getBestDateTimePattern(locale, "MMMd") ?: "MMM d"
+    return now.format(DateTimeFormatter.ofPattern(pattern, locale))
 }
 
 @Composable

@@ -323,6 +323,15 @@
     <string name="home_wallpaper_color_theme">Wallpaper colours</string>
     <string name="home_wallpaper_color_theme_summary">Derive the app colours from this wallpaper.</string>
     <string name="home_wallpaper_color_seed">Derived colour</string>
+    <string name="home_scene_clock_style">Clock style</string>
+    <string name="home_scene_clock_style_stacked">Two-line time</string>
+    <string name="home_scene_clock_style_stacked_summary">Hours over minutes, the way the rail has always drawn them.</string>
+    <string name="home_scene_clock_style_inline">One-line time</string>
+    <string name="home_scene_clock_style_inline_summary">One line of time, the date underneath.</string>
+    <string name="home_scene_clock_style_analog">Dial</string>
+    <string name="home_scene_clock_style_analog_summary">A watch face instead of the numbers.</string>
+    <string name="home_scene_clock_style_date">Date only</string>
+    <string name="home_scene_clock_style_date_summary">The weekday and the date, without the time.</string>
     <string name="home_scene_clock_switch">Scene clock and battery</string>
     <string name="home_scene_clock_switch_summary">Show the scene clock and battery at the top of the rail.</string>
     <string name="home_wallpaper_choose">Choose image</string>

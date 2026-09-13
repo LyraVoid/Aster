@@ -67,5 +67,28 @@ fun rememberVisualFlag(key: String, default: Boolean): State<Boolean> {
 fun setVisualFlag(key: String, value: Boolean) {
     APApplication.sharedPreferences.edit { putBoolean(key, value) }
 }
+
+/**
+ * Some visual choices have more than two answers, such as the shape of the scene clock. They are
+ * stored the same way as the flags above and read back as the raw string, which the caller turns
+ * into its own type so that an unknown stored value can fall back to its default.
+ */
+@Composable
+fun rememberVisualChoice(key: String, default: String): State<String> {
+    val prefs = APApplication.sharedPreferences
+    val state = remember(prefs, key) { mutableStateOf(prefs.getString(key, null) ?: default) }
+    DisposableEffect(prefs, key) {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { p, changed ->
+            if (changed == key || changed == null) state.value = p.getString(key, null) ?: default
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        onDispose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
+    return state
+}
+
+fun setVisualChoice(key: String, value: String) {
+    APApplication.sharedPreferences.edit { putString(key, value) }
+}
 val LocalFloatingNavigationInset = androidx.compose.runtime.compositionLocalOf { androidx.compose.ui.unit.Dp(0f) }
 val LocalSceneProgress = androidx.compose.runtime.compositionLocalOf { 1f }

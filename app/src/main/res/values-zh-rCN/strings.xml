@@ -257,6 +257,15 @@
     <string name="home_wallpaper_color_theme">按壁纸配色</string>
     <string name="home_wallpaper_color_theme_summary">根据这张壁纸生成应用配色。</string>
     <string name="home_wallpaper_color_seed">生成的颜色</string>
+    <string name="home_scene_clock_style">时钟样式</string>
+    <string name="home_scene_clock_style_stacked">两行数字</string>
+    <string name="home_scene_clock_style_stacked_summary">小时在上、分钟在下，和侧栏一直以来的样子一样。</string>
+    <string name="home_scene_clock_style_inline">单行数字</string>
+    <string name="home_scene_clock_style_inline_summary">一行时间，下面一行日期。</string>
+    <string name="home_scene_clock_style_analog">指针式</string>
+    <string name="home_scene_clock_style_analog_summary">用表盘代替数字。</string>
+    <string name="home_scene_clock_style_date">仅日期</string>
+    <string name="home_scene_clock_style_date_summary">只显示星期和日期，不显示时间。</string>
     <string name="home_scene_clock_switch">显示时钟与电量</string>
     <string name="home_scene_clock_switch_summary">在侧栏顶部显示场景时钟和电量。</string>
     <string name="home_wallpaper_choose">选择图片</string>
