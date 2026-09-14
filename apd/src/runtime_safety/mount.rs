@@ -1,6 +1,11 @@
 use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
-use std::{ffi::CString, fs, os::unix::fs::MetadataExt, path::Path};
+use std::{
+    ffi::CString,
+    fs,
+    os::unix::fs::MetadataExt,
+    path::{Path, PathBuf},
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Identity {
@@ -148,16 +153,36 @@ fn eligible(entries: &[Entry], target: &str) -> Result<String> {
     ensure!(!slave(parent), "Slave parent mounts are not supported");
     Ok(entry.line.clone())
 }
+/// Rejects a symbolic link anywhere in `path`, including the final component.
+///
+/// `Path::canonicalize` cannot be used for this check. It resolves through
+/// libc `realpath`, which on Android reads the path back from `/proc/self/fd`
+/// and refuses a path whose mount root was unlinked: the link reports
+/// `"<path> (deleted)"` and `realpath` fails with ENOENT, even though the path
+/// itself is intact, walkable and readable. That is exactly the state of a
+/// target that a previous runtime-safety session restored, so the check has to
+/// be independent of the mount's provenance. Walking the components with
+/// `symlink_metadata` refuses the same input (any symlink component) without
+/// depending on how the mount was created.
+fn reject_symlinks(path: &str) -> Result<()> {
+    let mut prefix = PathBuf::new();
+    for component in Path::new(path).components() {
+        prefix.push(component);
+        let meta = fs::symlink_metadata(&prefix)?;
+        ensure!(
+            !meta.file_type().is_symlink(),
+            "Symlinks are not supported: {path}"
+        );
+    }
+    Ok(())
+}
 fn identity(path: &str) -> Result<Identity> {
     let meta = fs::symlink_metadata(path)?;
     ensure!(
         meta.is_file() && meta.len() > 0,
         "Expected a nonempty regular file: {path}"
     );
-    ensure!(
-        Path::new(path).canonicalize()? == Path::new(path),
-        "Symlinks are not supported: {path}"
-    );
+    reject_symlinks(path)?;
     Ok(Identity {
         dev: meta.dev(),
         ino: meta.ino(),
@@ -740,7 +765,14 @@ pub fn restore(plan: &Plan) -> Result<()> {
 fn restore_saved(plan: &Plan) -> Result<()> {
     let all = entries()?;
     let at_target: Vec<_> = all.iter().filter(|e| e.path == plan.target).collect();
-    if !at_target.is_empty() {
+    // The saved mount is moved back only when the target is free. Its root is
+    // the pinned anchor file, and that file must then stay linked: a mount whose
+    // root dentry was unlinked reports `"(deleted)"` and can neither be resolved
+    // (`realpath`, and therefore `identity`) nor moved again (`move_mount`
+    // returns ENOENT), which would make the target unusable for the rest of the
+    // boot. The anchor is dropped by the new-boot sweep instead.
+    let moved_back = at_target.is_empty();
+    if !moved_back {
         ensure!(
             at_target.len() == 1 && identity(&plan.target)? == plan.original,
             "Target changed externally; refusing to overwrite another mount"
@@ -781,7 +813,7 @@ fn restore_saved(plan: &Plan) -> Result<()> {
     if Path::new(&plan.backup).exists() {
         fs::remove_file(&plan.backup)?;
     }
-    if Path::new(&plan.anchor).exists() {
+    if !moved_back && Path::new(&plan.anchor).exists() {
         fs::remove_file(&plan.anchor)?;
     }
     if let Some(dir) = Path::new(&plan.backup).parent().and_then(Path::to_str) {
@@ -807,6 +839,63 @@ pub fn discard_old_boot(plan: &Plan) -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn backups_dir() -> String {
+    format!("{}/mounts", super::ROOT)
+}
+
+/// Drop files that no mount can reference any more.
+///
+/// Two cases leave files behind on purpose: a restored shadow keeps its anchor
+/// linked (see `restore_saved`), and re-arming the same target twice in one boot
+/// leaves the earlier anchor behind once its mount is gone. Both are only
+/// removable when this feature holds no mount at all, which is exactly the state
+/// the new-boot path runs in. Fail-closed: if anything is still mounted there,
+/// or an entry is not a plain file or an empty directory, it is kept.
+pub fn sweep_backups() -> Result<()> {
+    let dir = backups_dir();
+    let all = entries()?;
+    ensure!(
+        !all
+            .iter()
+            .any(|entry| entry.path == dir || entry.path.starts_with(&format!("{dir}/"))),
+        "Backups are still mounted"
+    );
+    let removed = sweep_files_in(&dir);
+    if removed > 0 {
+        log::info!("runtime-safety: removed {removed} stale backup file(s)");
+    }
+    Ok(())
+}
+
+/// Remove plain files and empty directories below `dir`. Never followed,
+/// never recursed into a non-empty directory.
+fn sweep_files_in(dir: &str) -> usize {
+    let Ok(entries) = fs::read_dir(dir) else {
+        return 0;
+    };
+    let mut removed = 0;
+    for entry in entries.flatten() {
+        let path = entry.path();
+        let Some(text) = path.to_str() else {
+            continue;
+        };
+        let result = match fs::symlink_metadata(&path) {
+            Ok(meta) if meta.is_file() => fs::remove_file(&path),
+            Ok(meta) if meta.is_dir() => fs::remove_dir(&path),
+            Ok(_) => {
+                log::warn!("runtime-safety: leaving unexpected backup entry: {text}");
+                continue;
+            }
+            Err(error) => Err(error),
+        };
+        match result {
+            Ok(()) => removed += 1,
+            Err(error) => log::warn!("runtime-safety: backup entry not removed: {text}: {error}"),
+        }
+    }
+    removed
 }
 
 #[cfg(test)]
@@ -896,6 +985,62 @@ mod tests {
             possible_targets("system/system/priv-app/x/x.apk"),
             vec!["/system/system/priv-app/x/x.apk".to_owned()]
         );
+    }
+
+    #[test]
+    fn sweep_removes_only_plain_files_and_empty_directories() {
+        let root = fs::canonicalize(std::env::temp_dir())
+            .unwrap()
+            .join("apd-sweep-test");
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(root.join("empty-dir")).unwrap();
+        fs::create_dir_all(root.join("kept-dir")).unwrap();
+        fs::write(root.join("stale.source"), b"x").unwrap();
+        fs::write(root.join("kept-dir/inner"), b"y").unwrap();
+        std::os::unix::fs::symlink("stale.source", root.join("link")).unwrap();
+
+        assert_eq!(sweep_files_in(root.to_str().unwrap()), 2);
+        assert!(!root.join("stale.source").exists());
+        assert!(!root.join("empty-dir").exists());
+        assert!(root.join("kept-dir/inner").exists(), "non-empty dirs stay");
+        assert!(
+            fs::symlink_metadata(root.join("link")).is_ok(),
+            "links are never followed or removed"
+        );
+        // A missing directory is not an error: the feature never uses one twice.
+        assert_eq!(sweep_files_in("/nonexistent/apd-sweep"), 0);
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn identity_rejects_symlinks_without_resolving_the_whole_path() {
+        let root = fs::canonicalize(std::env::temp_dir())
+            .unwrap()
+            .join("apd-identity-test");
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(root.join("dir")).unwrap();
+        fs::write(root.join("dir/real"), b"x").unwrap();
+        std::os::unix::fs::symlink("real", root.join("dir/link")).unwrap();
+        std::os::unix::fs::symlink("dir", root.join("dirlink")).unwrap();
+
+        let file = root.join("dir/real");
+        assert_eq!(
+            identity(file.to_str().unwrap()).unwrap().size,
+            1,
+            "plain file must resolve"
+        );
+        // A symlinked component is refused instead of being followed, so the
+        // target can never be redirected outside the checked path.
+        let error = identity(root.join("dirlink/real").to_str().unwrap()).unwrap_err();
+        assert!(
+            format!("{error:#}").contains("Symlinks are not supported"),
+            "{error:#}"
+        );
+        // The final component is refused by the regular-file check before that.
+        assert!(identity(root.join("dir/link").to_str().unwrap()).is_err());
+        // Directories are never identities, symlinked or not.
+        assert!(identity(root.join("dir").to_str().unwrap()).is_err());
+        let _ = fs::remove_dir_all(&root);
     }
 
     #[test]
@@ -1043,6 +1188,20 @@ mod tests {
             fs::remove_file(&plan.source).unwrap();
             restore_saved(&plan).unwrap();
             assert_eq!(fs::read(&plan.target).unwrap(), b"module resource");
+            // F6 regression: the restored mount's root is the pinned anchor, so
+            // that file must stay linked. An unlinked root reads as "(deleted)",
+            // which breaks `realpath` and any later `move_mount` of this mount.
+            assert!(
+                Path::new(&plan.anchor).exists(),
+                "the anchor of a restored mount must stay linked"
+            );
+            assert!(
+                !exact(&entries().unwrap(), &plan.target)
+                    .unwrap()
+                    .line
+                    .contains("//deleted"),
+                "a restored mount must not report a deleted root"
+            );
             let restored_entries = entries().unwrap();
             let restored = exact(&restored_entries, &plan.target).unwrap();
             assert_eq!(

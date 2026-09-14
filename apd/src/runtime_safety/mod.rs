@@ -334,6 +334,12 @@ fn reconcile(
                 }
             }
         }
+        // Leftovers no plan references any more: a restored shadow keeps its
+        // anchor linked for the rest of its boot, and a target armed twice in one
+        // boot leaves the earlier anchor behind once its mount is gone.
+        if let Err(error) = mount::sweep_backups() {
+            let _ = journal.event(&format!("stale backups retained: {error:#}"));
+        }
         // A session that could not be restored keeps its warning: the retained
         // backups must not look like a clean shutdown.
         let unrestored = state.phase == "recovery_failed";
