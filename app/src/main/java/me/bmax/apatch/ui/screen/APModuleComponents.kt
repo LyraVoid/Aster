@@ -1,7 +1,5 @@
 package me.bmax.apatch.ui.screen
 
-import androidx.compose.foundation.Image
-import me.bmax.apatch.ui.module.rememberModuleIcon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -190,8 +188,6 @@ internal fun APModuleCard(
             if (module.hasActionScript) {
                 APModuleIconAction(
                     icon = MiuixIcons.Play,
-                    customIconPath = module.actionIcon,
-                    iconRevision = module.iconRevision,
                     contentDescription = stringResource(R.string.apm_action),
                     onClick = onAction,
                 )
@@ -200,8 +196,6 @@ internal fun APModuleCard(
             if (module.hasWebUi) {
                 APModuleIconAction(
                     icon = MiuixIcons.Link,
-                    customIconPath = module.webuiIcon,
-                    iconRevision = module.iconRevision,
                     contentDescription = stringResource(R.string.apm_webui_open),
                     onClick = onOpen,
                 )
@@ -257,30 +251,19 @@ internal fun APModuleIconAction(
     onClick: () -> Unit,
     containerColor: Color = MiuixTheme.colorScheme.secondaryVariant,
     contentColor: Color = MiuixTheme.colorScheme.onSecondaryVariant,
-    customIconPath: String = "",
-    iconRevision: Long = 0,
 ) {
-    val customIcon = rememberModuleIcon(customIconPath, iconRevision)
     IconButton(
         onClick = onClick,
         backgroundColor = containerColor,
         minWidth = 40.dp,
         minHeight = 40.dp,
     ) {
-        if (customIcon != null) {
-            Image(
-                bitmap = customIcon,
-                contentDescription = contentDescription,
-                modifier = Modifier.size(20.dp),
-            )
-        } else {
-            Icon(
-                imageVector = icon,
-                contentDescription = contentDescription,
-                modifier = Modifier.size(20.dp),
-                tint = contentColor,
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(20.dp),
+            tint = contentColor,
+        )
     }
 }
 

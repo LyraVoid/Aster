@@ -31,6 +31,8 @@ internal fun moduleIconSampleSize(width: Int, height: Int): Int? {
     return sample
 }
 
+// Kept although nothing on the module card draws a module-supplied icon any more, so a
+// later avatar or shortcut surface can reuse the validated loader instead of a second one.
 @Composable
 internal fun rememberModuleIcon(path: String, revision: Long): ImageBitmap? = key(path, revision) {
     val bitmap by produceState<ImageBitmap?>(null) {

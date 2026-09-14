@@ -75,6 +75,8 @@ class APModuleViewModel : ViewModel() {
         // Pinyin of `name`, precomputed at load time; per-keystroke conversion in
         // the search filter dropped frames on the main thread.
         val pinyin: String = "",
+        // APD-validated custom icon paths. The module card no longer draws these over the
+        // built-in run/WebUI glyphs; retained for a future module avatar or shortcut surface.
         val actionIcon: String = "",
         val webuiIcon: String = "",
         val iconRevision: Long = 0,
