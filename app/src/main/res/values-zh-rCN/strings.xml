@@ -122,6 +122,15 @@
     <string name="settings_install_confirm_summary">安装前先显示文件名并等你确认</string>
     <string name="settings_switch_indicator">启用按钮指示器</string>
     <string name="settings_switch_indicator_summary">在管理器开关的滑块上显示状态图标</string>
+    <string name="settings_font">字体</string>
+    <string name="settings_font_custom">自定义字体</string>
+    <string name="settings_font_custom_summary">用你自己的字体显示应用</string>
+    <string name="settings_font_pick">选择字体文件</string>
+    <string name="settings_font_reset">恢复默认字体</string>
+    <string name="settings_font_reset_confirm">删除自定义字体并恢复系统字体？</string>
+    <string name="settings_font_imported">字体已保存</string>
+    <string name="settings_font_import_failed">这个文件不能作为字体使用</string>
+    <string name="settings_font_reset_done">已恢复默认字体</string>
     <string name="apm_remove">卸载</string>
     <string name="apm_undo">撤销</string>
     <string name="apm_uninstall_confirm">确认要卸载“%s”模块吗？</string>

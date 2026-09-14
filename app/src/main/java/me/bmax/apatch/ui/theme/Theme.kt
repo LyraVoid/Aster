@@ -175,7 +175,15 @@ fun APatchTheme(
         )
     }
 
-    MiuixTheme(controller = miuixThemeController) {
+    // The font the reader picked, if any, is put on every style here and nowhere else: this is the
+    // one place the app hands Miuix the styles it draws with.
+    val customFont = CustomFont.family
+    val baseTextStyles = MiuixTheme.textStyles
+    val textStyles = remember(customFont, baseTextStyles) {
+        if (customFont == null) baseTextStyles else baseTextStyles.withFontFamily(customFont)
+    }
+
+    MiuixTheme(controller = miuixThemeController, textStyles = textStyles) {
         CompositionLocalProvider(
             LocalThemeModeState provides ThemeModeState(
                 isDark = darkTheme,

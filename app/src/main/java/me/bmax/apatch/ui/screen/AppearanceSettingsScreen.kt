@@ -1,7 +1,10 @@
 package me.bmax.apatch.ui.screen
 
+import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,10 +12,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
@@ -20,10 +25,14 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.ThemeColorScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.launch
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.component.ConfirmResult
 import me.bmax.apatch.ui.component.IndicatorSwitchPreference
 import me.bmax.apatch.ui.component.SwitchIndicator
+import me.bmax.apatch.ui.component.rememberConfirmDialog
+import me.bmax.apatch.ui.component.rememberLoadingDialog
 import me.bmax.apatch.ui.settings.resolveSettingsFeatureAvailability
 import me.bmax.apatch.ui.shell.AppDensity
 import me.bmax.apatch.ui.shell.GlobalLayout
@@ -35,6 +44,7 @@ import me.bmax.apatch.ui.shell.rememberAppDensity
 import me.bmax.apatch.ui.shell.rememberDeviceDensity
 import me.bmax.apatch.ui.shell.rememberGlobalLayout
 import me.bmax.apatch.ui.shell.rememberHomeLayout
+import me.bmax.apatch.ui.theme.CustomFont
 import me.bmax.apatch.ui.theme.SystemDynamicColorKey
 import me.bmax.apatch.ui.theme.displayName
 import me.bmax.apatch.ui.theme.label
@@ -42,11 +52,14 @@ import me.bmax.apatch.ui.theme.refreshTheme
 import me.bmax.apatch.ui.theme.rememberThemeColorSchemeState
 import me.bmax.apatch.ui.theme.rememberWallpaperColorThemeState
 import me.bmax.apatch.ui.theme.themeColorSourceOf
+import me.bmax.apatch.util.ui.LocalSnackbarHost
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.SnackbarDuration
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.HorizontalSplit
 import top.yukonga.miuix.kmp.icon.extended.Layers
+import top.yukonga.miuix.kmp.icon.extended.Notes
 import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.icon.extended.Reset
@@ -71,6 +84,7 @@ import kotlin.math.roundToInt
 fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
     val capabilities = LocalAsterCapabilities.current
     val prefs = APApplication.sharedPreferences
+    val context = LocalContext.current
     val globalLayout by rememberGlobalLayout()
     val appDensity by rememberAppDensity()
     val deviceDensity = rememberDeviceDensity()
@@ -100,6 +114,32 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
         mutableStateOf(prefs.getBoolean("night_mode_enabled", false))
     }
     var switchIndicator by rememberSaveable { mutableStateOf(SwitchIndicator.enabled) }
+    var showFontDialog by rememberSaveable { mutableStateOf(false) }
+    val font = CustomFont.state
+    val snackBarHost = LocalSnackbarHost.current
+    val scope = rememberCoroutineScope()
+    val loadingDialog = rememberLoadingDialog()
+    val confirmDialog = rememberConfirmDialog()
+    val fontSavedMessage = stringResource(R.string.settings_font_imported)
+    val fontFailedMessage = stringResource(R.string.settings_font_import_failed)
+    val fontResetMessage = stringResource(R.string.settings_font_reset_done)
+    val fontResetTitle = stringResource(R.string.settings_font_reset)
+    val fontResetConfirm = stringResource(R.string.settings_font_reset_confirm)
+
+    // The picked file is read, checked and copied by CustomFont; what is left here is saying how it
+    // went, which is the one thing that needs a screen.
+    val pickFontLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+    ) { uri: Uri? ->
+        uri ?: return@rememberLauncherForActivityResult
+        scope.launch {
+            val imported = loadingDialog.withLoading { CustomFont.importFont(context, uri) }
+            snackBarHost.showSnackbar(
+                message = if (imported) fontSavedMessage else fontFailedMessage,
+                duration = SnackbarDuration.Short,
+            )
+        }
+    }
 
     val availability = resolveSettingsFeatureAvailability(
         kPatchReady = capabilities.kernelPatchReady,
@@ -171,6 +211,19 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
                             onClick = { showHomeLayoutDialog = true },
                         )
                     }
+                }
+            }
+
+            // What the app is set in is its own subject, so it gets its own card: the row says which
+            // font is in use and the dialog holds the two controls that change that.
+            item(key = "type") {
+                SettingsCard {
+                    ArrowPreference(
+                        title = stringResource(R.string.settings_font),
+                        summary = font.title ?: stringResource(R.string.system_default),
+                        startAction = { SettingsIcon(MiuixIcons.Notes) },
+                        onClick = { showFontDialog = true },
+                    )
                 }
             }
 
@@ -281,6 +334,27 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
             show = showHomeLayoutDialog,
             selected = homeLayout,
             onDismissRequest = { showHomeLayoutDialog = false },
+        )
+
+        FontDialog(
+            show = showFontDialog,
+            onDismiss = { showFontDialog = false },
+            onPickFont = {
+                // Fonts are asked for as any file: plenty of pickers do not know a font when they
+                // see one, and the file is checked here anyway.
+                pickFontLauncher.launch("*/*")
+            },
+            onResetFont = {
+                scope.launch {
+                    val answer = confirmDialog.awaitConfirm(
+                        title = fontResetTitle,
+                        content = fontResetConfirm,
+                    )
+                    if (answer != ConfirmResult.Confirmed) return@launch
+                    CustomFont.clear(context)
+                    snackBarHost.showSnackbar(message = fontResetMessage, duration = SnackbarDuration.Short)
+                }
+            },
         )
     }
 }

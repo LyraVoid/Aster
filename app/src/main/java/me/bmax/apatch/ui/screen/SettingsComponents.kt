@@ -25,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +37,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.bmax.apatch.Natives
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.component.IndicatorSwitchPreference
+import me.bmax.apatch.ui.theme.CustomFont
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -233,6 +236,57 @@ internal fun LanguageDialog(
 
 internal fun suPathChecked(path: String): Boolean =
     path.startsWith("/") && path.trim().length > 1
+
+/**
+ * The font the app is drawn in: whether it is the reader's own, which file it came from, and the two
+ * ways to change either.
+ *
+ * The file picker and the confirmation for putting the font back belong to the appearance page,
+ * which is where the picker, the confirmation and the snackbar that reports them already are.
+ */
+@Composable
+internal fun FontDialog(
+    show: Boolean,
+    onDismiss: () -> Unit,
+    onPickFont: () -> Unit,
+    onResetFont: () -> Unit,
+) {
+    val context = LocalContext.current
+    val font = CustomFont.state
+
+    OverlayDialog(
+        show = show,
+        title = stringResource(R.string.settings_font),
+        onDismissRequest = onDismiss,
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            // A font cannot be turned on before there is one, so the switch says that by being
+            // unusable until a file has been picked, rather than failing when it is tapped.
+            IndicatorSwitchPreference(
+                checked = font.enabled,
+                onCheckedChange = { CustomFont.setEnabled(context, it) },
+                title = stringResource(R.string.settings_font_custom),
+                summary = font.title ?: stringResource(R.string.settings_font_custom_summary),
+                enabled = font.picked,
+            )
+            TextButton(
+                text = stringResource(R.string.settings_font_pick),
+                onClick = onPickFont,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (font.picked) {
+                TextButton(
+                    text = stringResource(R.string.settings_font_reset),
+                    onClick = onResetFont,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
 
 @Composable
 internal fun ResetSUPathDialog(

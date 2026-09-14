@@ -21,6 +21,7 @@ import me.bmax.apatch.root.RootDetailRead
 import me.bmax.apatch.root.RootDetailState
 import me.bmax.apatch.root.RootInitializationSnapshot
 import me.bmax.apatch.root.toRootDetailRead
+import me.bmax.apatch.ui.theme.CustomFont
 import me.bmax.apatch.util.APatchCli
 import me.bmax.apatch.util.APatchKeyHelper
 import me.bmax.apatch.util.ApdVersionResult
@@ -448,6 +449,9 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
         sharedPreferences = getSharedPreferences(SP_NAME, Context.MODE_PRIVATE)
         RootCapabilityRepository.start()
         superKey = resolveSuperKey()
+        // Reads the font the reader chose last time and loads it off the main thread, so the first
+        // frame the theme draws already knows whether there is one.
+        CustomFont.load(this)
 
         okhttpClient =
             OkHttpClient.Builder().cache(Cache(File(cacheDir, "okhttp"), 10 * 1024 * 1024))
