@@ -116,6 +116,10 @@
     <string name="apm_reboot_to_apply">重启生效</string>
     <string name="apm_uninstall_success">%s 已卸载</string>
     <string name="apm_install">安装</string>
+    <string name="apm_install_confirm_title">安装模块</string>
+    <string name="apm_install_confirm_content">确定要安装 %s 吗？</string>
+    <string name="settings_install_confirm">安装前确认</string>
+    <string name="settings_install_confirm_summary">安装前先显示文件名并等你确认</string>
     <string name="apm_remove">卸载</string>
     <string name="apm_undo">撤销</string>
     <string name="apm_uninstall_confirm">确认要卸载“%s”模块吗？</string>

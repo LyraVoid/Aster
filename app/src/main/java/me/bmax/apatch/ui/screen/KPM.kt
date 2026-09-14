@@ -61,6 +61,7 @@ import me.bmax.apatch.ui.component.MissingLayerNotice
 import me.bmax.apatch.ui.component.LoadingDialogHandle
 import me.bmax.apatch.ui.component.rememberConfirmDialog
 import me.bmax.apatch.ui.component.rememberLoadingDialog
+import me.bmax.apatch.ui.install.rememberModuleInstallConfirm
 import me.bmax.apatch.ui.kernelmodule.KPModuleContentState
 import me.bmax.apatch.ui.kernelmodule.resolveKPModuleContentState
 import me.bmax.apatch.ui.shell.LocalAsterCapabilities
@@ -150,6 +151,7 @@ fun KPModuleScreen(navigator: DestinationsNavigator) {
     }
 
     val scope = rememberCoroutineScope()
+    val installConfirm = rememberModuleInstallConfirm()
     val selectKpmLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
     ) { result ->
@@ -170,6 +172,7 @@ fun KPModuleScreen(navigator: DestinationsNavigator) {
         val uri = result.data?.data ?: return@rememberLauncherForActivityResult
 
         scope.launch {
+            if (!installConfirm.ask(uri)) return@launch
             val rc = kpmInstallMutex.withLock { installKpm(uri) }
             val toastText = if (rc == 0) {
                 installSuccessToastText

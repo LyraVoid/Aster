@@ -100,6 +100,7 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
 
         const val SP_NAME = "config"
         private const val SHOW_BACKUP_WARN = "show_backup_warning"
+        private const val CONFIRM_MODULE_INSTALL = "confirm_module_install"
         lateinit var sharedPreferences: SharedPreferences
 
         private val logCallback: CallbackList<String?> = object : CallbackList<String?>() {
@@ -464,6 +465,19 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
 
     fun updateBackupWarningState(state: Boolean) {
         sharedPreferences.edit { putBoolean(SHOW_BACKUP_WARN, state) }
+    }
+
+    /**
+     * Whether an install names the file and waits for a yes before it unpacks anything. On by
+     * default: the zip is about to be extracted into /data/adb/modules as root, and the file name
+     * is often the only thing a reader can check it by.
+     */
+    fun getModuleInstallConfirmState(): Boolean {
+        return sharedPreferences.getBoolean(CONFIRM_MODULE_INSTALL, true)
+    }
+
+    fun updateModuleInstallConfirmState(state: Boolean) {
+        sharedPreferences.edit { putBoolean(CONFIRM_MODULE_INSTALL, state) }
     }
 
     override fun uncaughtException(t: Thread, e: Throwable) {

@@ -42,6 +42,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.component.MissingLayerNotice
+import me.bmax.apatch.ui.install.rememberModuleInstallConfirm
 import me.bmax.apatch.ui.repo.ModuleRepoPreferences
 import me.bmax.apatch.ui.repo.ModuleSource
 import me.bmax.apatch.ui.repo.OnlineModule
@@ -112,6 +113,7 @@ fun OnlineModuleScreen(navigator: DestinationsNavigator, moduleType: MODULE_TYPE
     // Resource lookups go through the configuration-aware provider, not the raw context.
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
+    val installConfirm = rememberModuleInstallConfirm()
     val listState = rememberLazyListState()
     val installSuccessToastText = stringResource(R.string.kpm_install_toast_succ)
     val installFailedToastText = stringResource(R.string.kpm_load_toast_failed)
@@ -294,9 +296,14 @@ fun OnlineModuleScreen(navigator: DestinationsNavigator, moduleType: MODULE_TYPE
 
     DownloadListener(context) { uri ->
         if (!kernelModules) {
-            navigator.navigate(InstallScreenDestination(uri, MODULE_TYPE.APM))
+            scope.launch {
+                if (installConfirm.ask(uri)) {
+                    navigator.navigate(InstallScreenDestination(uri, MODULE_TYPE.APM))
+                }
+            }
         } else {
             scope.launch {
+                if (!installConfirm.ask(uri)) return@launch
                 val result = kpmInstallMutex.withLock { installKpm(uri) }
                 val message = if (result == 0) {
                     installSuccessToastText

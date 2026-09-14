@@ -64,6 +64,7 @@ import me.bmax.apatch.ui.component.ConfirmResult
 import me.bmax.apatch.ui.component.MissingLayerNotice
 import me.bmax.apatch.ui.component.rememberConfirmDialog
 import me.bmax.apatch.ui.component.rememberLoadingDialog
+import me.bmax.apatch.ui.install.rememberModuleInstallConfirm
 import me.bmax.apatch.ui.module.APModuleContentState
 import me.bmax.apatch.ui.module.ModuleMountWarning
 import me.bmax.apatch.ui.module.ModuleSortGroup
@@ -140,6 +141,8 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
 
     val viewModel = viewModel<APModuleViewModel>()
     val modules = viewModel.moduleList
+    val installScope = rememberCoroutineScope()
+    val installConfirm = rememberModuleInstallConfirm()
     val scrollBehavior = MiuixScrollBehavior()
     val moduleListState = rememberLazyListState()
     var lastKnownModuleCount by rememberSaveable { mutableStateOf(-1) }
@@ -176,7 +179,11 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
         val uri = result.data?.data ?: return@rememberLauncherForActivityResult
 
         Log.i("ModuleScreen", "select zip result: $uri")
-        navigator.navigate(InstallScreenDestination(uri, MODULE_TYPE.APM))
+        installScope.launch {
+            if (installConfirm.ask(uri)) {
+                navigator.navigate(InstallScreenDestination(uri, MODULE_TYPE.APM))
+            }
+        }
     }
     val launchZipPicker = {
         selectZipLauncher.launch(
@@ -247,7 +254,11 @@ fun APModuleScreen(navigator: DestinationsNavigator) {
                 scrollBehavior = scrollBehavior,
                 snackBarHost = snackBarHost,
                 onInstallModule = {
-                    navigator.navigate(InstallScreenDestination(it, MODULE_TYPE.APM))
+                    installScope.launch {
+                        if (installConfirm.ask(it)) {
+                            navigator.navigate(InstallScreenDestination(it, MODULE_TYPE.APM))
+                        }
+                    }
                 },
                 onOpenWebUi = { id, name ->
                     webUILauncher.launch(

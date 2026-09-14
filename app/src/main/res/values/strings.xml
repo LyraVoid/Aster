@@ -216,6 +216,10 @@
     <string name="apm_remove">Remove</string>
     <string name="apm_undo">Undo</string>
     <string name="apm_install">Install</string>
+    <string name="apm_install_confirm_title">Install module</string>
+    <string name="apm_install_confirm_content">Install %s?</string>
+    <string name="settings_install_confirm">Confirm before installing</string>
+    <string name="settings_install_confirm_summary">Name the module and ask before unpacking it</string>
     <string name="apm_uninstall_confirm">Uninstall the %s module?</string>
     <string name="metamodule_uninstall_confirm">"Are you sure you want to uninstall module %s? This action will affect all modules, and certain features provided by the metamodule (such as mounting) will no longer work.  "</string>
     <string name="apm_uninstall_success">%s uninstalled</string>

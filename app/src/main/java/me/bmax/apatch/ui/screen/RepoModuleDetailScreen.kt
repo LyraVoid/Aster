@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -28,7 +29,9 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.InstallScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.launch
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.install.rememberModuleInstallConfirm
 import me.bmax.apatch.ui.repo.ModuleRepoPreferences
 import me.bmax.apatch.ui.repo.RepoModule
 import me.bmax.apatch.ui.repo.RepoVersion
@@ -71,6 +74,8 @@ fun RepoModuleDetailScreen(
     // Resource lookups go through the configuration-aware provider, not the raw context.
     val resources = LocalResources.current
     val uriHandler = LocalUriHandler.current
+    val installScope = rememberCoroutineScope()
+    val installConfirm = rememberModuleInstallConfirm()
     // Repository modules come from the manager module store, which is the one with a cluster.
     val repositoryUrl = ModuleRepoPreferences.repositoryUrl(forKernelModules = false)
     val module = viewModel.selectedModule
@@ -156,7 +161,11 @@ fun RepoModuleDetailScreen(
     }
 
     DownloadListener(context) { uri ->
-        navigator.navigate(InstallScreenDestination(uri, MODULE_TYPE.APM))
+        installScope.launch {
+            if (installConfirm.ask(uri)) {
+                navigator.navigate(InstallScreenDestination(uri, MODULE_TYPE.APM))
+            }
+        }
     }
 }
 

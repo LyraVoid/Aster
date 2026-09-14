@@ -31,6 +31,7 @@ import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
+import me.bmax.apatch.apApp
 import me.bmax.apatch.ui.home.HomeUpdateState
 import me.bmax.apatch.ui.home.HomeViewModel
 import me.bmax.apatch.ui.shell.LocalFloatingNavigationInset
@@ -40,6 +41,7 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Info
 import top.yukonga.miuix.kmp.icon.extended.Timer
 import top.yukonga.miuix.kmp.icon.extended.Translate
 import top.yukonga.miuix.kmp.icon.extended.Update
@@ -67,6 +69,9 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
     var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
     var checkUpdate by rememberSaveable {
         mutableStateOf(prefs.getBoolean("check_update", true))
+    }
+    var confirmInstall by rememberSaveable {
+        mutableStateOf(apApp.getModuleInstallConfirmState())
     }
     val languageSummary = AppCompatDelegate.getApplicationLocales()[0]?.displayLanguage
         ?.replaceFirstChar {
@@ -185,6 +190,23 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
                             SettingsIcon(MiuixIcons.Translate)
                         },
                         onClick = { showLanguageDialog = true },
+                    )
+                }
+            }
+
+            item(key = "module_install") {
+                SettingsCard {
+                    SwitchPreference(
+                        checked = confirmInstall,
+                        onCheckedChange = { enabled ->
+                            apApp.updateModuleInstallConfirmState(enabled)
+                            confirmInstall = enabled
+                        },
+                        title = stringResource(R.string.settings_install_confirm),
+                        summary = stringResource(R.string.settings_install_confirm_summary),
+                        startAction = {
+                            SettingsIcon(MiuixIcons.Info)
+                        },
                     )
                 }
             }
