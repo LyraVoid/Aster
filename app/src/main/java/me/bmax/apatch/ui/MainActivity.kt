@@ -2,6 +2,7 @@ package me.bmax.apatch.ui
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import coil3.ImageLoader
@@ -26,12 +28,15 @@ import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.generated.NavGraphs
 import com.ramcosta.composedestinations.rememberNavHostEngine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import me.bmax.apatch.root.RootCapabilityRepository
 import me.bmax.apatch.root.RootCheckPhase
 import me.bmax.apatch.root.isUsable
 import me.bmax.apatch.ui.home.HomeWallpaperViewModel
 import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
+import me.bmax.apatch.ui.intake.ExternalFileReader
+import me.bmax.apatch.ui.intake.ExternalFileRequests
 import me.bmax.apatch.ui.module.MODULE_SHORTCUT_ID_PARAM
 import me.bmax.apatch.ui.module.MODULE_SHORTCUT_SCHEME
 import me.bmax.apatch.ui.module.MODULE_SHORTCUT_TOKEN_PARAM
@@ -52,6 +57,8 @@ import top.yukonga.miuix.kmp.basic.SnackbarHostState
 class MainActivity : AppCompatActivity() {
 
     private companion object {
+        const val ContentScheme = "content"
+        const val FileScheme = "file"
         const val TAG = "MainActivity"
 
         /**
@@ -83,6 +90,7 @@ class MainActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         handleModuleShortcut(intent)
+        handleExternalFile(intent)
 
         setContent {
             APatchTheme {
@@ -180,6 +188,33 @@ class MainActivity : AppCompatActivity() {
         // copy, so the second and later taps arrive here.
         setIntent(intent)
         handleModuleShortcut(intent)
+        handleExternalFile(intent)
+    }
+
+    /**
+     * Takes the file another app opened or shared with the manager.
+     *
+     * What the file is takes reading it, which is not something to do on the main thread, and acting
+     * on it needs dialogs and a snackbar, which live inside the shell. So the reading happens here
+     * and the decision is handed on.
+     */
+    private fun handleExternalFile(intent: Intent?) {
+        val uri = when (intent?.action) {
+            Intent.ACTION_VIEW -> intent.data
+            Intent.ACTION_SEND -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra(Intent.EXTRA_STREAM)
+            }
+
+            else -> null
+        } ?: return
+        // Our own links are handled above; this is only for files another app handed over.
+        if (uri.scheme != ContentScheme && uri.scheme != FileScheme) return
+        lifecycleScope.launch {
+            ExternalFileReader.read(this@MainActivity, uri)?.let(ExternalFileRequests::publish)
+        }
     }
 
     /**

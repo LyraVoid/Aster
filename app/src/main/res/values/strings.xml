@@ -222,6 +222,7 @@
     <string name="settings_install_confirm_summary">Name the module and ask before unpacking it</string>
     <string name="settings_stay_on_action_page">Stay on the operation page</string>
     <string name="settings_stay_on_action_page_summary">Do not go back on your own once a system module\'s action has finished</string>
+    <string name="external_file_unrecognised">The manager cannot open this file: it takes module zips, fonts and kernel modules</string>
     <string name="settings_switch_indicator">Enable button indicator</string>
     <string name="settings_switch_indicator_summary">Show a status icon in the thumb of the manager\'s switches</string>
     <string name="settings_font">Font</string>

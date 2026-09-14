@@ -37,6 +37,42 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!--
+                Files opened from a file manager. A module is a zip, a font is a font, and a kernel
+                module is usually reported as a plain binary, so all three are asked for here; what
+                a file actually is gets decided by reading it, not by its type.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/x-zip-compressed" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="font/ttf" />
+                <data android:mimeType="font/otf" />
+                <data android:mimeType="font/collection" />
+                <data android:mimeType="font/sfnt" />
+                <data android:mimeType="application/font-sfnt" />
+                <data android:mimeType="application/x-font-ttf" />
+                <data android:mimeType="application/x-font-opentype" />
+            </intent-filter>
+            <!-- Shared from another app. One file at a time: installing several is its own flow. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/x-zip-compressed" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="font/ttf" />
+                <data android:mimeType="font/otf" />
+                <data android:mimeType="font/collection" />
+                <data android:mimeType="font/sfnt" />
+                <data android:mimeType="application/font-sfnt" />
+                <data android:mimeType="application/x-font-ttf" />
+                <data android:mimeType="application/x-font-opentype" />
+            </intent-filter>
         </activity>
 
         <activity

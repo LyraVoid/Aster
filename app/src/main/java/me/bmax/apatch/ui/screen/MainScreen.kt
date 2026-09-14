@@ -13,6 +13,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import me.bmax.apatch.ui.shell.LocalSceneActive
+import me.bmax.apatch.ui.intake.ExternalFileIntake
 import me.bmax.apatch.ui.shell.LocalSceneProgress
 import me.bmax.apatch.ui.shell.LocalSceneRailWidth
 import me.bmax.apatch.ui.shell.LocalMainPagerState
@@ -23,6 +24,8 @@ import me.bmax.apatch.ui.shell.primaryPageKey
 @Destination<RootGraph>(start = true)
 @Composable
 fun MainScreen(navigator: DestinationsNavigator) {
+    ExternalFileIntake(navigator)
+
     val sceneActive = LocalSceneActive.current
     val sceneRailWidth = LocalSceneRailWidth.current
     val sceneProgress = LocalSceneProgress.current
