@@ -12,7 +12,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.net.toUri
@@ -141,8 +140,12 @@ class MainActivity : AppCompatActivity() {
                     LaunchedEffect(navController) {
                         ModuleShortcutRequests.pending.collect { request ->
                             if (request !is ModuleShortcutRequest.ExecuteAction) return@collect
+                            // Waiting on the host's own back stack, not on currentDestination: that
+                            // is a plain getter, so a snapshotFlow over it would read null once and
+                            // never be woken again. This flow emits as soon as the host has a graph
+                            // and an entry to show for it.
                             val ready = withTimeoutOrNull(NAVIGATION_READY_TIMEOUT_MS) {
-                                snapshotFlow { navController.currentDestination }.first { it != null }
+                                navController.currentBackStackEntryFlow.first()
                             } != null
                             if (!ready) {
                                 Log.w(TAG, "no navigation graph for ${request.moduleId}; dropping the request")
