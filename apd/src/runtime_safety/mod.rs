@@ -12,10 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     fs::{self, File, OpenOptions},
     io::{Read, Write},
-    os::{
-        fd::AsRawFd,
-        unix::{fs::OpenOptionsExt, process::CommandExt},
-    },
+    os::{fd::AsRawFd, unix::fs::OpenOptionsExt},
     path::{Path, PathBuf},
     process::{Command, Stdio},
     time::Duration,
@@ -198,11 +195,20 @@ impl Store {
             .custom_flags(libc::O_NOFOLLOW)
             .mode(0o600)
             .open(path.join("lock"))?;
-        // Nonblocking: never wait indefinitely on a stuck recovery process.
-        ensure!(
-            unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } == 0,
-            "Another operation is running; retry shortly"
-        );
+        // Bounded contention retry; never block indefinitely on a stuck owner.
+        let start = std::time::Instant::now();
+        loop {
+            if unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } == 0 {
+                break;
+            }
+            let error = std::io::Error::last_os_error();
+            if error.raw_os_error() != Some(libc::EWOULDBLOCK)
+                || start.elapsed() >= Duration::from_millis(500)
+            {
+                return Err(error).context("Safety state lock unavailable; retry shortly");
+            }
+            std::thread::sleep(Duration::from_millis(20));
+        }
         Ok((Self(path), file))
     }
     fn load(&self) -> Result<Option<State>> {
@@ -374,7 +380,7 @@ struct Inspection {
     recovery_error: Option<String>,
 }
 
-fn inspect(store: &mut Store, backend: &mut platform::Real, boot: &str) -> Result<Inspection> {
+fn inspect(store: &mut Store, backend: &mut impl Backend, boot: &str) -> Result<Inspection> {
     // Unknown safety status blocks new actions and triggers conservative recovery.
     let safety = backend.safe();
     let safe = safety.as_ref().copied().unwrap_or(true);
@@ -382,7 +388,9 @@ fn inspect(store: &mut Store, backend: &mut platform::Real, boot: &str) -> Resul
     let mut state = store.load()?;
     let mut recovery_error = None;
     if let Some(state) = &mut state {
-        if let Err(error) = reconcile(state, backend, store, boot, safe, platform::uptime()?) {
+        if let Err(error) =
+            reconcile_session(state, backend, store, boot, safe, platform::uptime()?)
+        {
             let message = format!("{error:#}");
             state.error = Some(format!("Recovery incomplete: {message}"));
             let _ = store.event(&format!("recovery requires attention: {message}"));
@@ -400,9 +408,10 @@ fn inspect(store: &mut Store, backend: &mut platform::Real, boot: &str) -> Resul
 /// Spawn the detached supervisor. It waits for the store lock, so the owner
 /// identity must be saved before the child can proceed.
 fn spawn_supervisor(store: &mut Store, state: &mut State) -> Result<()> {
-    let mut child = Command::new(std::env::current_exe()?)
+    let mut command = Command::new(std::env::current_exe()?);
+    crate::utils::background_command(&mut command);
+    let mut child = command
         .args(["runtime-safety", "watch", &state.token])
-        .process_group(0)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -420,6 +429,10 @@ fn spawn_supervisor(store: &mut Store, state: &mut State) -> Result<()> {
         let _ = child.wait();
         return Err(error);
     }
+    // A long-lived caller must also reap the supervisor when it eventually exits.
+    std::thread::spawn(move || {
+        let _ = child.wait();
+    });
     Ok(())
 }
 
@@ -459,16 +472,86 @@ fn settle_after_session(store: &mut Store, state: &State) -> Result<()> {
     if auto.boot != state.boot {
         return Ok(());
     }
-    let kinds = if auto.pending.is_empty() {
-        config.enabled_kinds()
-    } else {
-        auto.pending.clone()
-    };
+    let kinds: Vec<String> = state
+        .kind
+        .split('+')
+        .filter(|kind| config::KINDS.contains(kind))
+        .map(str::to_owned)
+        .collect();
+    if !kinds.iter().any(|kind| config.auto_enabled(kind)) && auto.pending.is_empty() {
+        return Ok(());
+    }
     let reason = state
         .error
         .clone()
         .unwrap_or_else(|| "automatic session ended".into());
     settle_auto(store, &mut config, &mut auto, &kinds, &reason)
+}
+
+/// Disable persistence before recovery can fail or the supervisor can exit.
+/// Used by status, boot inspection and the supervisor, including its independent
+/// recovery path. A normal new boot never disables a previously stable session.
+fn reconcile_session(
+    state: &mut State,
+    backend: &mut impl Backend,
+    store: &mut Store,
+    boot: &str,
+    safe: bool,
+    now: u64,
+) -> Result<()> {
+    let abnormal = state.phase == "recovery_failed"
+        || (state.boot == boot
+            && state.phase != "off"
+            && (safe
+                || (matches!(
+                    state.phase.as_str(),
+                    "queued" | "applying" | "trial" | "active"
+                ) && !owner_alive(state))));
+    let disabled = if state.auto && abnormal {
+        if state.phase != "recovery_failed" {
+            state.error = Some(
+                if safe {
+                    "Safe mode or unavailable safety check"
+                } else {
+                    "Supervisor stopped"
+                }
+                .into(),
+            );
+        }
+        settle_after_session(store, state)
+    } else {
+        Ok(())
+    };
+    // Still attempt restoration if saving configuration fails.
+    let recovered = reconcile(state, backend, store, boot, safe, now);
+    disabled?;
+    recovered
+}
+
+/// Early boot and the recovery monitor may disable/recover, never activate.
+/// Waiting must not consume this boot's single activation attempt.
+fn begin_auto_attempt(
+    store: &mut Store,
+    config: &mut Config,
+    auto: &mut AutoState,
+    stage: &str,
+    boot_completed: bool,
+    blocked: Option<&str>,
+) -> Result<bool> {
+    let kinds = config.enabled_kinds();
+    if kinds.is_empty() {
+        return Ok(false);
+    }
+    if let Some(reason) = blocked {
+        settle_auto(store, config, auto, &kinds, reason)?;
+        return Ok(false);
+    }
+    if stage != "boot-completed" || !boot_completed || auto.attempted {
+        return Ok(false);
+    }
+    auto.attempted = true;
+    store.save_auto(auto)?;
+    Ok(true)
 }
 
 /// Mark an automatically applied session stable once the framework has finished
@@ -491,7 +574,10 @@ fn mark_healthy(store: &mut Store, state: &State) -> Result<()> {
 }
 
 /// Fresh preflight for one kind against the current boot. Nothing is reused.
-fn auto_preflight(kind: &str, config: &Config) -> Result<(Vec<Change>, Vec<platform::PropertyCheck>)> {
+fn auto_preflight(
+    kind: &str,
+    config: &Config,
+) -> Result<(Vec<Change>, Vec<platform::PropertyCheck>)> {
     match kind {
         "hide" => platform::property_plan(),
         "umount" => Ok((mount::batch_plan(&config.umount_paths)?, Vec::new())),
@@ -507,7 +593,6 @@ fn boot_run(stage: &str) -> Result<()> {
     let mut backend = platform::Real;
     let boot = platform::boot()?;
     let mut config = store.load_config()?;
-    let mut auto = store.load_auto()?;
 
     // Observation first: this is what proves a boot event was received without
     // opening the manager. It changes no state and is skipped by the 5s monitor.
@@ -518,6 +603,21 @@ fn boot_run(stage: &str) -> Result<()> {
             let _ = store.event(&format!("boot probe failed: {error:#}"));
         }
     }
+
+    let inspection = match inspect(&mut store, &mut backend, &boot) {
+        Ok(inspection) => inspection,
+        Err(error) => {
+            // Reported through the audit log: this process runs detached, so an
+            // error on stderr would be lost.
+            let _ = store.event(&format!(
+                "automatic activation skipped: inspection failed: {error:#}"
+            ));
+            return Ok(());
+        }
+    };
+    // Inspection may disable options after a dead supervisor or failed recovery.
+    config = store.load_config()?;
+    let mut auto = store.load_auto()?;
 
     // A record from an earlier boot only ever disables; it never re-enables.
     if auto.boot != boot {
@@ -552,51 +652,45 @@ fn boot_run(stage: &str) -> Result<()> {
         store.save_auto(&auto)?;
     }
 
-    let inspection = match inspect(&mut store, &mut backend, &boot) {
-        Ok(inspection) => inspection,
-        Err(error) => {
-            // Reported through the audit log: this process runs detached, so an
-            // error on stderr would be lost.
-            let _ = store.event(&format!(
-                "automatic activation skipped: inspection failed: {error:#}"
-            ));
-            return Ok(());
-        }
+    let blocked = match (&inspection.safety_error, inspection.safe) {
+        (Some(error), _) => Some(format!("safety status unavailable: {error}")),
+        (None, true) => Some("safe mode".to_owned()),
+        (None, false) => None,
     };
+    if let Some(reason) = blocked.as_deref() {
+        let kinds = config.enabled_kinds();
+        if !kinds.is_empty() {
+            settle_auto(&mut store, &mut config, &mut auto, &kinds, reason)?;
+        }
+        return Ok(());
+    }
     if let Some(state) = &inspection.state
         && state.phase != "off"
     {
         // Never start a second session: that could overwrite a live recovery record.
-        store.event(&format!(
-            "automatic activation skipped: session {} is {}",
-            state.kind, state.phase
-        ))?;
+        if stage != "monitor" {
+            store.event(&format!(
+                "automatic activation skipped: session {} is {}",
+                state.kind, state.phase
+            ))?;
+        }
         return Ok(());
     }
     if let Some(error) = &inspection.recovery_error {
         store.event(&format!("automatic activation skipped: {error}"))?;
         return Ok(());
     }
-    if auto.attempted {
+    if !begin_auto_attempt(
+        &mut store,
+        &mut config,
+        &mut auto,
+        stage,
+        crate::utils::getprop("sys.boot_completed").as_deref() == Some("1"),
+        blocked.as_deref(),
+    )? {
         return Ok(());
     }
     let kinds = config.enabled_kinds();
-    if kinds.is_empty() {
-        return Ok(());
-    }
-    // One attempt per boot, whatever the outcome; duplicate boot events stop here.
-    auto.attempted = true;
-    store.save_auto(&auto)?;
-
-    let blocked = match (&inspection.safety_error, inspection.safe) {
-        (Some(error), _) => Some(format!("safety status unavailable: {error}")),
-        (None, true) => Some("safe mode".to_owned()),
-        (None, false) => None,
-    };
-    if let Some(reason) = blocked {
-        store.event(&format!("automatic activation blocked: {reason}"))?;
-        return settle_auto(&mut store, &mut config, &mut auto, &kinds, &reason);
-    }
 
     let mut planned = Vec::new();
     let mut changes = Vec::new();
@@ -683,7 +777,12 @@ pub fn run(action: Action) -> Result<()> {
     }
     if matches!(action, Action::Logs) {
         let (store, _lock) = Store::open()?;
-        for name in ["audit.previous.log", "audit.log"] {
+        for name in [
+            "audit.previous.log",
+            "audit.log",
+            "launch.previous.log",
+            "launch.log",
+        ] {
             let path = store.0.join(name);
             if path.exists() {
                 print!("{}", String::from_utf8_lossy(&bounded_read(&path)?));
@@ -701,7 +800,11 @@ pub fn run(action: Action) -> Result<()> {
         return watch(&token);
     }
     if let Action::Boot { stage } = action {
-        return boot_run(&stage);
+        let result = boot_run(&stage);
+        if let Err(error) = &result {
+            diagnostic(&format!("boot stage {stage} failed: {error:#}"));
+        }
+        return result;
     }
     let (mut store, _lock) = Store::open()?;
     let mut backend = platform::Real;
@@ -861,13 +964,18 @@ pub fn run(action: Action) -> Result<()> {
                 }
                 store.event(&format!(
                     "configuration saved: paths={} hide_auto={} umount_auto={} probe={}",
-                    config.validated_umount_paths().map(|p| p.len()).unwrap_or(0),
+                    config
+                        .validated_umount_paths()
+                        .map(|p| p.len())
+                        .unwrap_or(0),
                     config.hide_auto,
                     config.umount_auto,
                     config.boot_probe
                 ))?;
                 if let Some(reason) = cleared {
-                    store.event(&format!("automatic activation enabled again after: {reason}"))?;
+                    store.event(&format!(
+                        "automatic activation enabled again after: {reason}"
+                    ))?;
                 }
                 println!("{}", serde_json::to_string(&config)?);
             }
@@ -938,7 +1046,7 @@ fn watch(token: &str) -> Result<()> {
             }
             let mut backend = platform::Real;
             let safe = backend.safe().unwrap_or(true);
-            reconcile(
+            reconcile_session(
                 &mut state,
                 &mut backend,
                 &mut store,
@@ -982,37 +1090,175 @@ fn watch(token: &str) -> Result<()> {
 /// Boot stages only schedule a detached inspection of the current boot. The
 /// child re-reads and re-preflights everything; it is never told to replay an
 /// earlier decision, and enabling a feature is only ever done by the user.
-pub fn boot_check(stage: &str) {
-    let config = config::peek();
-    let busy = Path::new(ROOT).join("state.json").exists();
-    if !busy && !config.boot_probe && config.enabled_kinds().is_empty() {
-        return;
-    }
-    let result = Command::new("/data/adb/apd")
-        .args(["runtime-safety", "boot", stage])
-        .process_group(0)
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn();
+/// Separate bounded diagnostic log: available even when state.json is corrupt
+/// or its lock is held. Never records command arguments or credentials.
+fn diagnostic(message: &str) {
+    log::warn!("runtime-safety: {message}");
+    let result = (|| -> Result<()> {
+        fs::create_dir_all(ROOT)?;
+        use std::os::unix::fs::PermissionsExt;
+        ensure!(Path::new(ROOT).canonicalize()? == Path::new(ROOT), "Invalid diagnostic directory");
+        fs::set_permissions(ROOT, fs::Permissions::from_mode(0o700))?;
+        let lock = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(false)
+            .mode(0o600)
+            .custom_flags(libc::O_NOFOLLOW)
+            .open(Path::new(ROOT).join("launch.lock"))?;
+        ensure!(
+            unsafe { libc::flock(lock.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } == 0,
+            "diagnostic lock busy"
+        );
+        let path = Path::new(ROOT).join("launch.log");
+        if path.metadata().map(|m| m.len() >= LIMIT).unwrap_or(false) {
+            fs::rename(&path, Path::new(ROOT).join("launch.previous.log"))?;
+        }
+        let mut file = OpenOptions::new()
+            .append(true)
+            .create(true)
+            .mode(0o600)
+            .custom_flags(libc::O_NOFOLLOW)
+            .open(path)?;
+        writeln!(
+            file,
+            "uptime={} {}",
+            platform::uptime().unwrap_or(0),
+            message.replace(['\n', '\r'], " ")
+        )?;
+        Ok(())
+    })();
     if let Err(error) = result {
-        log::warn!("Cannot schedule runtime safety check: {error}");
+        log::warn!("runtime-safety diagnostic unavailable: {error}");
     }
 }
 
-/// Independent recovery path if a trial supervisor dies. This monitor belongs
-/// to the existing UID-listener process; it never enables a feature.
+fn launch_check(stage: &str) -> Result<std::process::Child> {
+    let mut command = Command::new("/data/adb/apd");
+    crate::utils::background_command(&mut command);
+    command
+        .args(["runtime-safety", "boot", stage])
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped());
+    command
+        .spawn()
+        .context("Cannot launch runtime safety worker")
+}
+
+fn finish_check(mut child: std::process::Child, stage: &str) -> Result<()> {
+    // Drain stderr concurrently: a full pipe must not deadlock wait(). Keep only
+    // a bounded prefix; the command does not receive a SuperKey argument.
+    let stderr = child.stderr.take();
+    let reader = std::thread::spawn(move || {
+        let mut saved = Vec::new();
+        if let Some(mut stderr) = stderr {
+            let mut chunk = [0u8; 512];
+            while let Ok(n) = stderr.read(&mut chunk) {
+                if n == 0 {
+                    break;
+                }
+                let keep = n.min(4096usize.saturating_sub(saved.len()));
+                saved.extend_from_slice(&chunk[..keep]);
+            }
+        }
+        saved
+    });
+    // Preflight is normally short (at most 16 bounded resource probes). A stuck
+    // worker cannot lead to unbounded launches. After kill, reap before retrying.
+    let started = std::time::Instant::now();
+    let status = loop {
+        match child.try_wait() {
+            Ok(Some(status)) => break Ok(status),
+            Ok(None) if started.elapsed() < Duration::from_secs(60) => {
+                std::thread::sleep(Duration::from_millis(20));
+            }
+            Ok(None) => {
+                let _ = child.kill();
+                break child.wait();
+            }
+            Err(error) => {
+                let _ = child.kill();
+                let _ = child.wait();
+                break Err(error);
+            }
+        }
+    };
+    let stderr = reader.join().unwrap_or_default();
+    let status = status.context("Cannot wait for safety worker")?;
+    ensure!(
+        status.success(),
+        "boot stage {stage} worker exit={status}; stderr={}",
+        String::from_utf8_lossy(&stderr)
+    );
+    Ok(())
+}
+
+pub fn boot_check(stage: &str) {
+    let config = config::peek();
+    if !Path::new(ROOT).join("state.json").exists()
+        && !config.boot_probe
+        && config.enabled_kinds().is_empty()
+    {
+        return;
+    }
+    match launch_check(stage) {
+        Ok(child) => {
+            diagnostic(&format!(
+                "boot stage {stage} worker started pid={}",
+                child.id()
+            ));
+            let stage = stage.to_owned();
+            std::thread::spawn(move || match finish_check(child, &stage) {
+                Ok(()) => diagnostic(&format!("boot stage {stage} worker completed")),
+                Err(error) => diagnostic(&format!("{error:#}")),
+            });
+        }
+        Err(error) => diagnostic(&format!("boot stage {stage} launch failed: {error:#}")),
+    }
+}
+
+/// Runs under the persistent, singleton UID listener. Its first completed-boot
+/// check covers a short-lived init worker dying before reaching the CLI. The
+/// persisted attempt gate prevents duplicate activation. Each child is reaped
+/// before the next iteration, so a stalled worker cannot accumulate processes.
 pub fn start_recovery_monitor() {
     std::thread::spawn(|| {
+        let mut completed_checked = false;
+        let mut previous_error = None;
         loop {
-            let path = Path::new(ROOT).join("state.json");
-            if let Ok(bytes) = bounded_read(&path) {
-                if let Ok(state) = serde_json::from_slice::<State>(&bytes) {
-                    if matches!(
-                        state.phase.as_str(),
-                        "queued" | "applying" | "trial" | "active" | "restoring"
-                    ) {
-                        boot_check("monitor");
+            let ready = crate::utils::getprop("sys.boot_completed").as_deref() == Some("1");
+            let stage = if ready && !completed_checked {
+                "boot-completed"
+            } else {
+                "monitor"
+            };
+            let config = config::peek();
+            let active = Path::new(ROOT).join("state.json").exists();
+            if active || config.boot_probe || !config.enabled_kinds().is_empty() {
+                match launch_check(stage) {
+                    Ok(child) => match finish_check(child, stage) {
+                        Ok(()) => {
+                            if stage == "boot-completed" {
+                                completed_checked = true;
+                                diagnostic("listener completed-boot check finished");
+                            }
+                            previous_error = None;
+                        }
+                        Err(error) => {
+                            let message = format!("listener {stage}: {error:#}");
+                            if previous_error.as_ref() != Some(&message) {
+                                diagnostic(&message);
+                            }
+                            previous_error = Some(message);
+                        }
+                    },
+                    Err(error) => {
+                        let message = format!("listener {stage} launch failed: {error:#}");
+                        if previous_error.as_ref() != Some(&message) {
+                            diagnostic(&message);
+                        }
+                        previous_error = Some(message);
                     }
                 }
             }

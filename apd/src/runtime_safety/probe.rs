@@ -65,6 +65,33 @@ fn safemode() -> Value {
     json!({"properties": props, "kernel_supercall": kernel})
 }
 
+/// Which kernel patch answers the supercall interface, asked with the same key
+/// and version code the runtime uses. This distinguishes "the event fired" from
+/// "the event fired and the pinned KernelPatch ABI still answers".
+fn kernelpatch() -> Value {
+    let key = c"su";
+    let hello = crate::supercall::sc_hello(key);
+    let version = crate::supercall::sc_kernelpatch_version(key);
+    let mut build_time = [0u8; 64];
+    let build = crate::supercall::sc_build_time(key, &mut build_time);
+    let text = |bytes: &[u8]| {
+        let end = bytes
+            .iter()
+            .position(|byte| *byte == 0)
+            .unwrap_or(bytes.len());
+        String::from_utf8_lossy(&bytes[..end]).trim().to_owned()
+    };
+    json!({
+        "hello_raw": hello,
+        "hello_ok": hello == crate::supercall::SUPERCALL_HELLO_MAGIC,
+        "version_raw": version,
+        "version": crate::supercall::version_string(version),
+        "build_time_raw": build,
+        "build_time": text(&build_time),
+        "expected_version": crate::supercall::expected_version(),
+    })
+}
+
 fn adb() -> Value {
     let props: Vec<Value> = ["service.adb.root", "service.adb.tcp.port"]
         .into_iter()
@@ -85,6 +112,8 @@ pub fn record(stage: &str, boot: &str) -> Result<String> {
         "ppid": std::os::unix::process::parent_id(),
         "euid": unsafe { libc::geteuid() },
         "egid": unsafe { libc::getegid() },
+        "session_id": unsafe { libc::getsid(0) },
+        "cgroups": read("/proc/self/cgroup"),
         "selinux_context": read("/proc/self/attr/current"),
         "selinux_enforce": read("/sys/fs/selinux/enforce"),
         "init_context": read("/proc/1/attr/current"),
@@ -94,6 +123,7 @@ pub fn record(stage: &str, boot: &str) -> Result<String> {
         "jailbreak_mode": PathBuf::from(crate::defs::ADB_DIR).join("jailbreak").exists(),
         "kernelpatch_module": Path::new("/sys/module/kernelpatch").exists(),
         "kernelpatch_version": read("/sys/module/kernelpatch/version"),
+        "kernelpatch": kernelpatch(),
         "magic_mount_enabled": Path::new(crate::defs::MAGIC_MOUNT_FILE).exists(),
         "modules_enabled": module_count(),
         "module_mounts": module_mounts(),

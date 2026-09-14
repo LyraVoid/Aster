@@ -271,23 +271,16 @@ pub fn on_services(superkey: Option<String>) -> Result<()> {
 fn run_uid_monitor() {
     info!("Trigger run_uid_monitor!");
 
-    let mut command = &mut Command::new("/data/adb/apd");
-    {
-        command = command.process_group(0);
-        command = unsafe {
-            command.pre_exec(|| {
-                // ignore the error?
-                switch_cgroups();
-                Ok(())
-            })
-        };
+    let mut command = Command::new("/data/adb/apd");
+    utils::background_command(&mut command);
+    match command.arg("uid-listener").spawn() {
+        Ok(mut child) => {
+            thread::spawn(move || {
+                let _ = child.wait();
+            });
+        }
+        Err(error) => warn!("Cannot start UID listener: {error}"),
     }
-    command = command.arg("uid-listener");
-
-    command
-        .spawn()
-        .map(|_| ())
-        .expect("[run_uid_monitor] Failed to run uid monitor");
 }
 
 pub fn on_boot_completed(superkey: Option<String>) -> Result<()> {
@@ -301,6 +294,22 @@ pub fn on_boot_completed(superkey: Option<String>) -> Result<()> {
 }
 
 pub fn start_uid_listener() -> Result<()> {
+    use std::os::{fd::AsRawFd, unix::fs::OpenOptionsExt};
+    let listener_lock = fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .mode(0o600)
+        .custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC)
+        .open("/data/adb/ap/uid-listener.lock")?;
+    if unsafe { libc::flock(listener_lock.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } != 0 {
+        let error = std::io::Error::last_os_error();
+        if error.raw_os_error() == Some(libc::EWOULDBLOCK) {
+            info!("UID listener already running; duplicate invocation ignored");
+            return Ok(());
+        }
+        return Err(error.into());
+    }
     info!("start_uid_listener triggered!");
     crate::runtime_safety::start_recovery_monitor();
     println!("[start_uid_listener] Registering...");
@@ -317,11 +326,17 @@ pub fn start_uid_listener() -> Result<()> {
     {
         let mutex_clone = mutex.clone();
         thread::spawn(move || {
-            let mut signals = Signals::new([SIGTERM, SIGINT, SIGPWR]).unwrap();
-            if let Some(sig) = signals.forever().next() {
+            let Ok(mut signals) = Signals::new([SIGTERM, SIGINT, SIGPWR]) else {
+                warn!("Cannot register UID listener shutdown signals");
+                return;
+            };
+            for sig in signals.forever() {
                 log::warn!("[shutdown] Caught signal {sig}, refreshing package list...");
                 let skey = c"su";
                 refresh_ap_package_list(skey, &mutex_clone);
+                if sig == SIGTERM || sig == SIGINT {
+                    std::process::exit(0);
+                }
             }
         });
     }

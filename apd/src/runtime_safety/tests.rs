@@ -262,7 +262,15 @@ fn a_new_boot_keeps_the_unrestored_warning_instead_of_reporting_a_clean_end() {
     state.attempted = 2;
     let mut backend = Mock::default();
     let mut journal = Memory::default();
-    reconcile(&mut state, &mut backend, &mut journal, "next-boot", false, 0).unwrap();
+    reconcile(
+        &mut state,
+        &mut backend,
+        &mut journal,
+        "next-boot",
+        false,
+        0,
+    )
+    .unwrap();
     assert_eq!(state.phase, "off");
     assert_eq!(state.attempted, 0);
     assert!(
@@ -278,7 +286,10 @@ fn configuration_and_auto_state_round_trip_while_paths_stay_untouched_by_settlin
     let mut store = Store(dir.clone());
     assert!(store.load_config().unwrap().enabled_kinds().is_empty());
     assert_eq!(store.load_auto().unwrap(), AutoState::default());
-    assert!(store.load().unwrap().is_none(), "no session must be implied");
+    assert!(
+        store.load().unwrap().is_none(),
+        "no session must be implied"
+    );
 
     let mut config = Config {
         umount_paths: "m/system/media/a\nn/product/fonts/b".into(),
@@ -352,4 +363,202 @@ fn unavailable_safety_interface_never_applies_changes() {
     assert!(apply(&mut state, &mut backend, &mut journal).is_err());
     assert_eq!(backend.count, 0);
     assert_eq!(state.phase, "off");
+}
+
+#[test]
+fn activation_waits_for_completed_stage_without_consuming_attempt() {
+    let dir = std::env::temp_dir().join(format!("aster-stage-gate-{}", std::process::id()));
+    fs::create_dir_all(&dir).unwrap();
+    let mut store = Store(dir.clone());
+    let mut config = Config {
+        hide_auto: true,
+        ..Default::default()
+    };
+    let mut auto = AutoState {
+        boot: "boot".into(),
+        ..Default::default()
+    };
+    for (stage, completed) in [
+        ("post-fs-data", false),
+        ("services", false),
+        ("services", true),
+        ("monitor", true),
+        ("boot-completed", false),
+    ] {
+        assert!(
+            !begin_auto_attempt(&mut store, &mut config, &mut auto, stage, completed, None)
+                .unwrap()
+        );
+        assert!(!auto.attempted);
+        assert!(store.load().unwrap().is_none());
+    }
+    assert!(
+        begin_auto_attempt(
+            &mut store,
+            &mut config,
+            &mut auto,
+            "boot-completed",
+            true,
+            None
+        )
+        .unwrap()
+    );
+    let mut auto = store.load_auto().unwrap();
+    assert!(
+        !begin_auto_attempt(
+            &mut store,
+            &mut config,
+            &mut auto,
+            "boot-completed",
+            true,
+            None
+        )
+        .unwrap()
+    );
+    // A later safety failure must disable even after the attempt was consumed.
+    assert!(
+        !begin_auto_attempt(
+            &mut store,
+            &mut config,
+            &mut auto,
+            "monitor",
+            true,
+            Some("safe mode")
+        )
+        .unwrap()
+    );
+    assert!(!store.load_config().unwrap().hide_auto);
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn independent_inspection_disables_stable_sessions_when_supervisor_dies() {
+    for recovery_fails in [false, true] {
+        let dir = std::env::temp_dir().join(format!(
+            "aster-dead-owner-{}-{recovery_fails}",
+            std::process::id()
+        ));
+        fs::create_dir_all(&dir).unwrap();
+        let mut store = Store(dir.clone());
+        let config = Config {
+            hide_auto: true,
+            umount_auto: true,
+            umount_paths: "m/system/media/a".into(),
+            ..Default::default()
+        };
+        store.save_config(&config).unwrap();
+        store
+            .save_auto(&AutoState {
+                boot: "boot".into(),
+                attempted: true,
+                healthy: true,
+                ..Default::default()
+            })
+            .unwrap();
+        let mut session = state();
+        session.auto = true;
+        session.phase = "active".into();
+        session.attempted = 2;
+        // No owner: emulate a dead supervisor, after the stability window.
+        store.save(&session).unwrap();
+        let mut backend = Mock {
+            recovery_fails,
+            ..Default::default()
+        };
+        let result = inspect(&mut store, &mut backend, "boot").unwrap();
+        assert_eq!(result.recovery_error.is_some(), recovery_fails);
+        let saved = store.load_config().unwrap();
+        assert!(!saved.hide_auto);
+        assert!(saved.umount_auto, "unrelated option must be retained");
+        assert_eq!(saved.umount_paths, config.umount_paths);
+        assert_eq!(backend.restored, 2);
+        let session = store.load().unwrap().unwrap();
+        assert_eq!(
+            session.phase,
+            if recovery_fails {
+                "recovery_failed"
+            } else {
+                "off"
+            }
+        );
+        assert_eq!(session.attempted, if recovery_fails { 2 } else { 0 });
+        assert!(store.load_auto().unwrap().last_error.is_some());
+        fs::remove_dir_all(dir).unwrap();
+    }
+}
+
+#[test]
+fn recovery_failure_retained_across_reboot_disables_auto_but_normal_reboot_does_not() {
+    for failed in [false, true] {
+        let dir = std::env::temp_dir().join(format!(
+            "aster-previous-recovery-{}-{failed}",
+            std::process::id()
+        ));
+        fs::create_dir_all(&dir).unwrap();
+        let mut store = Store(dir.clone());
+        store
+            .save_config(&Config {
+                hide_auto: true,
+                ..Default::default()
+            })
+            .unwrap();
+        store
+            .save_auto(&AutoState {
+                boot: "boot".into(),
+                attempted: true,
+                healthy: true,
+                ..Default::default()
+            })
+            .unwrap();
+        let mut session = state();
+        session.auto = true;
+        session.phase = if failed { "recovery_failed" } else { "active" }.into();
+        store.save(&session).unwrap();
+        let mut backend = Mock::default();
+        inspect(&mut store, &mut backend, "next-boot").unwrap();
+        assert_eq!(store.load_config().unwrap().hide_auto, !failed);
+        assert_eq!(backend.restored, 0, "never replay old originals");
+        fs::remove_dir_all(dir).unwrap();
+    }
+}
+
+#[test]
+fn stage_worker_is_reaped_and_failure_output_is_bounded() {
+    for succeeds in [false, true] {
+        let script = if succeeds {
+            "exit 0"
+        } else {
+            "i=0; while [ $i -lt 1000 ]; do echo diagnostic-data >&2; i=$((i+1)); done; exit 7"
+        };
+        let child = Command::new("sh")
+            .args(["-c", script])
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        let pid = child.id();
+        let result = finish_check(child, "monitor");
+        assert_eq!(result.is_ok(), succeeds);
+        if let Err(error) = result {
+            assert!(error.to_string().contains("7"));
+            assert!(error.to_string().len() < 4500);
+        }
+        let mut status = 0;
+        assert_eq!(
+            unsafe { libc::waitpid(pid as i32, &mut status, libc::WNOHANG) },
+            -1
+        );
+        assert_eq!(
+            std::io::Error::last_os_error().raw_os_error(),
+            Some(libc::ECHILD)
+        );
+    }
+}
+
+#[test]
+fn background_worker_has_independent_session_and_is_reaped() {
+    let mut command = Command::new("sh");
+    crate::utils::background_command(&mut command);
+    let mut child = command.args(["-c", "sleep 0.2"]).spawn().unwrap();
+    assert_eq!(unsafe { libc::getsid(child.id() as i32) }, child.id() as i32);
+    assert!(child.wait().unwrap().success());
 }

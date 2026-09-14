@@ -18,6 +18,9 @@ include!(concat!(env!("OUT_DIR"), "/kp_version.rs"));
 const KSTORAGE_EXCLUDE_LIST_GROUP: i32 = 1;
 
 const __NR_SUPERCALL: c_long = 45;
+const SUPERCALL_HELLO: c_long = 0x1000;
+const SUPERCALL_BUILD_TIME: c_long = 0x1007;
+const SUPERCALL_KERNELPATCH_VER: c_long = 0x1008;
 const SUPERCALL_SU: c_long = 0x1010;
 const SUPERCALL_KSTORAGE_WRITE: c_long = 0x1041;
 const SUPERCALL_SU_GRANT_UID: c_long = 0x1100;
@@ -26,6 +29,10 @@ const SUPERCALL_SU_NUMS: c_long = 0x1102;
 const SUPERCALL_SU_LIST: c_long = 0x1103;
 const SUPERCALL_SU_RESET_PATH: c_long = 0x1111;
 const SUPERCALL_SU_GET_SAFEMODE: c_long = 0x1112;
+
+/// Answer of `SUPERCALL_HELLO`: proof that the running kernel carries the
+/// KernelPatch supercall interface this build talks to.
+pub const SUPERCALL_HELLO_MAGIC: c_long = 0x1158_1158;
 
 const SUPERCALL_SCONTEXT_LEN: usize = 0x60;
 
@@ -104,6 +111,67 @@ fn sc_set_ap_mod_exclude(key: &CStr, uid: i64, exclude: i32) -> c_long {
         0,
         size_of::<i32>() as i32,
     )
+}
+
+/// Identity of the kernel patch this build is talking to. These three calls are
+/// read-only and are used by the boot probe to record, instead of assume, which
+/// KernelPatch answers the supercall interface used at boot.
+pub fn sc_hello(key: &CStr) -> c_long {
+    if key.to_bytes().is_empty() {
+        return (-EINVAL).into();
+    }
+    unsafe {
+        syscall(
+            __NR_SUPERCALL,
+            key.as_ptr(),
+            ver_and_cmd(SUPERCALL_HELLO),
+        ) as c_long
+    }
+}
+
+pub fn sc_kernelpatch_version(key: &CStr) -> c_long {
+    if key.to_bytes().is_empty() {
+        return (-EINVAL).into();
+    }
+    unsafe {
+        syscall(
+            __NR_SUPERCALL,
+            key.as_ptr(),
+            ver_and_cmd(SUPERCALL_KERNELPATCH_VER),
+        ) as c_long
+    }
+}
+
+pub fn sc_build_time(key: &CStr, out: &mut [u8]) -> c_long {
+    if key.to_bytes().is_empty() || out.is_empty() {
+        return (-EINVAL).into();
+    }
+    unsafe {
+        syscall(
+            __NR_SUPERCALL,
+            key.as_ptr(),
+            ver_and_cmd(SUPERCALL_BUILD_TIME),
+            out.as_mut_ptr(),
+            out.len(),
+        ) as c_long
+    }
+}
+
+/// Version code (`major.minor.patch`) this build encodes into every supercall.
+pub fn expected_version() -> String {
+    format!("{KP_MAJOR}.{KP_MINOR}.{KP_PATCH}")
+}
+
+/// Decode a `major << 16 | minor << 8 | patch` version code.
+pub fn version_string(code: c_long) -> Option<String> {
+    (code >= 0).then(|| {
+        format!(
+            "{}.{}.{}",
+            (code >> 16) & 0xff,
+            (code >> 8) & 0xff,
+            code & 0xff
+        )
+    })
 }
 
 pub fn sc_su_get_safemode(key: &CStr) -> c_long {
