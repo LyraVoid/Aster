@@ -87,6 +87,7 @@ fn state() -> State {
         error: None,
         notice: None,
         property_checks: Vec::new(),
+        auto: false,
     }
 }
 #[test]
@@ -222,10 +223,121 @@ fn journal_is_atomic_and_logs_rotate_without_losing_recovery_state() {
             .unwrap()
             .contains("operation failed")
     );
-    fs::write(dir.join("state.tmp"), b"interrupted replacement").unwrap();
+    fs::write(dir.join("state.json.tmp"), b"interrupted replacement").unwrap();
     assert_eq!(store.load().unwrap().unwrap().token, state.token);
     fs::write(dir.join("state.json"), b"corrupt").unwrap();
     assert!(store.load().is_err());
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn automatic_sessions_skip_the_trial_and_keep_the_recovery_record() {
+    let mut state = state();
+    state.auto = true;
+    let mut backend = Mock::default();
+    let mut journal = Memory::default();
+    apply(&mut state, &mut backend, &mut journal).unwrap();
+    // No user is present to confirm, so the session is active immediately...
+    assert_eq!(state.phase, "active");
+    assert!(journal.saves.iter().all(|saved| saved.auto));
+    // ...but it still restores through the same single recovery path.
+    reconcile(&mut state, &mut backend, &mut journal, "boot", true, 0).unwrap();
+    assert_eq!(state.phase, "off");
+    assert_eq!(backend.restored, 2);
+}
+
+#[test]
+fn a_manual_session_still_waits_for_the_trial_confirmation() {
+    let mut state = state();
+    let mut backend = Mock::default();
+    let mut journal = Memory::default();
+    apply(&mut state, &mut backend, &mut journal).unwrap();
+    assert_eq!(state.phase, "trial");
+}
+
+#[test]
+fn a_new_boot_keeps_the_unrestored_warning_instead_of_reporting_a_clean_end() {
+    let mut state = state();
+    state.phase = "recovery_failed".into();
+    state.attempted = 2;
+    let mut backend = Mock::default();
+    let mut journal = Memory::default();
+    reconcile(&mut state, &mut backend, &mut journal, "next-boot", false, 0).unwrap();
+    assert_eq!(state.phase, "off");
+    assert_eq!(state.attempted, 0);
+    assert!(
+        state.error.unwrap().contains("could not be fully restored"),
+        "the retained backups must stay visible"
+    );
+}
+
+#[test]
+fn configuration_and_auto_state_round_trip_while_paths_stay_untouched_by_settling() {
+    let dir = std::env::temp_dir().join(format!("aster-safety-config-{}", std::process::id()));
+    fs::create_dir_all(&dir).unwrap();
+    let mut store = Store(dir.clone());
+    assert!(store.load_config().unwrap().enabled_kinds().is_empty());
+    assert_eq!(store.load_auto().unwrap(), AutoState::default());
+    assert!(store.load().unwrap().is_none(), "no session must be implied");
+
+    let mut config = Config {
+        umount_paths: "m/system/media/a\nn/product/fonts/b".into(),
+        hide_auto: true,
+        umount_auto: true,
+        boot_probe: true,
+    };
+    store.save_config(&config).unwrap();
+    assert_eq!(store.load_config().unwrap(), config);
+    let mut auto = AutoState {
+        boot: "boot-x".into(),
+        attempted: true,
+        pending: vec!["umount".into()],
+        ..Default::default()
+    };
+    store.save_auto(&auto).unwrap();
+    assert_eq!(store.load_auto().unwrap(), auto);
+
+    // Settling turns off only the affected option and keeps paths and log.
+    store
+        .event("automatic umount preflight failed")
+        .expect("probe log must be writable");
+    settle_auto(
+        &mut store,
+        &mut config,
+        &mut auto,
+        &["umount".to_owned()],
+        "safe mode",
+    )
+    .unwrap();
+    let saved = store.load_config().unwrap();
+    assert!(saved.hide_auto, "the unrelated option must stay enabled");
+    assert!(!saved.umount_auto);
+    assert_eq!(saved.umount_paths, config.umount_paths);
+    let saved_auto = store.load_auto().unwrap();
+    assert!(saved_auto.pending.is_empty() && saved_auto.healthy);
+    assert!(
+        saved_auto
+            .last_error
+            .as_deref()
+            .is_some_and(|error| error.contains("safe mode"))
+    );
+    assert_eq!(
+        saved_auto.interrupted(),
+        Vec::<String>::new(),
+        "a settled boot is not an interruption"
+    );
+    assert!(store.load().unwrap().is_none());
+
+    // A corrupt file is reported, never silently reset to defaults.
+    fs::write(dir.join("config.json"), b"corrupt").unwrap();
+    assert!(store.load_config().is_err());
+    fs::remove_file(dir.join("config.json")).unwrap();
+
+    // The probe log is line oriented and rotates like the audit log.
+    for _ in 0..(LIMIT / 8 + 2) {
+        store.probe_line(&"x".repeat(8)).unwrap();
+    }
+    assert!(dir.join("boot-probe.previous.log").exists());
     fs::remove_dir_all(dir).unwrap();
 }
 

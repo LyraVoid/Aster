@@ -555,7 +555,7 @@
     <string name="runtime_safety_off">Off</string>
     <string name="runtime_safety_hide_description">Changes four boot-status display properties when present. Does not relock the bootloader or change ADB, debugging, or logging settings.</string>
     <string name="runtime_safety_hide_preview">Preview Hide changes</string>
-    <string name="runtime_safety_umount_description">Advanced: separate from Hide. Enter up to 16 module resource paths, one per line. Duplicate lines are removed. Every item must pass preview; a failure during execution restores attempted items in reverse order. Only private, read-only media/font file mounts are accepted.</string>
+    <string name="runtime_safety_umount_description">Advanced: separate from Hide. Enter up to 16 module resource paths, one per line. Duplicate lines are removed. Every item must pass preview; a failure during execution restores attempted items in reverse order. Only private media, font and overlay file mounts from a module are accepted, whether the mount is read-only or writable; the original mount flags are replayed when restoring.</string>
     <string name="runtime_safety_module_path">Module resource paths, one per line</string>
     <string name="runtime_safety_umount_preview">Preview all resource unmounts</string>
     <string name="runtime_safety_start_trial">Start 60-second trial</string>
@@ -570,4 +570,19 @@
     <string name="runtime_safety_properties_unavailable">Some properties are missing or unreadable, so their status cannot be confirmed. Only successfully read properties that differ from the target are included in the preview.</string>
     <string name="runtime_safety_legacy_no_changes">No changes are needed. The older APD did not return inspection details; update AndroidPatch from Home to see the precise result.</string>
     <string name="runtime_safety_module_examples">Example (replace with your actual module ID and paths):\nmymodule/system/media/bootanimation.zip\nmymodule/product/fonts/example.ttf</string>
+    <string name="runtime_safety_auto_title">At boot</string>
+    <string name="runtime_safety_auto_off">Automatic activation is off. Nothing runs unless you preview and apply it here.</string>
+    <string name="runtime_safety_auto_notice">Automatic activation runs a fresh check at every boot and never reuses an earlier result. Safe mode, an unavailable safety check, a failed check, or a previous boot that did not finish cleanly turns the option off again and keeps the saved paths and the log. This behavior still needs verification on a real reboot.</string>
+    <string name="runtime_safety_hide_auto">Hide automatically at every boot</string>
+    <string name="runtime_safety_umount_auto">Unmount automatically at every boot</string>
+    <string name="runtime_safety_probe">Record boot diagnostics (read-only)</string>
+    <string name="runtime_safety_probe_description">Records what each boot stage observed: identity, SELinux context, mount namespace, KernelPatch state, module mounts and safety mode. It writes one log line and changes nothing else, so a boot event can be confirmed without opening this app.</string>
+    <string name="runtime_safety_save_paths">Save paths only</string>
+    <string name="runtime_safety_paths_saved">Saved paths: %1$d</string>
+    <string name="runtime_safety_need_paths">Enter at least one module resource path before enabling automatic unmount.</string>
+    <string name="runtime_safety_auto_running">Enabled options: %1$s</string>
+    <string name="runtime_safety_auto_record">Automatic record: %1$s</string>
+    <string name="runtime_safety_auto_interrupted">The previous boot did not finish cleanly, so the automatic option was turned off. Check the log, then enable it again when the result looks correct.</string>
+    <string name="runtime_safety_active_auto">Applied automatically at boot. Use Restore and turn off to undo it; automatic activation stays off afterwards.</string>
+    <string name="runtime_safety_auto_hint">Turning on an automatic option saves the paths currently shown and takes effect from the next boot. It never unmounts anything now.</string>
 </resources>

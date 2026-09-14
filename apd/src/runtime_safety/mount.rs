@@ -88,16 +88,31 @@ fn exact<'a>(entries: &'a [Entry], target: &str) -> Result<&'a Entry> {
 }
 fn saved_flags(entry: &Entry) -> Result<libc::c_ulong> {
     let mut flags = 0;
-    for option in &entry.options {
+    // Per-mount flags live in the option list, but a few (notably `nosymfollow`)
+    // are reported as optional fields. Both are replayed on restore, so both must
+    // be understood; anything else is refused instead of being silently dropped.
+    for option in entry.options.iter().chain(&entry.optional) {
         flags |= match option.as_str() {
+            // A writable mount is accepted: this code never writes through the
+            // target, and the original per-mount flags are replayed on restore.
+            "rw" => 0,
             "ro" => libc::MS_RDONLY,
             "nosuid" => libc::MS_NOSUID,
             "nodev" => libc::MS_NODEV,
             "noexec" => libc::MS_NOEXEC,
+            "nosymfollow" => libc::MS_NOSYMFOLLOW,
             "noatime" => libc::MS_NOATIME,
             "nodiratime" => libc::MS_NODIRATIME,
             "relatime" => libc::MS_RELATIME,
             "strictatime" => libc::MS_STRICTATIME,
+            // Propagation is not a mount flag; `private` rejects it separately.
+            option
+                if option.starts_with("shared:")
+                    || option.starts_with("master:")
+                    || option.starts_with("propagate_from:") =>
+            {
+                0
+            }
             _ => anyhow::bail!("Unsupported mount option: {option}"),
         }
     }
@@ -106,11 +121,8 @@ fn saved_flags(entry: &Entry) -> Result<libc::c_ulong> {
 
 fn eligible(entries: &[Entry], target: &str) -> Result<String> {
     let entry = exact(entries, target)?;
+    // Rejects unsupported per-mount options instead of silently dropping them.
     saved_flags(entry)?;
-    ensure!(
-        entry.options.iter().any(|s| s == "ro"),
-        "Only read-only file mounts are supported"
-    );
     ensure!(private(entry), "Shared/slave mounts are not supported");
     let parent = entries
         .iter()
@@ -138,25 +150,258 @@ fn identity(path: &str) -> Result<Identity> {
         size: meta.len(),
     })
 }
+/// Partitions that Magic mount can hoist out of a module's `system/` directory.
+/// Used both to accept the resulting target and to list the candidates that a
+/// module file may be visible at (`magic_mount::collect_module_files`).
+const HOISTED_PARTITIONS: &[&str] = &["vendor", "system_ext", "product", "odm", "oem"];
+
+/// Resource trees that may be revealed again: presentation data, not code,
+/// configuration or boot-critical state. Checked against the *resolved*
+/// absolute target, so an input path can never escape it.
+const RESOURCE_TREES: &[&str] = &["fonts", "media", "overlay"];
+
+/// A resource target is `<partition>/<tree>/<file>` where the partition is one of
+/// `/system`, a hoisted partition, or `/system/<hoisted partition>` on
+/// system-as-root devices. Nothing else is accepted, and the file component must
+/// be present: a bare directory is never a target.
 fn resource(target: &str) -> bool {
-    [
-        "/system/media/",
-        "/product/media/",
-        "/vendor/media/",
-        "/system_ext/media/",
-        "/odm/media/",
-        "/system/fonts/",
-        "/product/fonts/",
-    ]
-    .iter()
-    .any(|prefix| target.starts_with(prefix) && target.len() > prefix.len())
-        && !target
-            .split('/')
-            .skip(1)
-            .any(|c| c.is_empty() || c == "." || c == "..")
-        && !target.chars().any(|c| c.is_control() || c == '\\')
+    if !target.starts_with('/') || target.contains('\\') || target.chars().any(char::is_control) {
+        return false;
+    }
+    let parts: Vec<&str> = target.split('/').skip(1).collect();
+    if parts
+        .iter()
+        .any(|part| part.is_empty() || *part == "." || *part == "..")
+    {
+        return false;
+    }
+    match parts.as_slice() {
+        // `/system/<tree>/<file...>`
+        ["system", tree, _, ..] if RESOURCE_TREES.contains(tree) => true,
+        // `/system/<partition>/<tree>/<file...>`: the pre-hoist layout is still a
+        // valid target when Magic mount leaves the partition inside `/system`.
+        ["system", partition, tree, _, ..] => {
+            HOISTED_PARTITIONS.contains(partition) && RESOURCE_TREES.contains(tree)
+        }
+        // `/<partition>/<tree>/<file...>` after the partition was hoisted.
+        [partition, tree, _, ..] => {
+            HOISTED_PARTITIONS.contains(partition) && RESOURCE_TREES.contains(tree)
+        }
+        _ => false,
+    }
 }
-fn source_lines(input: &str) -> Result<Vec<(usize, String)>> {
+
+/// Partitions Magic mount hoists out of a module's `system/` directory when the
+/// matching root-level partition exists (`magic_mount::collect_module_files`).
+/// Both the hoisted and the non-hoisted target are tried and verified by
+/// identity, so the layout on the device decides, not an assumption.
+const MODULE_ROOT: &str = "/data/adb/modules/";
+fn module_id(module: &str) -> Result<()> {
+    ensure!(
+        !module.is_empty()
+            && module
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b"._-".contains(&b))
+            && module != "."
+            && module != "..",
+        "Invalid module ID"
+    );
+    Ok(())
+}
+fn module_ids() -> Result<Vec<String>> {
+    let mut found = Vec::new();
+    for entry in fs::read_dir(MODULE_ROOT)? {
+        let entry = entry?;
+        if entry.file_type()?.is_dir()
+            && let Some(name) = entry.file_name().to_str()
+        {
+            found.push(name.to_owned());
+        }
+    }
+    found.sort();
+    Ok(found)
+}
+
+/// Where a module file below `<module>/system/` can be visible. Magic mount maps
+/// a module's `system/` onto `/system`, then hoists the built-in partitions.
+fn targets_for_module_file(module: &str, file: &str) -> Result<Vec<String>> {
+    let prefix = format!("{MODULE_ROOT}{module}/system/");
+    let rest = file
+        .strip_prefix(&prefix)
+        .context("Module file is not under the module's system/ directory")?;
+    ensure!(
+        !rest.is_empty() && !rest.contains("//"),
+        "Invalid module resource path"
+    );
+    let mut targets = vec![format!("/system/{rest}")];
+    if let Some((partition, _tail)) = rest.split_once('/')
+        && HOISTED_PARTITIONS.contains(&partition)
+    {
+        let hoisted = format!("/{rest}");
+        if hoisted != targets[0] {
+            targets.push(hoisted);
+        }
+    }
+    Ok(targets)
+}
+
+/// Where an absolute target is stored inside a module. Magic mount maps
+/// `<module>/system/<rest>` onto `/system/<rest>` and hoists a partition that
+/// lives directly under `/system`, so `/system/media/x` comes from
+/// `<module>/system/media/x` and `/product/fonts/x` from
+/// `<module>/system/product/fonts/x`.
+fn candidate_files(module: &str, target: &str) -> Vec<String> {
+    let rest = target.strip_prefix("/system").unwrap_or(target);
+    vec![format!("{MODULE_ROOT}{module}/system{rest}")]
+}
+
+/// Pick the single existing module file among `candidates`.
+fn unique_file(candidates: &[String]) -> Result<String> {
+    let mut found = Vec::new();
+    for candidate in candidates {
+        if !found.contains(candidate) && identity(candidate).is_ok() {
+            found.push(candidate.clone());
+        }
+    }
+    ensure!(
+        found.len() == 1,
+        "Expected exactly one module file, found {}",
+        found.len()
+    );
+    Ok(found.remove(0))
+}
+
+/// Pick the single candidate whose identity matches the file actually mounted.
+fn unique_identity(candidates: &[String], observed: &Identity) -> Result<String> {
+    let matched: Vec<&String> = candidates
+        .iter()
+        .filter(|candidate| identity(candidate).ok().as_ref() == Some(observed))
+        .collect();
+    ensure!(
+        matched.len() == 1,
+        "Expected exactly one matching mount, found {}",
+        matched.len()
+    );
+    Ok(matched[0].clone())
+}
+
+/// A resolved pair: the module file that backs the target, and the absolute
+/// target path it is visible at.
+pub struct Resolved {
+    pub source: String,
+    pub target: String,
+}
+
+fn resolve_module_input(module: &str, sub: &str) -> Result<Resolved> {
+    // Accept both the on-disk form used by Magic mount (`system/...`) and the
+    // older target-relative form (`media/...`, `product/fonts/...`).
+    let mut candidates = Vec::new();
+    if sub.starts_with("system/") {
+        candidates.push(format!("{MODULE_ROOT}{module}/{sub}"));
+    }
+    let normalized = format!("{MODULE_ROOT}{module}/system/{sub}");
+    if !candidates.contains(&normalized) {
+        candidates.push(normalized);
+    }
+    let source = unique_file(&candidates)
+        .with_context(|| format!("No module file for {module}/{sub}"))?;
+    let original = identity(&source)?;
+    let target = unique_identity(&targets_for_module_file(module, &source)?, &original)
+        .context("Module resource is not currently mounted")?;
+    Ok(Resolved { source, target })
+}
+
+fn resolve_target_input(target: &str) -> Result<Resolved> {
+    let observed = identity(target).context("Target is not a regular mounted file")?;
+    let mut candidates = Vec::new();
+    for module in module_ids()? {
+        candidates.extend(candidate_files(&module, target));
+    }
+    let source = unique_identity(&candidates, &observed).with_context(|| {
+        format!("No single module provides a file identical to {target}")
+    })?;
+    Ok(Resolved {
+        source,
+        target: target.to_owned(),
+    })
+}
+
+enum Form<'a> {
+    Modules { module: &'a str, sub: &'a str },
+    Target(&'a str),
+}
+
+fn form(input: &str) -> Result<Form<'_>> {
+    ensure!(
+        !input.is_empty()
+            && input.len() <= 1024
+            && !input.contains(['\n', '\r', '\0'])
+            && !input.chars().any(char::is_control),
+        "Invalid resource path"
+    );
+    if let Some(rest) = input.strip_prefix(MODULE_ROOT) {
+        let (module, sub) = rest.split_once('/').context("Module resource path required")?;
+        return Ok(Form::Modules { module, sub });
+    }
+    if input.starts_with('/') {
+        return Ok(Form::Target(input));
+    }
+    let (module, sub) = input.split_once('/').context("Module resource path required")?;
+    Ok(Form::Modules { module, sub })
+}
+
+/// Targets an input can resolve to, without touching the filesystem.
+fn possible_targets(sub: &str) -> Vec<String> {
+    let rest = sub.strip_prefix("system/").unwrap_or(sub);
+    let mut targets = vec![format!("/system/{rest}")];
+    if let Some((partition, _tail)) = rest.split_once('/')
+        && HOISTED_PARTITIONS.contains(&partition)
+    {
+        let hoisted = format!("/{rest}");
+        if hoisted != targets[0] {
+            targets.push(hoisted);
+        }
+    }
+    targets
+}
+
+/// Syntax and policy check that needs no live mounts. This is what a saved
+/// configuration is validated against; the full preflight still runs later.
+pub fn syntax(input: &str) -> Result<()> {
+    match form(input)? {
+        Form::Target(target) => ensure!(
+            resource(target),
+            "Only module media/font/overlay resource files are supported; critical paths are blocked"
+        ),
+        Form::Modules { module, sub } => {
+            module_id(module)?;
+            ensure!(!sub.is_empty(), "Module resource path required");
+            ensure!(
+                possible_targets(sub).iter().any(|target| resource(target)),
+                "Only module media/font/overlay resource files are supported; critical paths are blocked"
+            );
+        }
+    }
+    Ok(())
+}
+
+/// Accepts `module-id/<path>`, `/data/adb/modules/module-id/<path>` and any
+/// absolute target such as `/system/media/bootanimation.zip`. The module that
+/// provides an absolute target is detected by file identity, never guessed.
+pub fn resolve(input: &str) -> Result<Resolved> {
+    syntax(input)?;
+    let resolved = match form(input)? {
+        Form::Modules { module, sub } => resolve_module_input(module, sub)?,
+        Form::Target(target) => resolve_target_input(target)?,
+    };
+    ensure!(
+        resource(&resolved.target),
+        "Only module media/font/overlay resource files are supported; critical paths are blocked"
+    );
+    Ok(resolved)
+}
+
+pub(super) fn source_lines(input: &str) -> Result<Vec<(usize, String)>> {
     ensure!(input.len() <= 16 * 1024, "Resource list is too large");
     let mut seen = std::collections::HashSet::new();
     let mut lines = Vec::new();
@@ -165,6 +410,8 @@ fn source_lines(input: &str) -> Result<Vec<(usize, String)>> {
         if source.is_empty() {
             continue;
         }
+        // Syntax only: the live preflight still has to pass before anything runs.
+        syntax(source).with_context(|| format!("Line {}", index + 1))?;
         if seen.insert(source.to_owned()) {
             lines.push((index + 1, source.to_owned()));
         }
@@ -194,29 +441,8 @@ pub fn batch_plan(input: &str) -> Result<Vec<super::Change>> {
     Ok(changes)
 }
 
-pub fn plan(source: &str, token: &str) -> Result<Plan> {
-    ensure!(
-        source.len() <= 1024 && !source.starts_with('/'),
-        "Use module-id/partition/resource path"
-    );
-    let (module, relative) = source
-        .split_once('/')
-        .context("Module resource path required")?;
-    ensure!(
-        !module.is_empty()
-            && module
-                .bytes()
-                .all(|b| b.is_ascii_alphanumeric() || b"._-".contains(&b))
-            && module != "."
-            && module != "..",
-        "Invalid module ID"
-    );
-    let target = format!("/{relative}");
-    ensure!(
-        resource(&target),
-        "Only module media/font resource files are supported; critical paths are blocked"
-    );
-    let source = format!("/data/adb/modules/{source}");
+pub fn plan(input: &str, token: &str) -> Result<Plan> {
+    let Resolved { source, target } = resolve(input)?;
     let original = identity(&source)?;
     ensure!(
         identity(&target)? == original,
@@ -526,75 +752,187 @@ mod tests {
             )
             .is_err()
         );
+        // Syntax problems are reported per line before any mount is touched.
+        let error = source_lines("a/system/media/x\nb; false").unwrap_err();
+        assert!(format!("{error:#}").contains("Line 2"), "{error:#}");
+        assert!(source_lines("/system/bin/sh").is_err());
+        assert!(source_lines("/data/adb/modules/../etc/passwd").is_err());
+    }
+
+    #[test]
+    fn accepts_every_supported_input_form_and_rejects_escapes() {
+        for input in [
+            "mod/system/media/bootanimation.zip",
+            "mod/media/bootanimation.zip",
+            "/data/adb/modules/mod/system/media/bootanimation.zip",
+            "/system/media/bootanimation.zip",
+            "/product/fonts/example.ttf",
+            "/system/product/fonts/example.ttf",
+            "/system/overlay/Foo/Foo.apk",
+            "/vendor/media/audio/x.ogg",
+        ] {
+            syntax(input).unwrap_or_else(|error| panic!("{input}: {error:#}"));
+        }
+        for input in [
+            "",
+            "/",
+            "/system/bin/sh",
+            "/system/etc/hosts",
+            "/data/media/0/x",
+            "/system/media",
+            "/system/media/../bin/sh",
+            "/system/media//x",
+            "/system/media/x\u{7}",
+            "mod",
+            "./system/media/x",
+            "mod/system/media/x\n",
+        ] {
+            assert!(syntax(input).is_err(), "{input} should be rejected");
+        }
+    }
+
+    #[test]
+    fn possible_targets_follows_partition_hoisting_without_assuming_layout() {
+        assert_eq!(
+            possible_targets("system/media/x"),
+            vec!["/system/media/x".to_owned()]
+        );
+        assert_eq!(
+            possible_targets("media/x"),
+            vec!["/system/media/x".to_owned()]
+        );
+        // A hoisted partition can be visible at either place; identity decides.
+        assert_eq!(
+            possible_targets("product/fonts/x"),
+            vec![
+                "/system/product/fonts/x".to_owned(),
+                "/product/fonts/x".to_owned()
+            ]
+        );
+        assert_eq!(
+            possible_targets("system/product/fonts/x"),
+            possible_targets("product/fonts/x")
+        );
+        assert_eq!(
+            possible_targets("system/system/priv-app/x/x.apk"),
+            vec!["/system/system/priv-app/x/x.apk".to_owned()]
+        );
+    }
+
+    #[test]
+    fn module_file_targets_cover_hoisted_and_non_hoisted_layouts() {
+        assert_eq!(
+            targets_for_module_file("m", "/data/adb/modules/m/system/media/a.zip").unwrap(),
+            vec!["/system/media/a.zip".to_owned()]
+        );
+        // The inverse direction must agree: a target is backed by the same file.
+        assert_eq!(
+            candidate_files("m", "/system/media/a.zip"),
+            vec!["/data/adb/modules/m/system/media/a.zip".to_owned()]
+        );
+        assert_eq!(
+            candidate_files("m", "/product/fonts/a.ttf"),
+            vec!["/data/adb/modules/m/system/product/fonts/a.ttf".to_owned()]
+        );
+        for target in [
+            "/system/media/a.zip",
+            "/product/fonts/a.ttf",
+            "/system/product/fonts/a.ttf",
+        ] {
+            for candidate in candidate_files("m", target) {
+                assert!(
+                    targets_for_module_file("m", &candidate)
+                        .unwrap()
+                        .contains(&target.to_owned()),
+                    "{target} must be reachable from {candidate}"
+                );
+            }
+        }
+        assert_eq!(
+            targets_for_module_file("m", "/data/adb/modules/m/system/product/fonts/a.ttf").unwrap(),
+            vec![
+                "/system/product/fonts/a.ttf".to_owned(),
+                "/product/fonts/a.ttf".to_owned()
+            ]
+        );
+        assert!(targets_for_module_file("m", "/data/adb/modules/m/vendor/x").is_err());
+        assert!(targets_for_module_file("m", "/data/adb/modules/other/system/x").is_err());
     }
 
     #[test]
     #[ignore = "Run explicitly in an isolated user/mount namespace"]
-    fn real_mount_backup_unmount_and_restore_preserves_readonly() {
+    fn real_mount_backup_unmount_and_restore_preserves_original_flags() {
         assert_eq!(unsafe { libc::geteuid() }, 0);
-        let inherited = fs::read_link("/proc/thread-self/ns/mnt").unwrap();
-        assert_eq!(unsafe { libc::unshare(libc::CLONE_NEWNS) }, 0);
-        assert_ne!(
-            fs::read_link("/proc/thread-self/ns/mnt").unwrap(),
-            inherited
-        );
-        mount(None, "/", libc::MS_REC | libc::MS_PRIVATE).unwrap();
-        let root = std::env::temp_dir().join(format!("aster-mount-fixture-{}", std::process::id()));
-        fs::create_dir_all(&root).unwrap();
-        let source = root.join("module-resource").to_str().unwrap().to_owned();
-        let target = root.join("system-resource").to_str().unwrap().to_owned();
-        let backup = root.join("backups/saved").to_str().unwrap().to_owned();
-        fs::write(&source, b"module resource").unwrap();
-        fs::write(&target, b"system resource").unwrap();
-        let underlying = identity(&target).unwrap();
-        mount(Some(&source), &target, libc::MS_BIND).unwrap();
-        mount(
-            None,
-            &target,
-            libc::MS_BIND | libc::MS_REMOUNT | libc::MS_RDONLY,
-        )
-        .unwrap();
-        // Exercise the fd-based restoration rehearsal before the real trial.
-        let rehearsal = tree_fd(&target, true).unwrap();
-        unmount(&target).unwrap();
-        assert_eq!(identity(&target).unwrap(), underlying);
-        move_fd(&rehearsal, &target).unwrap();
-        drop(rehearsal);
-        let plan = Plan {
-            original: identity(&target).unwrap(),
-            underlying,
-            mount_line: eligible(&entries().unwrap(), &target).unwrap(),
-            source,
-            target,
-            anchor: format!("{backup}.source"),
-            backup,
-        };
-        apply_validated(&plan).unwrap();
-        assert_eq!(fs::read(&plan.target).unwrap(), b"system resource");
-        assert_eq!(fs::read(&plan.backup).unwrap(), b"module resource");
-        // A new third-party mount must not be overwritten during recovery.
-        let foreign = root.join("foreign").to_str().unwrap().to_owned();
-        fs::write(&foreign, b"foreign resource").unwrap();
-        mount(Some(&foreign), &plan.target, libc::MS_BIND).unwrap();
-        assert!(restore_saved(&plan).is_err());
-        assert!(Path::new(&plan.backup).exists());
-        unmount(&plan.target).unwrap();
-        // Restore even if the module's original pathname was removed meanwhile.
-        fs::remove_file(&plan.source).unwrap();
-        restore_saved(&plan).unwrap();
-        assert_eq!(fs::read(&plan.target).unwrap(), b"module resource");
-        assert!(
-            exact(&entries().unwrap(), &plan.target)
-                .unwrap()
-                .options
-                .iter()
-                .any(|s| s == "ro")
-        );
-        restore_saved(&plan).unwrap();
-        assert!(!Path::new(&plan.backup).exists());
-        unmount(&plan.target).unwrap();
-        assert_eq!(fs::read(&plan.target).unwrap(), b"system resource");
-        fs::remove_dir_all(root).unwrap();
+        for readonly in [true, false] {
+            let inherited = fs::read_link("/proc/thread-self/ns/mnt").unwrap();
+            assert_eq!(unsafe { libc::unshare(libc::CLONE_NEWNS) }, 0);
+            assert_ne!(
+                fs::read_link("/proc/thread-self/ns/mnt").unwrap(),
+                inherited
+            );
+            mount(None, "/", libc::MS_REC | libc::MS_PRIVATE).unwrap();
+            let root = std::env::temp_dir().join(format!(
+                "aster-mount-fixture-{}-{readonly}",
+                std::process::id()
+            ));
+            fs::create_dir_all(&root).unwrap();
+            let source = root.join("module-resource").to_str().unwrap().to_owned();
+            let target = root.join("system-resource").to_str().unwrap().to_owned();
+            let backup = root.join("backups/saved").to_str().unwrap().to_owned();
+            fs::write(&source, b"module resource").unwrap();
+            fs::write(&target, b"system resource").unwrap();
+            let underlying = identity(&target).unwrap();
+            mount(Some(&source), &target, libc::MS_BIND).unwrap();
+            if readonly {
+                mount(
+                    None,
+                    &target,
+                    libc::MS_BIND | libc::MS_REMOUNT | libc::MS_RDONLY,
+                )
+                .unwrap();
+            }
+            // Exercise the fd-based restoration rehearsal before the real trial.
+            let rehearsal = tree_fd(&target, true).unwrap();
+            unmount(&target).unwrap();
+            assert_eq!(identity(&target).unwrap(), underlying);
+            move_fd(&rehearsal, &target).unwrap();
+            drop(rehearsal);
+            let plan = Plan {
+                original: identity(&target).unwrap(),
+                underlying,
+                mount_line: eligible(&entries().unwrap(), &target).unwrap(),
+                source,
+                target,
+                anchor: format!("{backup}.source"),
+                backup,
+            };
+            apply_validated(&plan).unwrap();
+            assert_eq!(fs::read(&plan.target).unwrap(), b"system resource");
+            assert_eq!(fs::read(&plan.backup).unwrap(), b"module resource");
+            // A new third-party mount must not be overwritten during recovery.
+            let foreign = root.join("foreign").to_str().unwrap().to_owned();
+            fs::write(&foreign, b"foreign resource").unwrap();
+            mount(Some(&foreign), &plan.target, libc::MS_BIND).unwrap();
+            assert!(restore_saved(&plan).is_err());
+            assert!(Path::new(&plan.backup).exists());
+            unmount(&plan.target).unwrap();
+            // Restore even if the module's original pathname was removed meanwhile.
+            fs::remove_file(&plan.source).unwrap();
+            restore_saved(&plan).unwrap();
+            assert_eq!(fs::read(&plan.target).unwrap(), b"module resource");
+            let restored_entries = entries().unwrap();
+            let restored = exact(&restored_entries, &plan.target).unwrap();
+            assert_eq!(
+                restored.options.iter().any(|s| s == "ro"),
+                readonly,
+                "restored per-mount flags must match the original"
+            );
+            restore_saved(&plan).unwrap();
+            assert!(!Path::new(&plan.backup).exists());
+            unmount(&plan.target).unwrap();
+            assert_eq!(fs::read(&plan.target).unwrap(), b"system resource");
+            fs::remove_dir_all(root).unwrap();
+        }
     }
 
     #[test]
@@ -605,17 +943,30 @@ mod tests {
             "/system",
             "/system/bin/sh",
             "/system/etc/fstab",
+            "/system/etc/init/hw/init.rc",
+            "/system/lib64/libc.so",
+            "/system/framework/framework.jar",
             "/system/media/../bin/sh",
             "/system/media//a",
             "/system/media/a\n",
+            "/system/media/",
+            "/system/priv-app/x/x.apk",
         ] {
             assert!(!resource(p), "{p}");
         }
-        assert!(resource("/system/media/bootanimation.zip"));
-        assert!(resource("/product/fonts/test.ttf"));
+        for p in [
+            "/system/media/bootanimation.zip",
+            "/product/fonts/test.ttf",
+            "/system/product/fonts/test.ttf",
+            "/vendor/media/audio/a.ogg",
+            "/system/overlay/App/App.apk",
+            "/odm/media/x",
+        ] {
+            assert!(resource(p), "{p}");
+        }
     }
     #[test]
-    fn rejects_stacked_writable_and_shared_mounts() {
+    fn accepts_readonly_and_writable_file_mounts_but_rejects_stacked_and_shared() {
         let parent = "1 0 1:1 / /system rw - ext4 /dev/test rw\n";
         let file = "2 1 1:1 /adb/modules/a /system/media/a ro - ext4 /dev/test rw\n";
         assert!(
@@ -625,11 +976,38 @@ mod tests {
             )
             .is_ok()
         );
+        // Writable file mounts are supported; the backup replays their flags.
+        let writable = file.replace("a ro -", "a rw -");
+        assert!(
+            eligible(
+                &parse(&format!("{parent}{writable}")).unwrap(),
+                "/system/media/a"
+            )
+            .is_ok()
+        );
+        assert_eq!(
+            saved_flags(&parse(&format!("{parent}{writable}")).unwrap()[1]).unwrap(),
+            0
+        );
+        assert_eq!(
+            saved_flags(&parse(&format!("{parent}{file}")).unwrap()[1]).unwrap(),
+            libc::MS_RDONLY
+        );
+        // `nosymfollow` is reported as an optional field but is a replayable mount
+        // flag, so it must be preserved rather than dropped.
+        let nosymfollow = file.replace("ro -", "ro nosymfollow -");
+        assert!(
+            eligible(&parse(&format!("{parent}{nosymfollow}")).unwrap(), "/system/media/a").is_ok()
+        );
+        assert_eq!(
+            saved_flags(&parse(&format!("{parent}{nosymfollow}")).unwrap()[1]).unwrap(),
+            libc::MS_RDONLY | libc::MS_NOSYMFOLLOW
+        );
         for text in [
             format!("{parent}{file}{file}"),
-            format!("{parent}{}", file.replace("a ro -", "a rw -")),
             format!("{parent}{}", file.replace("ro -", "ro shared:1 -")),
             format!("{}{file}", parent.replace("rw -", "rw shared:1 -")),
+            format!("{parent}{}", file.replace("ro -", "ro idmapped -")),
         ] {
             assert!(eligible(&parse(&text).unwrap(), "/system/media/a").is_err());
         }

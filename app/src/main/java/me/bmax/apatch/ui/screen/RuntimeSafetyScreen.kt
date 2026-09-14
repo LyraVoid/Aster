@@ -38,12 +38,15 @@ import org.json.JSONObject
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Lock
 import top.yukonga.miuix.kmp.icon.extended.Layers
+import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.utils.overScrollVertical
+import androidx.compose.ui.platform.LocalContext
 
 @Destination<RootGraph>
 @Composable
@@ -54,6 +57,8 @@ fun RuntimeSafetyScreen(navigator: DestinationsNavigator) {
     var legacyNoChanges by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var logs by remember { mutableStateOf<String?>(null) }
+    var prefilled by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     val source = rememberTextFieldState()
     suspend fun refresh() { status = withContext(Dispatchers.IO) { RuntimeSafetyClient.status() } }
     fun execute(vararg args: String) {
@@ -80,10 +85,27 @@ fun RuntimeSafetyScreen(navigator: DestinationsNavigator) {
             delay(2000)
         }
     }
+    // The field is filled once from the saved configuration; polling must never
+    // overwrite what the user is typing.
+    LaunchedEffect(status) {
+        val saved = status?.optJSONObject("config")?.optString("umount_paths").orEmpty()
+        if (!prefilled && status != null) {
+            source.edit { replace(0, length, saved) }
+            prefilled = true
+        }
+    }
     val state = status?.optJSONObject("state")
     val phase = state?.optString("phase") ?: "off"
     val safe = status?.optBoolean("safe_mode", true) ?: true
+    val config = status?.optJSONObject("config")
+    val hideAuto = config?.optBoolean("hide_auto") ?: false
+    val umountAuto = config?.optBoolean("umount_auto") ?: false
+    val probe = config?.optBoolean("boot_probe") ?: false
+    val auto = status?.optJSONObject("auto")
+    val autoEnabled = status != null && !busy && !safe
     val canPreview = status != null && !safe && !busy && phase in listOf("off", "preview")
+    val savedPaths = config?.optString("umount_paths").orEmpty()
+        .lines().map { it.trim() }.filter { it.isNotEmpty() }.distinct().size
     val listState = rememberLazyListState()
     LaunchedEffect(phase) {
         if (phase in listOf("preview", "trial", "recovery_failed")) listState.animateScrollToItem(1)
@@ -110,12 +132,16 @@ fun RuntimeSafetyScreen(navigator: DestinationsNavigator) {
                             phase == "preview" -> R.string.runtime_safety_preview
                             phase in listOf("queued", "applying") -> R.string.runtime_safety_applying
                             phase == "trial" -> R.string.runtime_safety_trial
+                            phase == "active" && state?.optBoolean("auto") == true -> R.string.runtime_safety_active_auto
                             phase == "active" -> R.string.runtime_safety_active
                             phase == "restoring" -> R.string.runtime_safety_restoring
                             else -> R.string.runtime_safety_off
                         }))
                         state?.optString("error")?.takeIf { it.isNotBlank() && it != "null" }?.let { Text(it) }
                         status?.optString("safety_error")?.takeIf { it.isNotBlank() && it != "null" }?.let { Text(it) }
+                        auto?.optString("last_error")?.takeIf { it.isNotBlank() && it != "null" }?.let {
+                            Text(stringResource(R.string.runtime_safety_auto_record, it))
+                        }
                         when (state?.optString("notice")) {
                             "already_matches" -> Text(stringResource(R.string.runtime_safety_already_matches))
                             "properties_unavailable" -> Text(stringResource(R.string.runtime_safety_properties_unavailable))
@@ -160,6 +186,13 @@ fun RuntimeSafetyScreen(navigator: DestinationsNavigator) {
                         }
                         Text(stringResource(R.string.runtime_safety_hide_description))
                         Text(stringResource(R.string.runtime_safety_hide_steps))
+                        SettingsSwitchRow(
+                            title = stringResource(R.string.runtime_safety_hide_auto),
+                            checked = hideAuto,
+                            enabled = autoEnabled || hideAuto,
+                            onCheckedChange = { execute("configure", "--hide-auto", if (it) "on" else "off") },
+                        )
+                        Text(stringResource(R.string.runtime_safety_auto_hint))
                         Button(onClick = { execute("preview", "hide") }, enabled = canPreview) {
                             Text(stringResource(R.string.runtime_safety_hide_preview))
                         }
@@ -177,10 +210,60 @@ fun RuntimeSafetyScreen(navigator: DestinationsNavigator) {
                         TextField(state = source, modifier = Modifier.fillMaxWidth(),
                             label = stringResource(R.string.runtime_safety_module_path), lineLimits = TextFieldLineLimits.MultiLine(minHeightInLines = 4, maxHeightInLines = 8))
                         Text(stringResource(R.string.runtime_safety_module_examples))
+                        SettingsSwitchRow(
+                            title = stringResource(R.string.runtime_safety_umount_auto),
+                            checked = umountAuto,
+                            enabled = autoEnabled || umountAuto,
+                            onCheckedChange = {
+                                if (it && source.text.isBlank()) {
+                                    error = context.getString(R.string.runtime_safety_need_paths)
+                                } else {
+                                    execute("configure", "--source", source.text.toString(), "--umount-auto", if (it) "on" else "off")
+                                }
+                            },
+                        )
+                        Text(stringResource(R.string.runtime_safety_auto_hint))
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Button(onClick = { execute("configure", "--source", source.text.toString()) }, enabled = !busy) {
+                                Text(stringResource(R.string.runtime_safety_save_paths))
+                            }
+                            Text(stringResource(R.string.runtime_safety_paths_saved, savedPaths))
+                        }
                         Button(onClick = { execute("preview", "umount", "--source", source.text.toString()) },
                             enabled = canPreview && source.text.isNotBlank()) {
                             Text(stringResource(R.string.runtime_safety_umount_preview))
                         }
+                    }
+                }
+            }
+            item {
+                SettingsCard {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            SettingsIcon(MiuixIcons.Refresh)
+                            Text(stringResource(R.string.runtime_safety_auto_title), fontWeight = FontWeight.SemiBold)
+                        }
+                        val enabled = buildList {
+                            if (hideAuto) add(stringResource(R.string.runtime_safety_hide_title))
+                            if (umountAuto) add(stringResource(R.string.runtime_safety_umount_title))
+                        }
+                        Text(if (enabled.isEmpty()) stringResource(R.string.runtime_safety_auto_off)
+                            else stringResource(R.string.runtime_safety_auto_running, enabled.joinToString(", ")))
+                        Text(stringResource(R.string.runtime_safety_auto_notice))
+                        auto?.optString("last_result")?.takeIf { it.isNotBlank() && it != "null" }?.let {
+                            Text(stringResource(R.string.runtime_safety_auto_record, it))
+                        }
+                        auto?.optString("interruption")?.takeIf { it.isNotBlank() && it != "null" }?.let {
+                            Text(stringResource(R.string.runtime_safety_auto_interrupted))
+                            Text(stringResource(R.string.runtime_safety_auto_record, it))
+                        }
+                        SettingsSwitchRow(
+                            title = stringResource(R.string.runtime_safety_probe),
+                            checked = probe,
+                            enabled = status != null && !busy,
+                            onCheckedChange = { execute("configure", "--probe", if (it) "on" else "off") },
+                        )
+                        Text(stringResource(R.string.runtime_safety_probe_description))
                     }
                 }
             }
@@ -193,5 +276,23 @@ fun RuntimeSafetyScreen(navigator: DestinationsNavigator) {
                 }
             }
         }
+    }
+}
+
+/** One label plus a switch, used for the persisted automatic options. */
+@Composable
+private fun SettingsSwitchRow(
+    title: String,
+    checked: Boolean,
+    enabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(title, Modifier.weight(1f))
+        Switch(checked = checked, enabled = enabled, onCheckedChange = onCheckedChange)
     }
 }
