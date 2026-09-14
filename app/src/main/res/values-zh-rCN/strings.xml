@@ -476,8 +476,8 @@
     <string name="module_mount_meta_disabled">Magic mount 已关闭，元模块也已禁用。请启用一种挂载方式，然后重启。</string>
     <string name="module_mount_meta_removing">Magic mount 已关闭，元模块待卸载。请开启 Magic mount 或保留元模块，然后重启。</string>
 
-    <string name="runtime_safety_title">受保护的运行时操作</string>
-    <string name="runtime_safety_summary">状态隐藏与模块资源卸载，支持预检和恢复</string>
+    <string name="runtime_safety_title">Hide 与模块卸载</string>
+    <string name="runtime_safety_summary">隐藏启动状态展示信息，或临时卸载模块资源</string>
     <string name="runtime_safety_description">默认关闭。先预检，再试运行 60 秒，检查效果后可保留到本次开机结束。安全模式会关闭功能并尝试恢复，重启后不会自动启用。同一时间只能运行一项。</string>
     <string name="runtime_safety_unavailable">正在加载或功能不可用，请在首页更新配套 AndroidPatch。</string>
     <string name="runtime_safety_safe_mode">安全检测已阻止启用，退出安全模式后仍保持关闭。</string>
@@ -489,13 +489,20 @@
     <string name="runtime_safety_restoring">正在恢复…</string>
     <string name="runtime_safety_off">已关闭</string>
     <string name="runtime_safety_hide_description">仅修改已存在的四项启动状态展示属性，不会真正锁定引导程序，也不修改 ADB、调试或日志配置。</string>
-    <string name="runtime_safety_hide_preview">预检状态隐藏</string>
-    <string name="runtime_safety_umount_description">仅支持私有、只读的模块媒体或字体文件挂载。拒绝目录、关键路径、叠加挂载及未知来源；卸载前保留恢复副本。</string>
-    <string name="runtime_safety_module_path">模块内路径，例如 mymodule/system/media/bootanimation.zip</string>
-    <string name="runtime_safety_umount_preview">预检资源卸载</string>
+    <string name="runtime_safety_hide_preview">查看 Hide 修改预览</string>
+    <string name="runtime_safety_umount_description">进阶功能，与 Hide 无关。每行填写一个模块资源路径，最多 16 项，重复行自动去重。全部通过预检后才能执行；执行中失败会逆序恢复已处理项。仅支持私有、只读的媒体或字体文件挂载。</string>
+    <string name="runtime_safety_module_path">模块资源路径，每行一项</string>
+    <string name="runtime_safety_umount_preview">预检全部资源卸载</string>
     <string name="runtime_safety_start_trial">开始 60 秒试运行</string>
     <string name="runtime_safety_keep">本次开机保留</string>
     <string name="runtime_safety_restore">恢复并关闭</string>
     <string name="runtime_safety_logs">查看操作日志</string>
     <string name="runtime_safety_logs_empty">暂无操作日志。</string>
+    <string name="runtime_safety_hide_title">Hide · 启动状态隐藏</string>
+    <string name="runtime_safety_hide_steps">Hide 不需要填写路径。点击下方按钮查看修改预览，再开始试运行；确认效果后，在 60 秒内点击“本次开机保留”。不确认会自动恢复，也可随时点击“恢复并关闭”。</string>
+    <string name="runtime_safety_umount_title">模块资源卸载 · 进阶</string>
+    <string name="runtime_safety_already_matches">检测的四项属性已经符合 Hide 目标，无需修改。这不代表本功能已经启用。</string>
+    <string name="runtime_safety_properties_unavailable">部分属性不存在或未读取到，无法确认其状态。预览只包含已成功读取且需要修改的属性。</string>
+    <string name="runtime_safety_legacy_no_changes">当前没有需要修改的项目。旧版 APD 未返回检测明细，可在首页更新 AndroidPatch 获得准确结果。</string>
+    <string name="runtime_safety_module_examples">示例（请替换为真实模块 ID 和文件路径）：\nmymodule/system/media/bootanimation.zip\nmymodule/product/fonts/example.ttf</string>
 </resources>

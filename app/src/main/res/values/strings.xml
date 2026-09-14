@@ -541,8 +541,8 @@
     <string name="module_mount_meta_disabled">Magic mount is off and the metamodule is disabled. Enable a mounting method, then reboot.</string>
     <string name="module_mount_meta_removing">Magic mount is off and the metamodule is pending removal. Enable Magic mount or keep the metamodule, then reboot.</string>
 
-    <string name="runtime_safety_title">Guarded runtime operations</string>
-    <string name="runtime_safety_summary">Status hiding and module resource unmounting, with preview and recovery</string>
+    <string name="runtime_safety_title">Hide &amp; module unmount</string>
+    <string name="runtime_safety_summary">Hide boot-status properties or temporarily unmount module resources</string>
     <string name="runtime_safety_description">Off by default. Preview first, then try for 60 seconds. Keep only after checking the result. Safe mode disables both features and attempts recovery. Reboot never re-enables them. Only one session can run at a time.</string>
     <string name="runtime_safety_unavailable">Loading or unavailable. Install the matching AndroidPatch version from Home.</string>
     <string name="runtime_safety_safe_mode">Safety check blocked activation. Features stay off after leaving safe mode.</string>
@@ -554,13 +554,20 @@
     <string name="runtime_safety_restoring">Restoring…</string>
     <string name="runtime_safety_off">Off</string>
     <string name="runtime_safety_hide_description">Changes four boot-status display properties when present. Does not relock the bootloader or change ADB, debugging, or logging settings.</string>
-    <string name="runtime_safety_hide_preview">Preview status hiding</string>
-    <string name="runtime_safety_umount_description">Only private, read-only module mounts of media or font files are supported. Directories, critical paths, stacked mounts and unknown sources are rejected. A recovery copy is kept before unmounting.</string>
-    <string name="runtime_safety_module_path">Module path, e.g. mymodule/system/media/bootanimation.zip</string>
-    <string name="runtime_safety_umount_preview">Preview resource unmount</string>
+    <string name="runtime_safety_hide_preview">Preview Hide changes</string>
+    <string name="runtime_safety_umount_description">Advanced: separate from Hide. Enter up to 16 module resource paths, one per line. Duplicate lines are removed. Every item must pass preview; a failure during execution restores attempted items in reverse order. Only private, read-only media/font file mounts are accepted.</string>
+    <string name="runtime_safety_module_path">Module resource paths, one per line</string>
+    <string name="runtime_safety_umount_preview">Preview all resource unmounts</string>
     <string name="runtime_safety_start_trial">Start 60-second trial</string>
     <string name="runtime_safety_keep">Keep for this boot</string>
     <string name="runtime_safety_restore">Restore and turn off</string>
     <string name="runtime_safety_logs">View operation log</string>
     <string name="runtime_safety_logs_empty">No operation log yet.</string>
+    <string name="runtime_safety_hide_title">Hide · boot-status display</string>
+    <string name="runtime_safety_hide_steps">No path is needed for Hide. Tap Preview, then Start trial. Check the result and tap Keep within 60 seconds; otherwise changes are restored automatically. Restore and turn off is always available.</string>
+    <string name="runtime_safety_umount_title">Module resource unmount · advanced</string>
+    <string name="runtime_safety_already_matches">The four checked properties already match the Hide targets. No changes are needed. This does not mean this feature is active.</string>
+    <string name="runtime_safety_properties_unavailable">Some properties are missing or unreadable, so their status cannot be confirmed. Only successfully read properties that differ from the target are included in the preview.</string>
+    <string name="runtime_safety_legacy_no_changes">No changes are needed. The older APD did not return inspection details; update AndroidPatch from Home to see the precise result.</string>
+    <string name="runtime_safety_module_examples">Example (replace with your actual module ID and paths):\nmymodule/system/media/bootanimation.zip\nmymodule/product/fonts/example.ttf</string>
 </resources>

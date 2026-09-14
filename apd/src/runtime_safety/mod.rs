@@ -70,6 +70,10 @@ struct State {
     deadline: u64,
     owner: Option<(u32, String)>,
     error: Option<String>,
+    #[serde(default)]
+    notice: Option<String>,
+    #[serde(default)]
+    property_checks: Vec<platform::PropertyCheck>,
 }
 
 trait Backend {
@@ -355,29 +359,65 @@ pub fn run(action: Action) -> Result<()> {
                         .is_none_or(|s| matches!(s.phase.as_str(), "off" | "preview")),
                     "Restore the current session first"
                 );
+                // A failed replacement preview must not leave an older batch executable.
+                if let Some(previous) = state.as_mut() {
+                    if previous.phase == "preview" {
+                        previous.phase = "off".into();
+                        previous.notice = None;
+                        store.save(previous)?;
+                    }
+                }
                 let token = platform::token()?;
-                let changes = if kind == "hide" {
+                let (changes, property_checks) = if kind == "hide" {
                     platform::property_plan()?
                 } else {
-                    vec![Change::Mount(mount::plan(
-                        source.as_deref().context("Module resource path required")?,
-                        &token,
-                    )?)]
+                    (
+                        mount::batch_plan(
+                            source
+                                .as_deref()
+                                .context("Module resource paths required")?,
+                        )?,
+                        Vec::new(),
+                    )
                 };
-                ensure!(!changes.is_empty(), "No changes required");
+                let notice = if kind == "hide" {
+                    let missing = property_checks.iter().any(|c| c.current.is_none());
+                    Some(
+                        if missing {
+                            "properties_unavailable"
+                        } else if changes.is_empty() {
+                            "already_matches"
+                        } else {
+                            "changes_ready"
+                        }
+                        .to_owned(),
+                    )
+                } else {
+                    None
+                };
+                let phase = if changes.is_empty() { "off" } else { "preview" };
                 let preview = State {
                     token,
                     boot,
                     kind,
-                    phase: "preview".into(),
+                    phase: phase.into(),
                     changes,
                     attempted: 0,
                     deadline: platform::uptime()? + 120,
                     owner: None,
                     error: None,
+                    notice,
+                    property_checks,
                 };
                 store.save(&preview)?;
-                store.event(&format!("preview {} {}", preview.kind, preview.token))?;
+                store.event(&format!(
+                    "preview {} {}: {} changes; {:?}; checks={:?}",
+                    preview.kind,
+                    preview.token,
+                    preview.changes.len(),
+                    preview.notice,
+                    preview.property_checks
+                ))?;
                 println!("{}", serde_json::to_string(&preview)?);
             }
             Action::Apply { token } => {

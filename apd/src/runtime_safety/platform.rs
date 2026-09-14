@@ -90,24 +90,77 @@ fn set(key: &str, value: &str) -> Result<()> {
     ensure!(get(key)? == value, "Property readback failed: {key}");
     Ok(())
 }
-pub fn property_plan() -> Result<Vec<Change>> {
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct PropertyCheck {
+    pub key: String,
+    pub current: Option<String>,
+    pub target: String,
+}
+
+pub fn property_plan() -> Result<(Vec<Change>, Vec<PropertyCheck>)> {
+    inspect_properties(crate::utils::getprop)
+}
+
+fn inspect_properties(
+    mut read: impl FnMut(&str) -> Option<String>,
+) -> Result<(Vec<Change>, Vec<PropertyCheck>)> {
     let mut changes = Vec::new();
+    let mut checks = Vec::new();
     for &(key, after) in PROPERTIES {
-        if let Some(before) = crate::utils::getprop(key) {
-            if !before.is_empty() && before != after {
-                ensure!(
-                    before.len() <= 128 && !before.contains('\0'),
-                    "Invalid property value"
-                );
+        let before = read(key).filter(|value| !value.is_empty());
+        if let Some(before) = &before {
+            ensure!(
+                before.len() <= 128 && !before.contains('\0'),
+                "Invalid property value"
+            );
+            if before != after {
                 changes.push(Change::Property {
                     key: key.into(),
-                    before,
+                    before: before.clone(),
                     after: after.into(),
                 });
             }
         }
+        checks.push(PropertyCheck {
+            key: key.into(),
+            current: before,
+            target: after.into(),
+        });
     }
-    Ok(changes)
+    Ok((changes, checks))
+}
+
+#[cfg(test)]
+mod inspection_tests {
+    use super::*;
+    #[test]
+    fn already_matching_is_not_an_error_or_an_owned_change() {
+        let (changes, checks) = inspect_properties(|key| {
+            PROPERTIES
+                .iter()
+                .find(|(k, _)| *k == key)
+                .map(|(_, v)| v.to_string())
+        })
+        .unwrap();
+        assert!(changes.is_empty());
+        assert!(checks.iter().all(|c| c.current.is_some()));
+    }
+    #[test]
+    fn missing_properties_are_distinct_from_matching_values() {
+        let (changes, checks) = inspect_properties(|_| None).unwrap();
+        assert!(changes.is_empty());
+        assert!(checks.iter().all(|c| c.current.is_none()));
+        let (changes, checks) = inspect_properties(|key| {
+            if key == PROPERTIES[0].0 {
+                Some("unlocked".into())
+            } else {
+                None
+            }
+        })
+        .unwrap();
+        assert_eq!(changes.len(), 1);
+        assert_eq!(checks.iter().filter(|c| c.current.is_none()).count(), 3);
+    }
 }
 
 pub struct Real;

@@ -1,11 +1,13 @@
 package me.bmax.apatch.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -16,6 +18,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
@@ -36,6 +40,9 @@ import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Lock
+import top.yukonga.miuix.kmp.icon.extended.Layers
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 @Destination<RootGraph>
@@ -44,6 +51,7 @@ fun RuntimeSafetyScreen(navigator: DestinationsNavigator) {
     val scope = rememberCoroutineScope()
     var status by remember { mutableStateOf<JSONObject?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+    var legacyNoChanges by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var logs by remember { mutableStateOf<String?>(null) }
     val source = rememberTextFieldState()
@@ -51,6 +59,7 @@ fun RuntimeSafetyScreen(navigator: DestinationsNavigator) {
     fun execute(vararg args: String) {
         if (busy) return
         busy = true
+        legacyNoChanges = false
         scope.launch {
             try {
                 val result = withContext(Dispatchers.IO) { RuntimeSafetyClient.run(*args) }
@@ -58,7 +67,8 @@ fun RuntimeSafetyScreen(navigator: DestinationsNavigator) {
                 error = null
                 refresh()
             } catch (failure: Exception) {
-                error = failure.message
+                legacyNoChanges = args.firstOrNull() == "preview" && args.getOrNull(1) == "hide" && failure.message?.contains("No changes required") == true
+                error = if (legacyNoChanges) null else failure.message
             } finally { busy = false }
         }
     }
@@ -74,11 +84,16 @@ fun RuntimeSafetyScreen(navigator: DestinationsNavigator) {
     val phase = state?.optString("phase") ?: "off"
     val safe = status?.optBoolean("safe_mode", true) ?: true
     val canPreview = status != null && !safe && !busy && phase in listOf("off", "preview")
+    val listState = rememberLazyListState()
+    LaunchedEffect(phase) {
+        if (phase in listOf("preview", "trial", "recovery_failed")) listState.animateScrollToItem(1)
+    }
     val scrollBehavior = MiuixScrollBehavior()
     Scaffold(topBar = {
         SettingsTopBar(title = R.string.runtime_safety_title, scrollBehavior = scrollBehavior, navigator = navigator)
     }) { innerPadding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize().overScrollVertical().nestedScroll(scrollBehavior.nestedScrollConnection),
             contentPadding = PaddingValues(top = innerPadding.calculateTopPadding() + 12.dp,
                 bottom = innerPadding.calculateBottomPadding() + LocalFloatingNavigationInset.current + 32.dp),
@@ -101,24 +116,12 @@ fun RuntimeSafetyScreen(navigator: DestinationsNavigator) {
                         }))
                         state?.optString("error")?.takeIf { it.isNotBlank() && it != "null" }?.let { Text(it) }
                         status?.optString("safety_error")?.takeIf { it.isNotBlank() && it != "null" }?.let { Text(it) }
+                        when (state?.optString("notice")) {
+                            "already_matches" -> Text(stringResource(R.string.runtime_safety_already_matches))
+                            "properties_unavailable" -> Text(stringResource(R.string.runtime_safety_properties_unavailable))
+                        }
+                        if (legacyNoChanges) Text(stringResource(R.string.runtime_safety_legacy_no_changes))
                         error?.let { Text(it) }
-                    }
-                }
-            }
-            item {
-                SettingsCard {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(stringResource(R.string.runtime_safety_hide_description))
-                        Button(onClick = { execute("preview", "hide") }, enabled = canPreview) {
-                            Text(stringResource(R.string.runtime_safety_hide_preview))
-                        }
-                        Text(stringResource(R.string.runtime_safety_umount_description))
-                        TextField(state = source, modifier = Modifier.fillMaxWidth(),
-                            label = stringResource(R.string.runtime_safety_module_path), lineLimits = TextFieldLineLimits.SingleLine)
-                        Button(onClick = { execute("preview", "umount", "--source", source.text.toString().trim()) },
-                            enabled = canPreview && source.text.isNotBlank()) {
-                            Text(stringResource(R.string.runtime_safety_umount_preview))
-                        }
                     }
                 }
             }
@@ -144,6 +147,39 @@ fun RuntimeSafetyScreen(navigator: DestinationsNavigator) {
                             Button(onClick = { execute("restore") }, enabled = !busy) {
                                 Text(stringResource(R.string.runtime_safety_restore))
                             }
+                        }
+                    }
+                }
+            }
+            item {
+                SettingsCard {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            SettingsIcon(MiuixIcons.Lock)
+                            Text(stringResource(R.string.runtime_safety_hide_title), fontWeight = FontWeight.SemiBold)
+                        }
+                        Text(stringResource(R.string.runtime_safety_hide_description))
+                        Text(stringResource(R.string.runtime_safety_hide_steps))
+                        Button(onClick = { execute("preview", "hide") }, enabled = canPreview) {
+                            Text(stringResource(R.string.runtime_safety_hide_preview))
+                        }
+                    }
+                }
+            }
+            item {
+                SettingsCard {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            SettingsIcon(MiuixIcons.Layers)
+                            Text(stringResource(R.string.runtime_safety_umount_title), fontWeight = FontWeight.SemiBold)
+                        }
+                        Text(stringResource(R.string.runtime_safety_umount_description))
+                        TextField(state = source, modifier = Modifier.fillMaxWidth(),
+                            label = stringResource(R.string.runtime_safety_module_path), lineLimits = TextFieldLineLimits.MultiLine(minHeightInLines = 4, maxHeightInLines = 8))
+                        Text(stringResource(R.string.runtime_safety_module_examples))
+                        Button(onClick = { execute("preview", "umount", "--source", source.text.toString()) },
+                            enabled = canPreview && source.text.isNotBlank()) {
+                            Text(stringResource(R.string.runtime_safety_umount_preview))
                         }
                     }
                 }

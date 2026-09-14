@@ -10,6 +10,7 @@ struct Mock {
     safety_fails: bool,
     recovery_fails: bool,
     restored: usize,
+    restored_order: Vec<String>,
 }
 impl Backend for Mock {
     fn safe(&mut self) -> Result<bool> {
@@ -29,7 +30,10 @@ impl Backend for Mock {
         }
         Ok(())
     }
-    fn restore(&mut self, _: &Change) -> Result<()> {
+    fn restore(&mut self, change: &Change) -> Result<()> {
+        if let Change::Property { key, .. } = change {
+            self.restored_order.push(key.clone());
+        }
         self.restored += 1;
         if self.recovery_fails {
             bail!("simulated recovery failure");
@@ -81,6 +85,8 @@ fn state() -> State {
         deadline: 0,
         owner: None,
         error: None,
+        notice: None,
+        property_checks: Vec::new(),
     }
 }
 #[test]
@@ -100,6 +106,7 @@ fn records_intent_and_rolls_back_partial_failure() {
     );
     assert!(backend.values.is_empty());
     assert_eq!(backend.restored, 2);
+    assert_eq!(backend.restored_order, vec!["two", "one"]);
     assert_eq!(state.phase, "off");
 }
 #[test]

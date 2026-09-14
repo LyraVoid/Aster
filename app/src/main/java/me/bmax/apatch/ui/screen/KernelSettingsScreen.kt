@@ -202,6 +202,7 @@ fun KernelSettingsScreen(navigator: DestinationsNavigator) {
                         ArrowPreference(
                             title = stringResource(R.string.runtime_safety_title),
                             summary = stringResource(R.string.runtime_safety_summary),
+                            startAction = { SettingsIcon(MiuixIcons.Lock) },
                             onClick = { navigator.navigate(RuntimeSafetyScreenDestination) },
                         )
                     }

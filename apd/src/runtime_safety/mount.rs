@@ -156,6 +156,44 @@ fn resource(target: &str) -> bool {
             .any(|c| c.is_empty() || c == "." || c == "..")
         && !target.chars().any(|c| c.is_control() || c == '\\')
 }
+fn source_lines(input: &str) -> Result<Vec<(usize, String)>> {
+    ensure!(input.len() <= 16 * 1024, "Resource list is too large");
+    let mut seen = std::collections::HashSet::new();
+    let mut lines = Vec::new();
+    for (index, raw) in input.lines().enumerate() {
+        let source = raw.trim();
+        if source.is_empty() {
+            continue;
+        }
+        if seen.insert(source.to_owned()) {
+            lines.push((index + 1, source.to_owned()));
+        }
+    }
+    ensure!(
+        !lines.is_empty() && lines.len() <= 16,
+        "Enter 1 to 16 distinct module resource paths"
+    );
+    Ok(lines)
+}
+
+pub fn batch_plan(input: &str) -> Result<Vec<super::Change>> {
+    let mut changes = Vec::new();
+    let mut targets = std::collections::HashSet::new();
+    for (line, source) in source_lines(input)? {
+        // Every item gets its own recovery files. Nothing is persisted/applied
+        // until the entire batch passes preview.
+        let plan = plan(&source, &super::platform::token()?)
+            .with_context(|| format!("Line {line}: {source}"))?;
+        ensure!(
+            targets.insert(plan.target.clone()),
+            "Line {line}: duplicate target {}",
+            plan.target
+        );
+        changes.push(super::Change::Mount(plan));
+    }
+    Ok(changes)
+}
+
 pub fn plan(source: &str, token: &str) -> Result<Plan> {
     ensure!(
         source.len() <= 1024 && !source.starts_with('/'),
@@ -469,6 +507,27 @@ pub fn discard_old_boot(plan: &Plan) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn multiline_input_deduplicates_and_preserves_error_line_numbers() {
+        assert_eq!(
+            source_lines("\n a/system/media/x\r\n\n b/product/fonts/y\n a/system/media/x ")
+                .unwrap(),
+            vec![
+                (2, "a/system/media/x".into()),
+                (4, "b/product/fonts/y".into())
+            ]
+        );
+        assert!(source_lines(" \n").is_err());
+        assert!(
+            source_lines(
+                &(0..17)
+                    .map(|i| format!("m/system/media/{i}\n"))
+                    .collect::<String>()
+            )
+            .is_err()
+        );
+    }
+
     #[test]
     #[ignore = "Run explicitly in an isolated user/mount namespace"]
     fn real_mount_backup_unmount_and_restore_preserves_readonly() {
