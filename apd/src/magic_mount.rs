@@ -394,6 +394,16 @@ fn do_magic_mount<P: AsRef<Path>, WP: AsRef<Path>>(
                     work_dir_path.display()
                 );
                 mount_bind(module_path, target_path)?;
+                if !has_tmpfs {
+                    // A module file mounted straight onto its real path must not
+                    // keep the source mount's propagation: the bind clone is
+                    // otherwise a member of the source's peer group, so both this
+                    // mount and a later unmount of it would propagate to every
+                    // peer in other namespaces. Same treatment the tmpfs below
+                    // `move_tmpfs_to_target` gets.
+                    mount_change(target_path, MountPropagationFlags::PRIVATE)
+                        .context("make module file mount private")?;
+                }
             } else {
                 bail!("cannot mount root file {}!", path.display());
             }

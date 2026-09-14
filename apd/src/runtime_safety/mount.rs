@@ -75,6 +75,15 @@ fn private(entry: &Entry) -> bool {
             || field.starts_with("propagate_from:")
     })
 }
+/// A mount that receives mounts and unmounts from a master. Its content is
+/// controlled by another namespace, so a restore here could be overwritten or
+/// duplicated by propagation from that master.
+fn slave(entry: &Entry) -> bool {
+    entry
+        .optional
+        .iter()
+        .any(|field| field.starts_with("master:") || field.starts_with("propagate_from:"))
+}
 fn exact<'a>(entries: &'a [Entry], target: &str) -> Result<&'a Entry> {
     let found: Vec<_> = entries
         .iter()
@@ -128,10 +137,15 @@ fn eligible(entries: &[Entry], target: &str) -> Result<String> {
         .iter()
         .find(|e| e.id == entry.parent)
         .context("Missing parent mount")?;
-    ensure!(
-        private(parent),
-        "Shared/slave parent mounts are not supported"
-    );
+    // The entry itself must stay private: unmounting a mount that has no peers
+    // changes nothing outside this namespace. Its parent is a system partition
+    // such as `/product`, which is normally shared and must stay that way.
+    // Sharing the parent only means that mounts created *there* propagate
+    // outward, and the only mount this code creates under it is the recovery
+    // backup, which is isolated on a private directory of its own. A parent that
+    // receives propagation from a master is still refused: that master can undo
+    // or repeat whatever happens here.
+    ensure!(!slave(parent), "Slave parent mounts are not supported");
     Ok(entry.line.clone())
 }
 fn identity(path: &str) -> Result<Identity> {
@@ -579,6 +593,18 @@ fn tree_fd(path: &str, clone: bool) -> Result<std::os::fd::OwnedFd> {
 fn move_backup(source: &str, target: &str) -> Result<()> {
     move_fd(&tree_fd(source, false)?, target)
 }
+/// Put a saved mount back in place and keep it private. A mount moved into a
+/// shared parent becomes a peer of that parent, which would let the restored
+/// shadow propagate outward and would stop the target from being a valid one for
+/// a later session. Best effort: the visible mount is already restored, and a
+/// reboot recreates it.
+fn move_back_private(source: &str, target: &str) -> Result<()> {
+    move_backup(source, target)?;
+    if let Err(error) = mount(None, target, libc::MS_PRIVATE) {
+        log::warn!("runtime-safety: restored mount not made private: {error}");
+    }
+    Ok(())
+}
 fn move_fd(fd: &std::os::fd::OwnedFd, target: &str) -> Result<()> {
     use std::os::fd::AsRawFd;
     let target = CString::new(target)?;
@@ -606,10 +632,72 @@ pub fn apply(plan: &Plan) -> Result<()> {
     apply_validated(plan)
 }
 
+/// The recovery backup is a mount of its own. Creating it below a shared parent
+/// would propagate it into every peer of that parent in other namespaces, so the
+/// directory holding it is bound onto itself and made private first. Only that
+/// bind can propagate (`/data` is normally shared); everything created below it
+/// afterwards stays local to this namespace.
+fn isolate_backup_dir(dir: &str) -> Result<()> {
+    let all = entries()?;
+    let covering = all
+        .iter()
+        .filter(|entry| dir.starts_with(&entry.path))
+        .max_by_key(|entry| entry.path.len())
+        .context("Missing backup parent mount")?;
+    if private(covering) {
+        return Ok(());
+    }
+    mount(Some(dir), dir, libc::MS_BIND).context("Cannot isolate backup directory")?;
+    mount(None, dir, libc::MS_PRIVATE).context("Cannot make the backup directory private")?;
+    ensure!(
+        private(exact(&entries()?, dir)?),
+        "Backup directory could not be isolated"
+    );
+    Ok(())
+}
+
+/// Drop the private backup container once nothing is left inside it, so no stray
+/// mount outlives the session. Never fails the session: the visible mount was
+/// restored already, and a leftover container is gone after the next reboot.
+fn release_backup_dir(dir: &str) {
+    let released = (|| -> Result<()> {
+        let all = entries()?;
+        if !all.iter().any(|entry| entry.path == dir) {
+            return Ok(());
+        }
+        if all
+            .iter()
+            .any(|entry| entry.path.starts_with(&format!("{dir}/")))
+        {
+            return Ok(());
+        }
+        unmount(dir)?;
+        Ok(())
+    })();
+    if let Err(error) = released {
+        log::warn!("runtime-safety: backup directory not released: {error:#}");
+    }
+}
+
 fn apply_validated(plan: &Plan) -> Result<()> {
     let dir = Path::new(&plan.backup).parent().unwrap();
     fs::create_dir_all(dir)?;
     ensure!(dir.canonicalize()? == dir, "Invalid backup directory");
+    fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&plan.backup)?;
+    // Pin a separate dentry, not just the original mount root. This survives
+    // unlinking the module source. Cross-filesystem links fail before unmount.
+    // The link is created first: it must live on the source's own mount, and the
+    // backup container below is a mount of its own.
+    fs::hard_link(&plan.source, &plan.anchor)
+        .context("Cannot retain module source on backup filesystem")?;
+    ensure!(
+        identity(&plan.anchor)? == plan.original,
+        "Pinned source changed"
+    );
+    isolate_backup_dir(dir.to_str().context("Invalid backup directory")?)?;
     let all = entries()?;
     let covering = all
         .iter()
@@ -617,18 +705,6 @@ fn apply_validated(plan: &Plan) -> Result<()> {
         .max_by_key(|e| e.path.len())
         .context("Missing backup parent mount")?;
     ensure!(private(covering), "Backup parent mount must be private");
-    fs::OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(&plan.backup)?;
-    // Pin a separate dentry, not just the original mount root. This survives
-    // unlinking the module source. Cross-filesystem links fail before unmount.
-    fs::hard_link(&plan.source, &plan.anchor)
-        .context("Cannot retain module source on backup filesystem")?;
-    ensure!(
-        identity(&plan.anchor)? == plan.original,
-        "Pinned source changed"
-    );
     mount(Some(&plan.anchor), &plan.backup, libc::MS_BIND)?;
     let original = parse(&plan.mount_line)?;
     mount(
@@ -680,7 +756,7 @@ fn restore_saved(plan: &Plan) -> Result<()> {
             .find(|e| e.id == original[0].parent)
             .context("Original parent mount no longer exists")?;
         ensure!(
-            private(parent),
+            !slave(parent),
             "Parent propagation changed; backup retained"
         );
         ensure!(
@@ -688,7 +764,7 @@ fn restore_saved(plan: &Plan) -> Result<()> {
             "Recovery backup missing or changed"
         );
         // Move the saved mount back, preserving its original per-mount flags.
-        move_backup(&plan.backup, &plan.target)?;
+        move_back_private(&plan.backup, &plan.target)?;
         ensure!(
             identity(&plan.target)? == plan.original,
             "Restored mount verification failed"
@@ -707,6 +783,9 @@ fn restore_saved(plan: &Plan) -> Result<()> {
     }
     if Path::new(&plan.anchor).exists() {
         fs::remove_file(&plan.anchor)?;
+    }
+    if let Some(dir) = Path::new(&plan.backup).parent().and_then(Path::to_str) {
+        release_backup_dir(dir);
     }
     Ok(())
 }
@@ -863,7 +942,10 @@ mod tests {
     #[ignore = "Run explicitly in an isolated user/mount namespace"]
     fn real_mount_backup_unmount_and_restore_preserves_original_flags() {
         assert_eq!(unsafe { libc::geteuid() }, 0);
-        for readonly in [true, false] {
+        // `shared_root` reproduces a real device: the shadow mount itself is
+        // private while the partition above it stays shared. It is what exercises
+        // the on-demand isolation of the backup directory.
+        for (readonly, shared_root) in [(true, false), (false, false), (true, true)] {
             let inherited = fs::read_link("/proc/thread-self/ns/mnt").unwrap();
             assert_eq!(unsafe { libc::unshare(libc::CLONE_NEWNS) }, 0);
             assert_ne!(
@@ -872,10 +954,24 @@ mod tests {
             );
             mount(None, "/", libc::MS_REC | libc::MS_PRIVATE).unwrap();
             let root = std::env::temp_dir().join(format!(
-                "aster-mount-fixture-{}-{readonly}",
+                "aster-mount-fixture-{}-{readonly}-{shared_root}",
                 std::process::id()
             ));
             fs::create_dir_all(&root).unwrap();
+            if shared_root {
+                // Share the mount that covers the fixture, which is what a system
+                // partition looks like on a device.
+                let root_text = root.to_str().unwrap().to_owned();
+                let all = entries().unwrap();
+                let covering = all
+                    .iter()
+                    .filter(|entry| root_text.starts_with(&entry.path))
+                    .max_by_key(|entry| entry.path.len())
+                    .unwrap()
+                    .path
+                    .clone();
+                mount(None, &covering, libc::MS_SHARED).unwrap();
+            }
             let source = root.join("module-resource").to_str().unwrap().to_owned();
             let target = root.join("system-resource").to_str().unwrap().to_owned();
             let backup = root.join("backups/saved").to_str().unwrap().to_owned();
@@ -883,6 +979,17 @@ mod tests {
             fs::write(&target, b"system resource").unwrap();
             let underlying = identity(&target).unwrap();
             mount(Some(&source), &target, libc::MS_BIND).unwrap();
+            if shared_root {
+                // A shadow mount is made private right after it is created (as
+                // `magic_mount` does), so only the parent stays shared here.
+                mount(None, &target, libc::MS_PRIVATE).unwrap();
+                let all = entries().unwrap();
+                let parent = all
+                    .iter()
+                    .find(|entry| entry.id == exact(&all, &target).unwrap().parent)
+                    .unwrap();
+                assert!(!private(parent), "the fixture must keep a shared parent");
+            }
             if readonly {
                 mount(
                     None,
@@ -896,6 +1003,11 @@ mod tests {
             unmount(&target).unwrap();
             assert_eq!(identity(&target).unwrap(), underlying);
             move_fd(&rehearsal, &target).unwrap();
+            if shared_root {
+                // A mount moved under a shared parent becomes a peer of it; the
+                // production restore re-privatizes it for the same reason.
+                mount(None, &target, libc::MS_PRIVATE).unwrap();
+            }
             drop(rehearsal);
             let plan = Plan {
                 original: identity(&target).unwrap(),
@@ -906,7 +1018,18 @@ mod tests {
                 anchor: format!("{backup}.source"),
                 backup,
             };
+            let backup_dir = Path::new(&plan.backup)
+                .parent()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_owned();
             apply_validated(&plan).unwrap();
+            if shared_root {
+                // The backup is a mount of its own: below a shared parent it must
+                // have been isolated, or it would propagate to that parent's peers.
+                assert!(private(exact(&entries().unwrap(), &backup_dir).unwrap()));
+            }
             assert_eq!(fs::read(&plan.target).unwrap(), b"system resource");
             assert_eq!(fs::read(&plan.backup).unwrap(), b"module resource");
             // A new third-party mount must not be overwritten during recovery.
@@ -927,8 +1050,23 @@ mod tests {
                 readonly,
                 "restored per-mount flags must match the original"
             );
+            if shared_root {
+                assert!(
+                    private(restored),
+                    "a restored shadow must not join the shared parent's peer group"
+                );
+            }
             restore_saved(&plan).unwrap();
             assert!(!Path::new(&plan.backup).exists());
+            if shared_root {
+                assert!(
+                    !entries()
+                        .unwrap()
+                        .iter()
+                        .any(|entry| entry.path == backup_dir),
+                    "the private backup container must not outlive the session"
+                );
+            }
             unmount(&plan.target).unwrap();
             assert_eq!(fs::read(&plan.target).unwrap(), b"system resource");
             fs::remove_dir_all(root).unwrap();
@@ -1003,14 +1141,48 @@ mod tests {
             saved_flags(&parse(&format!("{parent}{nosymfollow}")).unwrap()[1]).unwrap(),
             libc::MS_RDONLY | libc::MS_NOSYMFOLLOW
         );
+        // A shared parent (a system partition such as `/product`) is accepted:
+        // the entry itself is private, so unmounting it stays in this namespace.
+        assert!(
+            eligible(
+                &parse(&format!("{}{file}", parent.replace("rw -", "rw shared:1 -"))).unwrap(),
+                "/system/media/a"
+            )
+            .is_ok()
+        );
+        // A parent that receives propagation from a master is still refused: that
+        // master can undo or repeat whatever happens under it.
         for text in [
             format!("{parent}{file}{file}"),
             format!("{parent}{}", file.replace("ro -", "ro shared:1 -")),
-            format!("{}{file}", parent.replace("rw -", "rw shared:1 -")),
+            format!("{parent}{}", file.replace("ro -", "ro master:1 -")),
+            format!("{parent}{}", file.replace("ro -", "ro propagate_from:1 -")),
+            format!("{}{file}", parent.replace("rw -", "rw master:1 -")),
+            format!(
+                "{}{file}",
+                parent.replace("rw -", "rw propagate_from:1 -")
+            ),
             format!("{parent}{}", file.replace("ro -", "ro idmapped -")),
         ] {
             assert!(eligible(&parse(&text).unwrap(), "/system/media/a").is_err());
         }
+    }
+
+    #[test]
+    fn only_mounts_that_receive_propagation_are_slaves() {
+        let entry = |optional: &str| -> Entry {
+            let mut entries = parse(&format!(
+                "2 1 1:1 /adb/modules/a /system/media/a ro{optional} - ext4 /dev/test rw\n"
+            ))
+            .unwrap();
+            entries.remove(0)
+        };
+        assert!(slave(&entry(" master:1")));
+        assert!(slave(&entry(" propagate_from:1")));
+        assert!(!slave(&entry(" shared:1")));
+        assert!(!slave(&entry("")));
+        assert!(private(&entry("")));
+        assert!(!private(&entry(" shared:1")));
     }
     #[test]
     fn parses_mount_escapes_and_rejects_malformed_input() {

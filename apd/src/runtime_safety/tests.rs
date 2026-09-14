@@ -318,6 +318,7 @@ fn configuration_and_auto_state_round_trip_while_paths_stay_untouched_by_settlin
         &mut auto,
         &["umount".to_owned()],
         "safe mode",
+        Outcome::Blocked,
     )
     .unwrap();
     let saved = store.load_config().unwrap();
@@ -326,6 +327,11 @@ fn configuration_and_auto_state_round_trip_while_paths_stay_untouched_by_settlin
     assert_eq!(saved.umount_paths, config.umount_paths);
     let saved_auto = store.load_auto().unwrap();
     assert!(saved_auto.pending.is_empty() && saved_auto.healthy);
+    assert_eq!(
+        saved_auto.outcome,
+        Some(Outcome::Blocked),
+        "ending cleanly is reported separately from what was achieved"
+    );
     assert!(
         saved_auto
             .last_error
@@ -561,4 +567,88 @@ fn background_worker_has_independent_session_and_is_reaped() {
     let mut child = command.args(["-c", "sleep 0.2"]).spawn().unwrap();
     assert_eq!(unsafe { libc::getsid(child.id() as i32) }, child.id() as i32);
     assert!(child.wait().unwrap().success());
+}
+
+#[test]
+fn settling_reports_the_options_it_turns_off_even_when_already_off() {
+    let dir = std::env::temp_dir().join(format!("aster-safety-settle-{}", std::process::id()));
+    let _ = fs::remove_dir_all(&dir);
+    fs::create_dir_all(&dir).unwrap();
+    let mut store = Store(dir.clone());
+    // The preflight loop disabled `umount` before settling. The report must still
+    // name it instead of claiming that nothing was turned off.
+    let mut config = Config {
+        umount_paths: "m/system/media/a".into(),
+        hide_auto: true,
+        umount_auto: false,
+        boot_probe: true,
+    };
+    store.save_config(&config).unwrap();
+    let mut auto = AutoState {
+        boot: "boot-x".into(),
+        attempted: true,
+        ..Default::default()
+    };
+    settle_auto(
+        &mut store,
+        &mut config,
+        &mut auto,
+        &["umount".to_owned()],
+        "preflight failed",
+        Outcome::PreflightFailed,
+    )
+    .unwrap();
+    let log = fs::read_to_string(dir.join("audit.log")).unwrap();
+    assert!(
+        log.contains("automatic options disabled (preflight failed): umount"),
+        "{log}"
+    );
+    assert!(!log.contains("): none"), "{log}");
+    let saved = store.load_config().unwrap();
+    assert!(saved.hide_auto && !saved.umount_auto);
+    assert_eq!(saved.umount_paths, "m/system/media/a");
+    let saved_auto = store.load_auto().unwrap();
+    assert!(
+        saved_auto.healthy,
+        "the handling itself ended cleanly, the feature did not run"
+    );
+    assert_eq!(saved_auto.outcome, Some(Outcome::PreflightFailed));
+    assert_eq!(saved_auto.interrupted(), Vec::<String>::new());
+}
+
+#[test]
+fn recovery_names_the_trigger_that_actually_fired() {
+    let mut backend = Mock::default();
+    let mut journal = Memory::default();
+    // A manual trial that ran out of time.
+    let mut expired = State {
+        phase: "trial".into(),
+        attempted: 1,
+        deadline: 50,
+        ..state()
+    };
+    reconcile(&mut expired, &mut backend, &mut journal, "boot", false, 50).unwrap();
+    assert_eq!(expired.error.as_deref(), Some("Trial expired"));
+    assert_eq!(expired.phase, "off");
+    // A supervisor that disappeared before the deadline.
+    let mut killed = State {
+        phase: "active".into(),
+        attempted: 1,
+        deadline: 500,
+        owner: Some((1, "gone".into())),
+        ..state()
+    };
+    reconcile(&mut killed, &mut backend, &mut journal, "boot", false, 50).unwrap();
+    assert_eq!(killed.error.as_deref(), Some("Supervisor stopped"));
+    // Safe mode keeps its own wording.
+    let mut safe = State {
+        phase: "active".into(),
+        attempted: 1,
+        ..state()
+    };
+    reconcile(&mut safe, &mut backend, &mut journal, "boot", true, 50).unwrap();
+    assert_eq!(
+        safe.error.as_deref(),
+        Some("Safe mode: automatically disabled")
+    );
 }

@@ -67,6 +67,26 @@ impl Config {
 }
 
 /// Boot-scoped bookkeeping for automatic activation.
+/// What this boot's automatic handling actually achieved. `healthy` only says
+/// that the handling ended without an interruption: a refused or failed option
+/// still ends cleanly, so the two must be read separately.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Outcome {
+    /// A session was applied and observed stable.
+    Active,
+    /// The boot needed no change; the configured state was already in place.
+    Satisfied,
+    /// A preflight failed and the failing option was turned off.
+    PreflightFailed,
+    /// Activation was refused: safe mode, or the safety status was unavailable.
+    Blocked,
+    /// The session could not be started.
+    Failed,
+    /// The session ended before it became stable, or the supervisor stopped.
+    SessionEnded,
+}
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default)]
 pub struct AutoState {
@@ -77,12 +97,16 @@ pub struct AutoState {
     /// Kinds that were applied but have not yet been observed stable.
     pub pending: Vec<String>,
     pub pending_since: u64,
-    /// Whether this boot's automatic handling finished cleanly: a pending
-    /// session reached the stability window, or the boot needed no change at
-    /// all. Reset for every new boot.
+    /// Whether this boot's automatic handling *ended* cleanly: a pending session
+    /// reached the stability window, the boot needed no change at all, or the
+    /// option was turned off on purpose after a refusal. It is not a statement
+    /// that the feature ran; use `outcome`/`last_result`/`last_error` for that.
+    /// Reset for every new boot.
     pub healthy: bool,
     pub last_result: Option<String>,
     pub last_error: Option<String>,
+    /// What the handling achieved, independent of `healthy`.
+    pub outcome: Option<Outcome>,
     /// Set when an earlier boot was interrupted, so the manager can explain why
     /// an option turned itself off. Cleared when the option is enabled again.
     pub interruption: Option<String>,

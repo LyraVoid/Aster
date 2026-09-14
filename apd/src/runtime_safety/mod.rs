@@ -7,7 +7,7 @@ mod probe;
 mod tests;
 
 use anyhow::{Context, Result, ensure};
-use config::{AutoState, Config, STABLE_SECONDS};
+use config::{AutoState, Config, Outcome, STABLE_SECONDS};
 use serde::{Deserialize, Serialize};
 use std::{
     fs::{self, File, OpenOptions},
@@ -359,11 +359,16 @@ fn reconcile(
                 "queued" | "applying" | "trial" | "active"
             ) && !owner_alive(state)))
     {
+        // Name the actual trigger: a manual trial that ran out of time and a
+        // supervisor that died need different follow-up, and the reason is shown
+        // to the user and copied into the automatic handling record.
         state.error = Some(
             if safe {
                 "Safe mode: automatically disabled"
+            } else if state.phase == "trial" && now >= state.deadline {
+                "Trial expired"
             } else {
-                "Trial expired or supervisor stopped"
+                "Supervisor stopped"
             }
             .into(),
         );
@@ -438,30 +443,33 @@ fn spawn_supervisor(store: &mut Store, state: &mut State) -> Result<()> {
 
 /// The session ended. An automatically started session never restarts itself:
 /// its option is turned off while the configured paths and the log are kept.
+/// Every listed kind is disabled here, idempotently, and named in the log: a
+/// caller that already disabled a kind must pass it anyway, so the report says
+/// what was turned off instead of "none".
 fn settle_auto(
     store: &mut Store,
     config: &mut Config,
     auto: &mut AutoState,
     kinds: &[String],
     reason: &str,
+    outcome: Outcome,
 ) -> Result<()> {
-    let mut disabled = Vec::new();
     for kind in kinds {
-        if config.disable_auto(kind) {
-            disabled.push(kind.clone());
-        }
+        let _ = config.disable_auto(kind);
     }
     auto.pending.clear();
+    // The handling ended cleanly; what it achieved is reported separately.
     auto.healthy = true;
+    auto.outcome = Some(outcome);
     auto.last_error = Some(reason.to_owned());
     store.save_config(config)?;
     store.save_auto(auto)?;
     store.event(&format!(
         "automatic options disabled ({reason}): {}",
-        if disabled.is_empty() {
+        if kinds.is_empty() {
             "none".to_owned()
         } else {
-            disabled.join(", ")
+            kinds.join(", ")
         }
     ))
 }
@@ -485,7 +493,14 @@ fn settle_after_session(store: &mut Store, state: &State) -> Result<()> {
         .error
         .clone()
         .unwrap_or_else(|| "automatic session ended".into());
-    settle_auto(store, &mut config, &mut auto, &kinds, &reason)
+    settle_auto(
+        store,
+        &mut config,
+        &mut auto,
+        &kinds,
+        &reason,
+        Outcome::SessionEnded,
+    )
 }
 
 /// Disable persistence before recovery can fail or the supervisor can exit.
@@ -543,7 +558,7 @@ fn begin_auto_attempt(
         return Ok(false);
     }
     if let Some(reason) = blocked {
-        settle_auto(store, config, auto, &kinds, reason)?;
+        settle_auto(store, config, auto, &kinds, reason, Outcome::Blocked)?;
         return Ok(false);
     }
     if stage != "boot-completed" || !boot_completed || auto.attempted {
@@ -568,6 +583,7 @@ fn mark_healthy(store: &mut Store, state: &State) -> Result<()> {
     }
     auto.pending.clear();
     auto.healthy = true;
+    auto.outcome = Some(Outcome::Active);
     auto.last_result = Some(format!("{} active", state.kind));
     store.save_auto(&auto)?;
     store.event("automatic session observed stable; interruption detection armed")
@@ -660,7 +676,14 @@ fn boot_run(stage: &str) -> Result<()> {
     if let Some(reason) = blocked.as_deref() {
         let kinds = config.enabled_kinds();
         if !kinds.is_empty() {
-            settle_auto(&mut store, &mut config, &mut auto, &kinds, reason)?;
+            settle_auto(
+                &mut store,
+                &mut config,
+                &mut auto,
+                &kinds,
+                reason,
+                Outcome::Blocked,
+            )?;
         }
         return Ok(());
     }
@@ -693,6 +716,7 @@ fn boot_run(stage: &str) -> Result<()> {
     let kinds = config.enabled_kinds();
 
     let mut planned = Vec::new();
+    let mut failed = Vec::new();
     let mut changes = Vec::new();
     let mut checks = Vec::new();
     for kind in &kinds {
@@ -703,8 +727,9 @@ fn boot_run(stage: &str) -> Result<()> {
                 checks.extend(property_checks);
             }
             Err(error) => {
-                // The failing kind is dropped and disabled; the others still run.
-                config.disable_auto(kind);
+                // Collected, not disabled yet: settling reports the same list, so
+                // both paths name the kinds that were turned off.
+                failed.push(kind.clone());
                 auto.last_error = Some(format!("{kind}: {error:#}"));
                 store.event(&format!("automatic {kind} preflight failed: {error:#}"))?;
             }
@@ -717,14 +742,27 @@ fn boot_run(stage: &str) -> Result<()> {
             &mut store,
             &mut config,
             &mut auto,
-            &kinds,
+            &failed,
             "preflight failed",
+            Outcome::PreflightFailed,
         );
+    }
+    if !failed.is_empty() {
+        // The failing kinds are dropped and disabled; the others still run.
+        for kind in &failed {
+            let _ = config.disable_auto(kind);
+        }
+        store.save_config(&config)?;
+        store.event(&format!(
+            "automatic options disabled (preflight failed): {}",
+            failed.join(", ")
+        ))?;
     }
     if changes.is_empty() {
         // Nothing was changed, so this boot finished cleanly: a later boot must
         // not report it as an interruption.
         auto.healthy = true;
+        auto.outcome = Some(Outcome::Satisfied);
         auto.last_result = Some(format!("nothing to do for {}", planned.join(", ")));
         store.save_auto(&auto)?;
         store.event(&format!(
@@ -764,7 +802,14 @@ fn boot_run(stage: &str) -> Result<()> {
     if let Err(error) = spawn_supervisor(&mut store, &mut state) {
         let reason = format!("supervisor did not start: {error:#}");
         store.event(&format!("automatic activation failed: {reason}"))?;
-        settle_auto(&mut store, &mut config, &mut auto, &planned, &reason)?;
+        settle_auto(
+            &mut store,
+            &mut config,
+            &mut auto,
+            &planned,
+            &reason,
+            Outcome::Failed,
+        )?;
         return Err(error);
     }
     Ok(())
