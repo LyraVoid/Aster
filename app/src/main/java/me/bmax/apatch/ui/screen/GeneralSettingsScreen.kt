@@ -43,6 +43,7 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Info
+import top.yukonga.miuix.kmp.icon.extended.Pin
 import top.yukonga.miuix.kmp.icon.extended.Timer
 import top.yukonga.miuix.kmp.icon.extended.Translate
 import top.yukonga.miuix.kmp.icon.extended.Update
@@ -72,6 +73,9 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
     }
     var confirmInstall by rememberSaveable {
         mutableStateOf(apApp.getModuleInstallConfirmState())
+    }
+    var stayOnActionPage by rememberSaveable {
+        mutableStateOf(apApp.getStayOnActionPageState())
     }
     val languageSummary = AppCompatDelegate.getApplicationLocales()[0]?.displayLanguage
         ?.replaceFirstChar {
@@ -206,6 +210,21 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
                         summary = stringResource(R.string.settings_install_confirm_summary),
                         startAction = {
                             SettingsIcon(MiuixIcons.Info)
+                        },
+                    )
+
+                    // The other half of the same subject: what happens around a module's action,
+                    // before it is unpacked and after it has run.
+                    IndicatorSwitchPreference(
+                        checked = stayOnActionPage,
+                        onCheckedChange = { enabled ->
+                            apApp.updateStayOnActionPageState(enabled)
+                            stayOnActionPage = enabled
+                        },
+                        title = stringResource(R.string.settings_stay_on_action_page),
+                        summary = stringResource(R.string.settings_stay_on_action_page_summary),
+                        startAction = {
+                            SettingsIcon(MiuixIcons.Pin)
                         },
                     )
                 }

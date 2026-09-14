@@ -120,6 +120,8 @@
     <string name="apm_install_confirm_content">确定要安装 %s 吗？</string>
     <string name="settings_install_confirm">安装前确认</string>
     <string name="settings_install_confirm_summary">安装前先显示文件名并等你确认</string>
+    <string name="settings_stay_on_action_page">留在操作页面</string>
+    <string name="settings_stay_on_action_page_summary">系统模块执行完操作后不自动返回</string>
     <string name="settings_switch_indicator">启用按钮指示器</string>
     <string name="settings_switch_indicator_summary">在管理器开关的滑块上显示状态图标</string>
     <string name="settings_font">字体</string>

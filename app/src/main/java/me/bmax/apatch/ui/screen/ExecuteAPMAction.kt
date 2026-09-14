@@ -30,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.bmax.apatch.R
+import me.bmax.apatch.apApp
 import me.bmax.apatch.ui.component.KeyEventBlocker
 import me.bmax.apatch.util.runAPModuleAction
 import top.yukonga.miuix.kmp.basic.Icon
@@ -83,7 +84,7 @@ fun ExecuteAPMActionScreen(navigator: DestinationsNavigator, moduleId: String) {
                 }
             )
         }
-        if (success) {
+        if (shouldLeaveActionPage(success = success, stayOnPage = apApp.getStayOnActionPageState())) {
             navigator.popBackStack()
         }
     }
@@ -154,6 +155,15 @@ private fun ExecuteAPMActionTopBar(
         }
     )
 }
+
+/**
+ * Whether the log has said all it has to say.
+ *
+ * A failed action always keeps its output on screen, because that output is the only account of
+ * what went wrong. A successful one leaves only when the reader has asked to be taken back.
+ */
+internal fun shouldLeaveActionPage(success: Boolean, stayOnPage: Boolean): Boolean =
+    success && !stayOnPage
 
 @Composable
 private fun ExecuteAPMActionLog(

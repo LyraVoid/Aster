@@ -103,6 +103,7 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
         private const val SHOW_BACKUP_WARN = "show_backup_warning"
         private const val CONFIRM_MODULE_INSTALL = "confirm_module_install"
         private const val SHOW_SWITCH_INDICATOR = "show_switch_indicator"
+        private const val STAY_ON_ACTION_PAGE = "stay_on_action_page"
         lateinit var sharedPreferences: SharedPreferences
 
         private val logCallback: CallbackList<String?> = object : CallbackList<String?>() {
@@ -496,6 +497,19 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
 
     fun updateSwitchIndicatorState(state: Boolean) {
         sharedPreferences.edit { putBoolean(SHOW_SWITCH_INDICATOR, state) }
+    }
+
+    /**
+     * Whether a module's action leaves its log on screen when it succeeds, instead of going back to
+     * the list. On by default: the output is the reason the action was run, and a page that closes
+     * itself takes it away before it can be read.
+     */
+    fun getStayOnActionPageState(): Boolean {
+        return sharedPreferences.getBoolean(STAY_ON_ACTION_PAGE, true)
+    }
+
+    fun updateStayOnActionPageState(state: Boolean) {
+        sharedPreferences.edit { putBoolean(STAY_ON_ACTION_PAGE, state) }
     }
 
     override fun uncaughtException(t: Thread, e: Throwable) {
