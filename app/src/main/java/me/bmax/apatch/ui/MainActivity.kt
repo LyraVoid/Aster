@@ -1,8 +1,10 @@
 package me.bmax.apatch.ui
 
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -10,22 +12,33 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
+import com.ramcosta.composedestinations.generated.destinations.ExecuteAPMActionScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.MainScreenDestination
 import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.generated.NavGraphs
 import com.ramcosta.composedestinations.rememberNavHostEngine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import me.bmax.apatch.root.RootCapabilityRepository
 import me.bmax.apatch.root.RootCheckPhase
 import me.bmax.apatch.root.isUsable
 import me.bmax.apatch.ui.home.HomeWallpaperViewModel
 import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
+import me.bmax.apatch.ui.module.MODULE_SHORTCUT_ID_PARAM
+import me.bmax.apatch.ui.module.MODULE_SHORTCUT_SCHEME
+import me.bmax.apatch.ui.module.MODULE_SHORTCUT_TOKEN_PARAM
+import me.bmax.apatch.ui.module.ModuleShortcutRequest
+import me.bmax.apatch.ui.module.ModuleShortcutRequests
+import me.bmax.apatch.ui.module.resolveModuleShortcutRequest
 import me.bmax.apatch.ui.shell.AppDensity
 import me.bmax.apatch.ui.shell.AsterAppShell
 import me.bmax.apatch.ui.shell.AsterNavigationCapabilities
@@ -34,9 +47,20 @@ import me.bmax.apatch.ui.shell.PrimaryDestination
 import me.bmax.apatch.ui.theme.APatchTheme
 import me.bmax.apatch.ui.theme.LocalThemeModeState
 import me.bmax.apatch.ui.viewmodel.SuperUserViewModel
+import me.bmax.apatch.util.ModuleShortcut
 import top.yukonga.miuix.kmp.basic.SnackbarHostState
 
 class MainActivity : AppCompatActivity() {
+
+    private companion object {
+        const val TAG = "MainActivity"
+
+        /**
+         * How long a shortcut request waits for the navigation host to have a graph. The host sets
+         * it during its own composition, so in practice this is a formality.
+         */
+        const val NAVIGATION_READY_TIMEOUT_MS = 5_000L
+    }
 
     private var isLoading = true
 
@@ -59,6 +83,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         super.onCreate(savedInstanceState)
+        handleModuleShortcut(intent)
 
         setContent {
             APatchTheme {
@@ -108,6 +133,26 @@ class MainActivity : AppCompatActivity() {
                             defaultTransitions = defaultTransitions,
                         )
                     }
+
+                    // A launcher shortcut arrives as an intent, but where it lands is a
+                    // destination, so the two are kept apart: the intent publishes a request and
+                    // this collects it. Subscribing instead of reading the intent once is what
+                    // makes a second tap, on an already running manager, work.
+                    LaunchedEffect(navController) {
+                        ModuleShortcutRequests.pending.collect { request ->
+                            if (request !is ModuleShortcutRequest.ExecuteAction) return@collect
+                            val ready = withTimeoutOrNull(NAVIGATION_READY_TIMEOUT_MS) {
+                                snapshotFlow { navController.currentDestination }.first { it != null }
+                            } != null
+                            if (!ready) {
+                                Log.w(TAG, "no navigation graph for ${request.moduleId}; dropping the request")
+                                ModuleShortcutRequests.consume()
+                                return@collect
+                            }
+                            navController.navigate(ExecuteAPMActionScreenDestination(request.moduleId).route)
+                            ModuleShortcutRequests.consume()
+                        }
+                    }
                 }
             }
         }
@@ -124,5 +169,44 @@ class MainActivity : AppCompatActivity() {
         )
 
         isLoading = false
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // The shortcut is allowed to bring this activity to the front instead of starting another
+        // copy, so the second and later taps arrive here.
+        setIntent(intent)
+        handleModuleShortcut(intent)
+    }
+
+    /**
+     * Accepts the deep link a module shortcut carries.
+     *
+     * This activity is the launcher activity and therefore exported, so the link is only believed
+     * when it carries the token this install generated: the launcher is not the only thing on the
+     * device that can send it an explicit intent, and what the action link ends up running is a
+     * module's script as root.
+     */
+    private fun handleModuleShortcut(intent: Intent?) {
+        val data = intent?.data ?: return
+        // Checked before the token so an ordinary launch does not mint one.
+        if (data.scheme != MODULE_SHORTCUT_SCHEME) return
+        val request = resolveModuleShortcutRequest(
+            scheme = data.scheme,
+            host = data.host,
+            moduleId = data.getQueryParameter(MODULE_SHORTCUT_ID_PARAM),
+            token = data.getQueryParameter(MODULE_SHORTCUT_TOKEN_PARAM),
+            expectedToken = ModuleShortcut.token(this),
+        ) ?: return
+
+        when (request) {
+            is ModuleShortcutRequest.ExecuteAction -> ModuleShortcutRequests.publish(request)
+            is ModuleShortcutRequest.OpenWebUi -> startActivity(
+                Intent(this, WebUIActivity::class.java)
+                    .setData("apatch://webui/${request.moduleId}".toUri())
+                    .putExtra("id", request.moduleId)
+                    .putExtra("name", ModuleShortcut.moduleNameOf(intent).ifEmpty { request.moduleId }),
+            )
+        }
     }
 }

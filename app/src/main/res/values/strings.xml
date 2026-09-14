@@ -265,6 +265,20 @@
 
     <string name="apm_webui_open">Open</string>
     <string name="apm_action">Action</string>
+    <string name="apm_shortcut_title">Create shortcut</string>
+    <string name="apm_shortcut_action">Action</string>
+    <string name="apm_shortcut_webui">WebUI</string>
+    <string name="apm_shortcut_name_label">Shortcut name</string>
+    <string name="apm_shortcut_icon_pick">Choose custom icon</string>
+    <string name="apm_shortcut_icon_reset">Use module icon</string>
+    <string name="apm_shortcut_create">Create</string>
+    <string name="apm_shortcut_update">Update</string>
+    <string name="apm_shortcut_delete">Delete shortcut</string>
+    <string name="apm_shortcut_created">Shortcut added to the home screen</string>
+    <string name="apm_shortcut_updated">Shortcut updated</string>
+    <string name="apm_shortcut_not_supported">This launcher does not support pinned shortcuts</string>
+    <string name="apm_shortcut_permission_tip_coloros">Turn on "Create home screen shortcuts" for this app in system settings</string>
+    <string name="apm_shortcut_permission_tip_default">If the shortcut did not appear, allow this app to create home screen shortcuts in system settings</string>
     <string name="enable_web_debugging">Enable WebView debugging</string>
     <string name="enable_web_debugging_summary">Can be used to debug WebUI. Please enable only when needed.</string>
 

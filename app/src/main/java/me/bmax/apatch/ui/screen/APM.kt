@@ -73,6 +73,7 @@ import me.bmax.apatch.ui.module.shouldScrollToTopAfterModuleLoad
 import me.bmax.apatch.ui.viewmodel.APModuleViewModel
 import me.bmax.apatch.ui.shell.LocalAsterCapabilities
 import me.bmax.apatch.util.DownloadListener
+import me.bmax.apatch.util.ModuleShortcut
 import me.bmax.apatch.util.download
 import me.bmax.apatch.util.isJailbreakMode
 import me.bmax.apatch.util.reboot
@@ -521,6 +522,9 @@ private fun APModuleList(
         }
 
         if (success) {
+            // The module is on its way out: a shortcut left behind would only run a script that is
+            // no longer there.
+            ModuleShortcut.delete(context, module.id)
             viewModel.fetchModuleList()
         }
         val message = if (success) {

@@ -19,4 +19,14 @@ class ModuleIconTest {
         assertNull(moduleIconSampleSize(20, 4097))
         assertNull(moduleIconSampleSize(Int.MAX_VALUE, Int.MAX_VALUE))
     }
+    @Test fun shortcutIconsAreDecodedToTheirOwnLongestSide() {
+        assertEquals(1, moduleIconSampleSize(512, 512, MODULE_SHORTCUT_ICON_MAX_SIDE))
+        assertEquals(8, moduleIconSampleSize(4096, 1024, MODULE_SHORTCUT_ICON_MAX_SIDE))
+        assertEquals(8, moduleIconSampleSize(4096, 4096, MODULE_SHORTCUT_ICON_MAX_SIDE))
+        assertEquals(4, moduleIconSampleSize(2048, 2048, MODULE_SHORTCUT_ICON_MAX_SIDE))
+        // A preview and a shortcut icon of the same image must not share a sampling factor.
+        assertEquals(32, moduleIconSampleSize(4096, 4096))
+        assertNull(moduleIconSampleSize(20, 20, 0))
+        assertNull(moduleIconSampleSize(20, 20, 4097))
+    }
 }

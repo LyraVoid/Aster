@@ -1,28 +1,38 @@
 package me.bmax.apatch.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.module.ModuleShortcutKind
 import me.bmax.apatch.ui.viewmodel.APModuleViewModel
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -46,6 +56,7 @@ import top.yukonga.miuix.kmp.icon.extended.Link
 import top.yukonga.miuix.kmp.icon.extended.Play
 import top.yukonga.miuix.kmp.icon.extended.Search
 import top.yukonga.miuix.kmp.icon.extended.Undo
+import top.yukonga.miuix.kmp.squircle.squircleBackground
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
 
@@ -65,6 +76,19 @@ internal fun APModuleCard(
         TextDecoration.LineThrough
     } else {
         TextDecoration.None
+    }
+    // Which shortcut the reader is building, if any. Held here rather than in the list because
+    // only this card knows which of its two buttons was held down.
+    var shortcutKind by remember(module.id) { mutableStateOf<ModuleShortcutKind?>(null) }
+    // A module that is on its way out has nothing to keep on the home screen.
+    val offersShortcut = !module.remove
+
+    shortcutKind?.let { kind ->
+        ModuleShortcutDialog(
+            module = module,
+            initialKind = kind,
+            onDismiss = { shortcutKind = null },
+        )
     }
 
     Card(
@@ -190,6 +214,7 @@ internal fun APModuleCard(
                     icon = MiuixIcons.Play,
                     contentDescription = stringResource(R.string.apm_action),
                     onClick = onAction,
+                    onLongClick = if (offersShortcut) ({ shortcutKind = ModuleShortcutKind.Action }) else null,
                 )
             }
 
@@ -198,6 +223,7 @@ internal fun APModuleCard(
                     icon = MiuixIcons.Link,
                     contentDescription = stringResource(R.string.apm_webui_open),
                     onClick = onOpen,
+                    onLongClick = if (offersShortcut) ({ shortcutKind = ModuleShortcutKind.WebUi }) else null,
                 )
             }
 
@@ -249,14 +275,31 @@ internal fun APModuleIconAction(
     icon: ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
     containerColor: Color = MiuixTheme.colorScheme.secondaryVariant,
     contentColor: Color = MiuixTheme.colorScheme.onSecondaryVariant,
 ) {
-    IconButton(
-        onClick = onClick,
-        backgroundColor = containerColor,
-        minWidth = 40.dp,
-        minHeight = 40.dp,
+    val interactionSource = remember { MutableInteractionSource() }
+    // Miuix's IconButton has no long press and the card's own long press belongs to another
+    // feature, so this is that button drawn the way Miuix draws it (same surface, same 40dp),
+    // with the gesture the shortcut needs.
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minWidth = 40.dp, minHeight = 40.dp)
+            .then(
+                if (containerColor == Color.Unspecified) {
+                    Modifier
+                } else {
+                    Modifier.squircleBackground(color = containerColor, cornerRadius = 40.dp)
+                },
+            )
+            .combinedClickable(
+                role = Role.Button,
+                interactionSource = interactionSource,
+                onLongClick = onLongClick,
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = icon,
