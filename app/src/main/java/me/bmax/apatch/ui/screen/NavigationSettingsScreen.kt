@@ -16,6 +16,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.component.IndicatorSwitchPreference
 import me.bmax.apatch.ui.shell.GlobalLayout
 import me.bmax.apatch.ui.shell.LocalFloatingNavigationInset
 import me.bmax.apatch.ui.shell.NavigationMode
@@ -39,7 +40,6 @@ import top.yukonga.miuix.kmp.icon.extended.Sidebar
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
-import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 /**
@@ -91,7 +91,7 @@ fun NavigationSettingsScreen(navigator: DestinationsNavigator) {
                         PrimaryDestination.SuperUser to "show_nav_superuser",
                         PrimaryDestination.AModule to "show_nav_apm",
                     ).forEach { (destination, key) ->
-                        SwitchPreference(
+                        IndicatorSwitchPreference(
                             title = stringResource(R.string.navigation_show_entry, stringResource(destination.label)),
                             summary = stringResource(R.string.navigation_show_entry_summary),
                             checked = entryPreferences.shows(destination),
@@ -104,7 +104,7 @@ fun NavigationSettingsScreen(navigator: DestinationsNavigator) {
 
             item(key = "shell") {
                 SettingsCard {
-                    SwitchPreference(
+                    IndicatorSwitchPreference(
                         title = stringResource(R.string.floating_navigation),
                         summary = stringResource(
                             if (globalLayout == GlobalLayout.Panorama) {
@@ -135,14 +135,14 @@ fun NavigationSettingsScreen(navigator: DestinationsNavigator) {
             if (globalLayout == GlobalLayout.Panorama || floatingPreferred) {
                 item(key = "floating") {
                     SettingsCard {
-                        SwitchPreference(
+                        IndicatorSwitchPreference(
                             title = stringResource(R.string.floating_blur),
                             summary = stringResource(R.string.floating_blur_summary),
                             checked = floatingBlur,
                             onCheckedChange = { setVisualFlag("floating_blur", it) },
                             startAction = { SettingsIcon(MiuixIcons.Filter) },
                         )
-                        SwitchPreference(
+                        IndicatorSwitchPreference(
                             title = stringResource(R.string.floating_glass),
                             summary = stringResource(R.string.floating_glass_summary),
                             checked = floatingGlass,
@@ -150,14 +150,14 @@ fun NavigationSettingsScreen(navigator: DestinationsNavigator) {
                             onCheckedChange = { setVisualFlag("floating_glass", it) },
                             startAction = { SettingsIcon(MiuixIcons.CloudFill) },
                         )
-                        SwitchPreference(
+                        IndicatorSwitchPreference(
                             title = stringResource(R.string.floating_auto_hide),
                             summary = stringResource(R.string.floating_auto_hide_summary),
                             checked = floatingAutoHide,
                             onCheckedChange = { setVisualFlag("floating_auto_hide", it) },
                             startAction = { SettingsIcon(MiuixIcons.Hide) },
                         )
-                        SwitchPreference(
+                        IndicatorSwitchPreference(
                             title = stringResource(R.string.floating_scroll_hide),
                             summary = stringResource(R.string.floating_scroll_hide_summary),
                             checked = floatingScrollHide,

@@ -29,6 +29,7 @@ import kotlinx.coroutines.withContext
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.BuildConfig
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.component.IndicatorSwitchPreference
 import me.bmax.apatch.ui.component.rememberLoadingDialog
 import me.bmax.apatch.ui.settings.resolveSettingsFeatureAvailability
 import me.bmax.apatch.ui.shell.LocalAsterCapabilities
@@ -43,7 +44,6 @@ import top.yukonga.miuix.kmp.icon.extended.Report
 import top.yukonga.miuix.kmp.icon.extended.Search
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.ArrowPreference
-import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -135,7 +135,7 @@ fun DiagnosticsSettingsScreen(navigator: DestinationsNavigator) {
                     // Reading the WebUI is a thing one does when something is wrong, which is what
                     // this page is for, rather than a switch the kernel answers to.
                     if (availability.webViewDebugging) {
-                        SwitchPreference(
+                        IndicatorSwitchPreference(
                             checked = webDebuggingEnabled,
                             onCheckedChange = { enabled ->
                                 prefs.edit {

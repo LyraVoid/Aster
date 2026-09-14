@@ -120,6 +120,8 @@
     <string name="apm_install_confirm_content">确定要安装 %s 吗？</string>
     <string name="settings_install_confirm">安装前确认</string>
     <string name="settings_install_confirm_summary">安装前先显示文件名并等你确认</string>
+    <string name="settings_switch_indicator">启用按钮指示器</string>
+    <string name="settings_switch_indicator_summary">在管理器开关的滑块上显示状态图标</string>
     <string name="apm_remove">卸载</string>
     <string name="apm_undo">撤销</string>
     <string name="apm_uninstall_confirm">确认要卸载“%s”模块吗？</string>

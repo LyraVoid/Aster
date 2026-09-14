@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.component.IndicatorSwitch
 import me.bmax.apatch.ui.module.ModuleShortcutKind
 import me.bmax.apatch.ui.viewmodel.APModuleViewModel
 import top.yukonga.miuix.kmp.basic.Button
@@ -43,7 +44,6 @@ import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Surface
-import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -164,7 +164,7 @@ internal fun APModuleCard(
             }
 
             Spacer(Modifier.width(12.dp))
-            Switch(
+            IndicatorSwitch(
                 checked = checked,
                 onCheckedChange = if (module.update) null else onCheckedChange,
                 enabled = !module.update,

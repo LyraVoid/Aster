@@ -32,13 +32,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.component.IndicatorSwitch
 import me.bmax.apatch.ui.shell.LocalFloatingNavigationInset
 import me.bmax.apatch.util.RuntimeSafetyClient
 import org.json.JSONObject
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -293,6 +293,6 @@ private fun SettingsSwitchRow(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(title, Modifier.weight(1f))
-        Switch(checked = checked, enabled = enabled, onCheckedChange = onCheckedChange)
+        IndicatorSwitch(checked = checked, enabled = enabled, onCheckedChange = onCheckedChange)
     }
 }

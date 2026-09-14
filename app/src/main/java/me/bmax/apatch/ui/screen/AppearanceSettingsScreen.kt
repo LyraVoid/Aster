@@ -22,6 +22,8 @@ import com.ramcosta.composedestinations.generated.destinations.ThemeColorScreenD
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.component.IndicatorSwitchPreference
+import me.bmax.apatch.ui.component.SwitchIndicator
 import me.bmax.apatch.ui.settings.resolveSettingsFeatureAvailability
 import me.bmax.apatch.ui.shell.AppDensity
 import me.bmax.apatch.ui.shell.GlobalLayout
@@ -45,6 +47,7 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.HorizontalSplit
 import top.yukonga.miuix.kmp.icon.extended.Layers
+import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.icon.extended.Reset
 import top.yukonga.miuix.kmp.icon.extended.ScreenMirroring
@@ -53,7 +56,6 @@ import top.yukonga.miuix.kmp.icon.extended.ZoomOut
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.SliderPreference
-import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import kotlin.math.roundToInt
 
@@ -97,6 +99,7 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
     var nightThemeEnabled by rememberSaveable {
         mutableStateOf(prefs.getBoolean("night_mode_enabled", false))
     }
+    var switchIndicator by rememberSaveable { mutableStateOf(SwitchIndicator.enabled) }
 
     val availability = resolveSettingsFeatureAvailability(
         kPatchReady = capabilities.kernelPatchReady,
@@ -173,7 +176,7 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
 
             item(key = "night") {
                 SettingsCard {
-                    SwitchPreference(
+                    IndicatorSwitchPreference(
                         checked = nightFollowSystem,
                         onCheckedChange = { enabled ->
                             prefs.edit { putBoolean("night_mode_follow_sys", enabled) }
@@ -188,7 +191,7 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
                     )
 
                     if (availability.nightTheme) {
-                        SwitchPreference(
+                        IndicatorSwitchPreference(
                             checked = nightThemeEnabled,
                             onCheckedChange = { enabled ->
                                 prefs.edit { putBoolean("night_mode_enabled", enabled) }
@@ -204,13 +207,32 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
                 }
             }
 
+            // The switches the manager draws itself, which is every switch outside the preference
+            // rows Miuix owns: the module cards, the root grants, the runtime-safety opt-in.
+            item(key = "indicator") {
+                SettingsCard {
+                    IndicatorSwitchPreference(
+                        checked = switchIndicator,
+                        onCheckedChange = { enabled ->
+                            SwitchIndicator.update(enabled)
+                            switchIndicator = enabled
+                        },
+                        title = stringResource(R.string.settings_switch_indicator),
+                        summary = stringResource(R.string.settings_switch_indicator_summary),
+                        startAction = {
+                            SettingsIcon(MiuixIcons.Ok)
+                        },
+                    )
+                }
+            }
+
             // How large the app draws itself is the app's own business, so the two rows that decide
             // it stand together: leaving the size to the device, and the slider that says what the
             // app was given instead. Neither touches the system, and both cost the Activity in use
             // one rebuild, which is the only way a Context can be exchanged under a window.
             item(key = "size") {
                 SettingsCard {
-                    SwitchPreference(
+                    IndicatorSwitchPreference(
                         checked = appDensity == AppDensity.FollowSystem,
                         onCheckedChange = { follow ->
                             AppDensity.set(

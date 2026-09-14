@@ -101,6 +101,7 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
         const val SP_NAME = "config"
         private const val SHOW_BACKUP_WARN = "show_backup_warning"
         private const val CONFIRM_MODULE_INSTALL = "confirm_module_install"
+        private const val SHOW_SWITCH_INDICATOR = "show_switch_indicator"
         lateinit var sharedPreferences: SharedPreferences
 
         private val logCallback: CallbackList<String?> = object : CallbackList<String?>() {
@@ -478,6 +479,19 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
 
     fun updateModuleInstallConfirmState(state: Boolean) {
         sharedPreferences.edit { putBoolean(CONFIRM_MODULE_INSTALL, state) }
+    }
+
+    /**
+     * Whether the switches this app draws itself carry a status icon. On by default: the manager
+     * asks the reader to turn things on and off in a lot of places, and the thumb is the one part
+     * of a switch that is always in view.
+     */
+    fun getSwitchIndicatorState(): Boolean {
+        return sharedPreferences.getBoolean(SHOW_SWITCH_INDICATOR, true)
+    }
+
+    fun updateSwitchIndicatorState(state: Boolean) {
+        sharedPreferences.edit { putBoolean(SHOW_SWITCH_INDICATOR, state) }
     }
 
     override fun uncaughtException(t: Thread, e: Throwable) {

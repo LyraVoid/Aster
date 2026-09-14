@@ -90,6 +90,7 @@ import me.bmax.apatch.root.RootDetailState
 import me.bmax.apatch.root.RootLayerState
 import me.bmax.apatch.root.RootMode
 import me.bmax.apatch.root.isUsable
+import me.bmax.apatch.ui.component.IndicatorSwitch
 import me.bmax.apatch.ui.home.HomeConclusion
 import me.bmax.apatch.ui.home.HomeDeviceDensity
 import me.bmax.apatch.ui.home.HomeDeviceEnvironment
@@ -145,7 +146,6 @@ import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.Slider
-import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
@@ -1274,7 +1274,7 @@ private fun SceneSwitchRow(
             )
         }
         Spacer(Modifier.width(16.dp))
-        Switch(
+        IndicatorSwitch(
             checked = checked,
             onCheckedChange = onCheckedChange,
             enabled = enabled,

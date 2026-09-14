@@ -29,6 +29,7 @@ import me.bmax.apatch.APApplication
 import me.bmax.apatch.Natives
 import com.ramcosta.composedestinations.generated.destinations.RuntimeSafetyScreenDestination
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.component.IndicatorSwitchPreference
 import me.bmax.apatch.ui.settings.resolveSettingsFeatureAvailability
 import me.bmax.apatch.ui.shell.LocalAsterCapabilities
 import me.bmax.apatch.ui.shell.LocalFloatingNavigationInset
@@ -47,7 +48,6 @@ import top.yukonga.miuix.kmp.icon.extended.Edit
 import top.yukonga.miuix.kmp.icon.extended.Layers
 import top.yukonga.miuix.kmp.icon.extended.Lock
 import top.yukonga.miuix.kmp.preference.ArrowPreference
-import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 private data class KernelRuntimeInfo(
@@ -171,7 +171,7 @@ fun KernelSettingsScreen(navigator: DestinationsNavigator) {
             item(key = "patch") {
                 SettingsCard {
                     if (kPatchReady && aPatchReady) {
-                        SwitchPreference(
+                        IndicatorSwitchPreference(
                             title = stringResource(R.string.settings_magic_mount),
                             summary = stringResource(R.string.settings_magic_mount_summary),
                             checked = magicMountEnabled,
@@ -208,7 +208,7 @@ fun KernelSettingsScreen(navigator: DestinationsNavigator) {
                     }
 
                     if (availability.globalNamespace) {
-                        SwitchPreference(
+                        IndicatorSwitchPreference(
                             checked = globalNamespaceEnabled,
                             onCheckedChange = { enabled ->
                                 scope.launch {
@@ -230,7 +230,7 @@ fun KernelSettingsScreen(navigator: DestinationsNavigator) {
                     }
 
                     if (availability.sucompat) {
-                        SwitchPreference(
+                        IndicatorSwitchPreference(
                             checked = sucompatEnabled,
                             onCheckedChange = { enabled ->
                                 scope.launch {
@@ -268,7 +268,7 @@ fun KernelSettingsScreen(navigator: DestinationsNavigator) {
                     if (availability.selinuxHide) {
                         val kernelVersion = kernelRuntime?.versionCode
                         val isGki = kernelRuntime?.isGki ?: false
-                        SwitchPreference(
+                        IndicatorSwitchPreference(
                             checked = selinuxHideEnabled,
                             onCheckedChange = { enabled ->
                                 if (!enabled) {

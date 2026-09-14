@@ -61,6 +61,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.component.IndicatorSwitchPreference
 import me.bmax.apatch.ui.component.WarningCard
 import me.bmax.apatch.ui.component.WarningCardTone
 import me.bmax.apatch.ui.viewmodel.KPModel
@@ -92,7 +93,6 @@ import top.yukonga.miuix.kmp.icon.extended.Settings
 import top.yukonga.miuix.kmp.icon.extended.Show
 import top.yukonga.miuix.kmp.icon.extended.Undo
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
-import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private const val TAG = "Patches"
@@ -524,7 +524,7 @@ private fun PatchSuperKeyToggleCard(
         insideMargin = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
         colors = infoCardColors(),
     ) {
-        SwitchPreference(
+        IndicatorSwitchPreference(
             checked = checked,
             onCheckedChange = onCheckedChange,
             title = stringResource(R.string.patch_custom_superkey),

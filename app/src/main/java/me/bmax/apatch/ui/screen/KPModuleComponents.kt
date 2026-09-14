@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.bmax.apatch.R
+import me.bmax.apatch.ui.component.IndicatorSwitch
 import me.bmax.apatch.ui.kernelmodule.KPModuleStatus
 import me.bmax.apatch.ui.kernelmodule.resolveKPModuleStatuses
 import me.bmax.apatch.ui.viewmodel.KPModel
@@ -35,7 +36,6 @@ import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Surface
-import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -155,7 +155,7 @@ internal fun KPModuleCard(
 
             if (module.installed && module.loadSource != "embedded") {
                 Spacer(Modifier.width(12.dp))
-                Switch(
+                IndicatorSwitch(
                     checked = checked,
                     onCheckedChange = onCheckedChange,
                 )

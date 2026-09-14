@@ -47,6 +47,8 @@ import coil3.request.crossfade
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestination
+import me.bmax.apatch.ui.component.IndicatorSwitch
+import me.bmax.apatch.ui.component.IndicatorSwitchPreference
 import me.bmax.apatch.ui.shell.LocalMainPagerState
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import me.bmax.apatch.R
@@ -68,7 +70,6 @@ import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.SearchBar
-import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
@@ -80,7 +81,6 @@ import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.icon.extended.Sort
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
-import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -425,7 +425,7 @@ private fun SuperUserAppItem(
                     }
                 }
 
-                Switch(
+                IndicatorSwitch(
                     checked = item.isAllowed,
                     onCheckedChange = onToggleRoot,
                 )
@@ -434,7 +434,7 @@ private fun SuperUserAppItem(
             // Exclusion reaches an app that holds root too: turning it on takes the root away and
             // leaves the app excluded, and the row says so straight away.
             AnimatedVisibility(visible = showExcludeSetting) {
-                SwitchPreference(
+                IndicatorSwitchPreference(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp),

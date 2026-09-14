@@ -32,6 +32,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
 import me.bmax.apatch.apApp
+import me.bmax.apatch.ui.component.IndicatorSwitchPreference
 import me.bmax.apatch.ui.home.HomeUpdateState
 import me.bmax.apatch.ui.home.HomeViewModel
 import me.bmax.apatch.ui.shell.LocalFloatingNavigationInset
@@ -48,7 +49,6 @@ import top.yukonga.miuix.kmp.icon.extended.Update
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.ArrowPreference
-import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import java.util.Locale
@@ -166,7 +166,7 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
                             updateModel.checkForUpdates(force = true)
                         },
                     )
-                    SwitchPreference(
+                    IndicatorSwitchPreference(
                         checked = checkUpdate,
                         onCheckedChange = { enabled ->
                             prefs.edit { putBoolean("check_update", enabled) }
@@ -196,7 +196,7 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
 
             item(key = "module_install") {
                 SettingsCard {
-                    SwitchPreference(
+                    IndicatorSwitchPreference(
                         checked = confirmInstall,
                         onCheckedChange = { enabled ->
                             apApp.updateModuleInstallConfirmState(enabled)
