@@ -108,6 +108,10 @@ android {
         targetSdk = androidTargetSdkVersion
         versionCode = managerVersionCode
         versionName = managerVersionName
+        // The install identity, which is not the code package: the namespace above stays
+        // me.bmax.apatch, so every import, component name, AIDL interface and the kernel's own
+        // view of who is calling keep working, while the app on the device is this one.
+        applicationId = "me.yuki.aster"
         ndk.abiFilters.addAll(arrayOf("arm64-v8a"))
         externalNativeBuild {
             cmake {

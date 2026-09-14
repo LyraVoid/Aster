@@ -230,7 +230,7 @@ fun migrateStockBootBackup() {
     }
     withNewRootShell {
         newJob().add(
-            "mkdir -p /data/adb/ap && cp /data/user/*/me.bmax.apatch/patch/ori.img /data/adb/ap/ 2>/dev/null && rm -f /data/user/*/me.bmax.apatch/patch/ori.img; true"
+            "mkdir -p /data/adb/ap && cp /data/user/*/${BuildConfig.APPLICATION_ID}/patch/ori.img /data/adb/ap/ 2>/dev/null && rm -f /data/user/*/${BuildConfig.APPLICATION_ID}/patch/ori.img; true"
         ).exec()
     }
 }
