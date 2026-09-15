@@ -24,15 +24,14 @@ val managerVersionName: String = rootProject.extra["managerVersionName"] as Stri
 val branchName: String = rootProject.extra["branchName"] as String
 val kernelPatchVersion: String = rootProject.extra["kernelPatchVersion"] as String
 
-// Signing keys live in keystore.properties next to the project (not committed; the template is),
-// and reach the signing plugin as ordinary project properties so the same four names work locally
-// and, as environment variables, in CI.
+// Signing keys live in keystore.properties next to the project (not committed; the template is).
+// They reach the signing plugin as ordinary project properties and the signing config below as
+// values, so the same four names work locally and, as environment variables, in CI.
 val keystorePropertiesFile = rootProject.file("keystore.properties")
-if (keystorePropertiesFile.exists()) {
-    Properties().apply {
-        keystorePropertiesFile.inputStream().use { load(it) }
-    }.forEach { (name, value) -> extra[name.toString()] = value.toString() }
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) keystorePropertiesFile.inputStream().use { load(it) }
 }
+keystoreProperties.forEach { (name, value) -> extra[name.toString()] = value.toString() }
 
 apksign {
     storeFileProperty = "KEYSTORE_FILE"
@@ -64,6 +63,24 @@ val baseArgs = mutableListOf(
 android {
     namespace = "me.bmax.apatch"
 
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file(keystoreProperties.getProperty("KEYSTORE_FILE") ?: "key.jks")
+            storePassword = keystoreProperties.getProperty("KEYSTORE_PASSWORD")
+            keyAlias = keystoreProperties.getProperty("KEY_ALIAS")
+            keyPassword = keystoreProperties.getProperty("KEY_PASSWORD")
+            // What the kernel side reads when it decides whether this app is the manager is the APK's
+            // own signature, and it parses v2. v3 is asked for as well, because that is the scheme a
+            // future key rotation needs, and the fork's parser is being taught to accept it beside
+            // v2. v1 is not asked for: that check rejects its presence outright, and above minSdk 26
+            // it earns nothing.
+            enableV1Signing = false
+            enableV2Signing = true
+            enableV3Signing = true
+            enableV4Signing = true
+        }
+    }
+
     buildTypes {
         debug {
             isDebuggable = true
@@ -85,6 +102,11 @@ android {
             isDebuggable = false
             multiDexEnabled = true
             vcsInfo.include = false
+            // With a key of our own the release carries it; without one the build is still useful
+            // for checking that everything compiles.
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
