@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="reboot">Ponovno pokreni</string>
     <string name="home">Početna</string>
     <string name="patch">Zakrpa</string>
@@ -10,8 +9,8 @@
     <string name="reboot_download">Pokreni u Download</string>
     <string name="reboot_edl">Pokreni u EDL</string>
     <string name="settings_app_language">Jezik</string>
-    <string name="home_learn_apatch">Nauči o APatch-u</string>
-    <string name="home_click_to_learn_apatch">Nauči više o značajkama APatch i kako ih koristiti</string>
+    <string name="home_learn_apatch">Nauči o Aster-u</string>
+    <string name="home_click_to_learn_apatch">Nauči više o značajkama Aster i kako ih koristiti</string>
     <string name="about_source_code">&lt;p&gt;Pogledaj izvorni kod na %1$s&lt;p/&gt;Pridružite se našem %2$s kanalu&lt;p/&gt;Pridružite se našoj %3$s grupi</string>
     <string name="send_log">Pošalji logove</string>
     <string name="safe_mode">Sigurni način</string>
@@ -55,7 +54,7 @@
     <string name="kpm_desc">Opis</string>
     <string name="kpm_args">Argumenti</string>
     <string name="su_title">Superkorisnik</string>
-    <string name="su_pkg_excluded_setting_summary">Uključivanjem ove opcije dozvoljavate APatch-u da vrati bilo koje datoteke modificirane modulima ove aplikacije.</string>
+    <string name="su_pkg_excluded_setting_summary">Uključivanjem ove opcije dozvoljavate Aster-u da vrati bilo koje datoteke modificirane modulima ove aplikacije.</string>
     <string name="su_show_system_apps">Prikaži sistemske aplikacije</string>
     <string name="su_hide_system_apps">Sakrij sistemske aplikacije</string>
     <string name="su_refresh">Osvježi</string>
@@ -72,7 +71,7 @@
     <string name="su_pkg_excluded_setting_title">Isključi modifikacije</string>
     <string name="patch_warnning">Instalacija može biti riskantna. Sačuvaj osobne podatke.</string>
     <string name="kpm_load">Učitaj</string>
-    <string name="home_apatch_version">Verzija APatch-a</string>
+    <string name="home_apatch_version">Verzija Aster-a</string>
     <string name="home_selinux_status_enforcing">Primjenjivanje</string>
     <string name="home_selinux_status_unknown">Nepoznato</string>
     <string name="kpm_kp_not_installed">KernelPatch nije instaliran</string>
@@ -127,7 +126,7 @@
     <string name="home_system_version">Verzija sustava</string>
     <string name="kpm_install">Instaliraj</string>
     <string name="kpm_control">Kontrola</string>
-    <string name="hide_apatch_manager">Sakrij APatch Manager</string>
+    <string name="hide_apatch_manager">Sakrij Aster Manager</string>
     <string name="hide_apatch_manager_failure">Nije moguće sakriti. Molimo prijavite grešku!</string>
     <string name="log_saved">Logovi spremljeni</string>
     <string name="mode_select_page_title">Instaliraj</string>

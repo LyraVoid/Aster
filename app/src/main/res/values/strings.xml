@@ -59,8 +59,8 @@
     <string name="settings_check_update">Check for updates</string>
     <string name="settings_check_update_summary">Automatically check for updates when opening the app</string>
 
-    <string name="home_learn_apatch">Learn APatch</string>
-    <string name="home_click_to_learn_apatch">Learn about the features of APatch and how to use</string>
+    <string name="home_learn_apatch">Learn Aster</string>
+    <string name="home_click_to_learn_apatch">Learn about the features of Aster and how to use</string>
 
     <string name="about_source_code"><![CDATA[<p>View source code at %1$s<p/>Join our %2$s channel<p/>Join our %3$s group]]></string>
     <string name="send_log">Send logs</string>
@@ -143,7 +143,7 @@
     <string name="home_kpatch_version">KernelPatch version</string>
     <string name="home_su_path">Executable su</string>
     <string name="home_more_menu_feedback_or_suggestion">Feedback or suggestion</string>
-    <string name="home_apatch_version">APatch version</string>
+    <string name="home_apatch_version">Aster version</string>
     <string name="home_install_kernel_patch">Install KernelPatch</string>
     <string name="home_update_kernel_patch">Update KernelPatch</string>
     <string name="home_install_android_patch">Install AndroidPatch</string>
@@ -184,7 +184,7 @@
     <string name="su_selinux_via_hook">Bypass via hook</string>
     <string name="su_pkg_excluded_label">Exclude</string>
     <string name="su_pkg_excluded_setting_title">Exclude modifications</string>
-    <string name="su_pkg_excluded_setting_summary">Enabling this option will allow APatch to restore any files modified by the modules of this app.</string>
+    <string name="su_pkg_excluded_setting_summary">Enabling this option will allow Aster to restore any files modified by the modules of this app.</string>
     <string name="su_show_system_apps">Show system apps</string>
     <string name="su_hide_system_apps">Hide system apps</string>
     <string name="su_refresh">Refresh</string>
@@ -272,7 +272,7 @@
     <string name="apm_retry">Retry</string>
 
 
-    <string name="hide_apatch_manager">Hide APatch Manager</string>
+    <string name="hide_apatch_manager">Hide Aster Manager</string>
     <string name="hide_apatch_manager_summary">Install a proxy app with a random package ID and custom app label</string>
     <string name="hide_apatch_dialog_new_manager_name">New manager name</string>
     <string name="hide_apatch_dialog_summary">It will be used as the new app label shown in launcher</string>
@@ -340,11 +340,11 @@
     <string name="home_root_mode">Root mode</string>
     <string name="home_mode_none">No Root</string>
     <string name="home_mode_kpatch_only">KernelPatch only</string>
-    <string name="home_mode_full">Full APatch</string>
+    <string name="home_mode_full">Full Aster</string>
     <string name="home_mode_jailbreak">Jailbreak</string>
     <string name="home_mode_unknown">Unknown</string>
     <string name="home_advanced_details">Advanced details</string>
-    <string name="home_update_available_title">APatch %1$d is available</string>
+    <string name="home_update_available_title">Aster %1$d is available</string>
     <string name="home_update_available_summary">Tap to view the release notes.</string>
     <string name="home_update_check">Check for updates</string>
     <string name="home_update_checking">Checking for updates...</string>

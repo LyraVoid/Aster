@@ -61,7 +61,7 @@
     <string name="patch_item_extra_author">Izstrādātājs:</string>
     <string name="home_selinux_status">SELinux statuss</string>
     <string name="home_selinux_status_disabled">Atspējots</string>
-    <string name="home_apatch_version">APatch versija</string>
+    <string name="home_apatch_version">Aster versija</string>
     <string name="kpm_load">Ielādēt</string>
     <string name="kpm_load_toast_succ">Veiksmīgi ielādēts</string>
     <string name="kpm_load_toast_failed">Neizdevās ielādēt</string>
@@ -103,7 +103,6 @@
     <string name="apm_uninstall_confirm">Atinstalēt moduli %s?</string>
     <string name="apm_uninstall_failed">Neizdevās atinstalēt: %s</string>
     <string name="apm_uninstall_success">%s atinstalēts</string>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="back">Atpakaļ</string>
     <string name="blue_grey_theme">Zili pelēks</string>
     <string name="crash_handle_copied">Kļūmes žurnāls nokopēts starpliktuvē.</string>
@@ -114,11 +113,11 @@
     <string name="failure">Neizdevās</string>
     <string name="hide_apatch_dialog_new_manager_name">Jauns pārvaldnieka nosaukums</string>
     <string name="hide_apatch_dialog_summary">Tas tiks izmantots kā jaunais lietotnes nosaukums, kas redzams palaidējā</string>
-    <string name="hide_apatch_manager">Slēpt APatch pārvaldnieku</string>
+    <string name="hide_apatch_manager">Slēpt Aster pārvaldnieku</string>
     <string name="hide_apatch_manager_failure">Neizdevās noslēpt. Lūdzu, ziņojiet par kļūdu!</string>
     <string name="hide_apatch_manager_summary">Instalējiet starpnieka lietotni ar nejaušu pakotnes ID un pielāgotu lietotnes nosaukumu</string>
     <string name="home_click_to_install">Noklikšķiniet, lai instalētu</string>
-    <string name="home_click_to_learn_apatch">Uzziniet par APatch funkcijām un lietošanu</string>
+    <string name="home_click_to_learn_apatch">Uzziniet par Aster funkcijām un lietošanu</string>
     <string name="home_dialog_uninstall_all">Atinstalēt visu</string>
     <string name="home_dialog_uninstall_ap_only">Noņemt AndroidPatch</string>
     <string name="home_fingerprint">Pirkstu nospiedums</string>
@@ -127,7 +126,7 @@
     <string name="home_kernel">Kodola versija</string>
     <string name="home_kpatch_info_title">Informācija</string>
     <string name="home_kpatch_version">KernelPatch versija</string>
-    <string name="home_learn_apatch">Uzziniet par APatch</string>
+    <string name="home_learn_apatch">Uzziniet par Aster</string>
     <string name="home_more_menu_feedback_or_suggestion">Atsauksme vai ierosinājums</string>
     <string name="home_new_apatch_found">Pieejama jauna versija %s, noklikšķiniet, lai atjauninātu.</string>
     <string name="home_patch_next_step">Nākamais solis</string>
@@ -211,7 +210,7 @@
     <string name="settings_selinux_hide_warning_below_5_10">Šī funkcija ir pārbaudīta tikai kodolā 5.10 un jaunākā, un var būt nestabila vecākās kodola versijās.</string>
     <string name="settings_selinux_hide_warning_non_gki">Ne-GKI kodoli ir saistīti ar lielāku risku un var izraisīt sāknēšanas kļūmi. Pārliecinieties, ka dati ir dublēti.</string>
     <string name="su_hide_system_apps">Slēpt sistēmas lietotnes</string>
-    <string name="su_pkg_excluded_setting_summary">Iespējojot šo opciju, APatch varēs atjaunot jebkurus failus, ko modificējuši šīs lietotnes moduļi.</string>
+    <string name="su_pkg_excluded_setting_summary">Iespējojot šo opciju, Aster varēs atjaunot jebkurus failus, ko modificējuši šīs lietotnes moduļi.</string>
     <string name="su_pkg_excluded_setting_title">Izslēgt modifikācijas</string>
     <string name="su_selinux_via_hook">Apiet ar hook</string>
     <string name="su_show_system_apps">Rādīt sistēmas lietotnes</string>

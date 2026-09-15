@@ -129,7 +129,7 @@ fun AboutScreen(navigator: DestinationsNavigator) {
                 AboutLinkButton(
                     iconRes = R.drawable.github,
                     label = stringResource(id = R.string.about_github),
-                    onClick = { uriHandler.openUri("https://github.com/bmax121/APatch") },
+                    onClick = { uriHandler.openUri("https://github.com/lyravoid/Aster") },
                 )
                 AboutLinkButton(
                     iconRes = R.drawable.telegram,

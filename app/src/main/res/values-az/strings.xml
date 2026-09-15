@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="home">Ana səhifə</string>
     <string name="patch_warnning">Quraşdırma risklərlə gəlir. Zəhmət olmasa, məlumatlarınızın yedəkləndiyindən əmin olun.</string>
     <string name="patch">Yamaq</string>
@@ -10,7 +9,7 @@
     <string name="reboot_download">Yükləmə rejiminə yenidən başlat</string>
     <string name="about">Haqqında</string>
     <string name="settings_app_language">Dil</string>
-    <string name="home_learn_apatch">APatch haqqında öyrənin</string>
+    <string name="home_learn_apatch">Aster haqqında öyrənin</string>
     <string name="about_source_code">&lt;p&gt;Mənbə koduna %1$s ünvanında baxın&lt;p/&gt;%2$s kanalımıza qoşulun&lt;p/&gt;%3$s qrupumuza qoşulun</string>
     <string name="system_default">Sistem defoltu</string>
     <string name="send_log">Günlükü göndərin</string>
@@ -32,7 +31,7 @@
     <string name="kpatch_version">Versiya: %s</string>
     <string name="kernel_patch">NüvəYamağı</string>
     <string name="android_patch">AndroidYamağı</string>
-    <string name="home_apatch_version">APatch versiyası</string>
+    <string name="home_apatch_version">Aster versiyası</string>
     <string name="home_ap_cando_install">Quraşdır</string>
     <string name="home_ap_cando_uninstall">Sil</string>
     <string name="patch_title">Yamaq</string>
@@ -58,7 +57,7 @@
     <string name="su_selinux_via_hook">Çəngəl ilə yan keçin</string>
     <string name="su_pkg_excluded_label">istisna</string>
     <string name="su_pkg_excluded_setting_title">Dəyişiklikləri istisna edin</string>
-    <string name="su_pkg_excluded_setting_summary">Bu seçimin aktivləşdirilməsi APatch-ə bu proqram üçün modullar tərəfindən hər hansı dəyişdirilmiş faylları bərpa etməyə imkan verəcək.</string>
+    <string name="su_pkg_excluded_setting_summary">Bu seçimin aktivləşdirilməsi Aster-ə bu proqram üçün modullar tərəfindən hər hansı dəyişdirilmiş faylları bərpa etməyə imkan verəcək.</string>
     <string name="su_show_system_apps">Sistem proqramlarını göstərin</string>
     <string name="su_hide_system_apps">Sistem proqramlarını gizlədin</string>
     <string name="su_refresh">Yeniləyin</string>
@@ -84,7 +83,7 @@
     <string name="reboot_edl">Təcili yükləmə rejiminə yenidən başlat</string>
     <string name="home_click_to_install">Quraşdırmaq üçün toxunun</string>
     <string name="settings">Ayarlar</string>
-    <string name="home_click_to_learn_apatch">APatch-in xüsusiyyətləri və necə istifadə olunacağını öyrənin</string>
+    <string name="home_click_to_learn_apatch">Aster-in xüsusiyyətləri və necə istifadə olunacağını öyrənin</string>
     <string name="home_manager_version">Menecer versiyası</string>
     <string name="kpm_kp_not_installed">KernelPatch quraşdırılmayıb</string>
     <string name="kpm_version">Versiya</string>
@@ -194,7 +193,7 @@
     <string name="about_telegram_channel">Telegram Kanalı</string>
     <string name="about_telegram_group">Telegram Qrupu</string>
     <string name="about_powered_by">%1$s tərəfindən gücləndirildi</string>
-    <string name="hide_apatch_manager">Gizli APatch Meneceri</string>
+    <string name="hide_apatch_manager">Gizli Aster Meneceri</string>
     <string name="log_saved">Qeydlər yaddaşda saxlandı</string>
     <string name="apm_action">Fəaliyyət</string>
     <string name="about_app_desc">Yalnızca sadələşdirilmiş kernel təsviri ilə kernel root həlli – sistem modullarını qoşmaq və kernel funksiyalarını ələ keçirmək imkanını təmin edir.</string>

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="home">Acasă</string>
     <string name="patch_warnning">Instalarea implică riscuri. Asigură-te că datele tale sunt salvate.</string>
     <string name="kernel_patch">KernelPatch</string>
@@ -12,7 +11,7 @@
     <string name="reboot_download">Repornește la Download</string>
     <string name="reboot_edl">Repornește la EDL</string>
     <string name="about">Despre</string>
-    <string name="home_learn_apatch">Invata APatch</string>
+    <string name="home_learn_apatch">Invata Aster</string>
     <string name="about_source_code">&lt;p&gt;Vezi codul sursă la %1$s&lt;p/&gt;Alătură-te canalului nostru %2$s&lt;p/&gt;Alătură-te grupului nostru %3$s</string>
     <string name="send_log">Trimite log-uri</string>
     <string name="patch_set_superkey">Setează Superkey</string>
@@ -30,7 +29,7 @@
     <string name="apatch_version_update">Versiune:
 \n%1$s -&gt; %2$s</string>
     <string name="home_su_path">Executabil su</string>
-    <string name="home_apatch_version">Versiune APatch</string>
+    <string name="home_apatch_version">Versiune Aster</string>
     <string name="home_ap_cando_install">Instalează</string>
     <string name="home_ap_cando_update">Actualizează</string>
     <string name="home_ap_cando_uninstall">Dezinstalează</string>
@@ -55,7 +54,7 @@
     <string name="su_title">Super-utilizator</string>
     <string name="su_selinux_via_hook">ocolire prin hook</string>
     <string name="su_pkg_excluded_setting_title">Exclude Modificarile</string>
-    <string name="su_pkg_excluded_setting_summary">Activarea acestei opțiuni va permite APatch să restaureze orice fișiere modificate de către modulele pentru această aplicație.</string>
+    <string name="su_pkg_excluded_setting_summary">Activarea acestei opțiuni va permite Aster să restaureze orice fișiere modificate de către modulele pentru această aplicație.</string>
     <string name="su_show_system_apps">Arată aplicațiile de sistem</string>
     <string name="su_hide_system_apps">Ascunde aplicațiile de sistem</string>
     <string name="su_refresh">Reîmprospătează</string>
@@ -79,7 +78,7 @@
     <string name="apm_update">Actualizează</string>
     <string name="apm_downloading">Descărcarea modulului \&quot;%s\&quot;…</string>
     <string name="apm_start_downloading">Începe descărcarea %s</string>
-    <string name="home_click_to_learn_apatch">Afla despre funcționalitațile din APatch și cum să le folosești</string>
+    <string name="home_click_to_learn_apatch">Afla despre funcționalitațile din Aster și cum să le folosești</string>
     <string name="safe_mode">Mod sigur</string>
     <string name="super_key">SuperKey</string>
     <string name="home_manager_version">Versiunea de manager</string>
@@ -130,7 +129,7 @@
     <string name="purple_theme">Mov</string>
     <string name="red_theme">Roșu</string>
     <string name="sakura_theme">Sakura</string>
-    <string name="hide_apatch_manager">Ascunde APatch Manager</string>
+    <string name="hide_apatch_manager">Ascunde Aster Manager</string>
     <string name="hide_apatch_manager_summary">Instalați o nouă aplicație de proxy cu un ID aleatoriu și o etichetă personalizată a aplicației</string>
     <string name="enable_web_debugging_summary">Poate fi folosit pentru a depana WebUI. Vă rugăm să activați numai când aveți nevoie.</string>
     <string name="home_new_apatch_found">Versiune noua disponibila: %s, apasă pentru a actualiza.</string>

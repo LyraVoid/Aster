@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="home">Головна</string>
     <string name="kernel_patch">Заплатка ядра</string>
     <string name="android_patch">Заплатка для Android</string>
@@ -10,7 +9,7 @@
     <string name="reboot_bootloader">Перезавантаження в завантажувач</string>
     <string name="reboot_download">Перезавантаження в режим завантаження</string>
     <string name="about">Про</string>
-    <string name="home_learn_apatch">Дізнайтеся більше про APatch</string>
+    <string name="home_learn_apatch">Дізнайтеся більше про Aster</string>
     <string name="safe_mode">Безпечний режим</string>
     <string name="super_key">СуперКлюч</string>
     <string name="patch_set_superkey">Встановити SuperKey</string>
@@ -54,11 +53,11 @@
     <string name="apm_start_downloading">Початок завантаження %s</string>
     <string name="patch_warnning">Інсталяція має ризики. Будь ласка, створіть резервну копію ваших даних.</string>
     <string name="reboot_edl">Перезавантаження в EDL</string>
-    <string name="home_click_to_learn_apatch">Дізнайтеся більше про можливості APatch і про його використання</string>
+    <string name="home_click_to_learn_apatch">Дізнайтеся більше про можливості Aster і про його використання</string>
     <string name="about_source_code">&lt;p&gt; Перегляньте вихідний код на %1$s&lt;p/&gt; Приєднуйтеся до нашого каналу %2$s&lt;p/&gt; Приєднуйтеся до нашої групи %3$s</string>
     <string name="send_log">Надіслати журнали</string>
     <string name="apatch_version_update">Версія: %1$s → %2$s</string>
-    <string name="home_apatch_version">Версія APatch</string>
+    <string name="home_apatch_version">Версія Aster</string>
     <string name="home_need_update">Доступне оновлення</string>
     <string name="home_ap_cando_uninstall">Видалити</string>
     <string name="home_ap_cando_install">Встановити</string>
@@ -72,7 +71,7 @@
     <string name="kpm_version">Версія</string>
     <string name="su_title">Суперкористувач</string>
     <string name="su_pkg_excluded_label">Виключити</string>
-    <string name="su_pkg_excluded_setting_summary">Увімкнення цієї опції дозволить APatch відновлювати будь-які файли, змінені модулями цієї програми.</string>
+    <string name="su_pkg_excluded_setting_summary">Увімкнення цієї опції дозволить Aster відновлювати будь-які файли, змінені модулями цієї програми.</string>
     <string name="su_hide_system_apps">Приховати системні додатки</string>
     <string name="apm_empty">Немає встановлених модулів</string>
     <string name="apm_install">Встановити</string>
@@ -144,7 +143,7 @@
     <string name="setting_reset_su_path">Скинути шлях до файлу su</string>
     <string name="setting_reset_su_new_path">Новий повний шлях</string>
     <string name="apm_webui_open">Відкрити</string>
-    <string name="hide_apatch_manager">Приховати APatch Manager</string>
+    <string name="hide_apatch_manager">Приховати Aster Manager</string>
     <string name="kpm_embed">Вставити</string>
     <string name="kpm_add_kpm">Додати KPM</string>
     <string name="kpm_install">Встановити</string>

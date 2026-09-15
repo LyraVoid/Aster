@@ -2,14 +2,13 @@
 <resources>
     <string name="apm">Moduły AP</string>
     <string name="super_key">SuperKey</string>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="kpm">Moduły KP</string>
     <string name="home">Pulpit</string>
     <string name="send_log">Prześlij logi</string>
     <string name="kpatch_version">Wersja: %s</string>
-    <string name="home_click_to_learn_apatch">Dowiedz się o funkcjach APatcha i jak go używać</string>
+    <string name="home_click_to_learn_apatch">Dowiedz się o funkcjach Astera i jak go używać</string>
     <string name="home_installing">Instalowanie</string>
-    <string name="home_learn_apatch">Poznaj APatch</string>
+    <string name="home_learn_apatch">Poznaj Aster</string>
     <string name="home_click_to_install">Kliknij, aby zainstalować</string>
     <string name="about">Informacje</string>
     <string name="reboot">Uruchom ponownie</string>
@@ -29,7 +28,7 @@
     <string name="patch_title">Załataj</string>
     <string name="home_selinux_status_disabled">Wyłączony</string>
     <string name="home_selinux_status_enforcing">Wymuszony</string>
-    <string name="su_pkg_excluded_setting_summary">Włączenie tej opcji umożliwi APatch przywrócenie wszystkich plików zmodyfikowanych przez moduły tej aplikacji.</string>
+    <string name="su_pkg_excluded_setting_summary">Włączenie tej opcji umożliwi Aster przywrócenie wszystkich plików zmodyfikowanych przez moduły tej aplikacji.</string>
     <string name="su_title">Superużytkownik</string>
     <string name="kpm_version">Wersja</string>
     <string name="su_refresh">Odśwież</string>
@@ -65,7 +64,7 @@
     <string name="reboot_recovery">Restartuj do Recovery</string>
     <string name="patch_set_superkey">Ustaw SuperKey</string>
     <string name="reboot_bootloader">Restartuj do Bootloadera</string>
-    <string name="home_apatch_version">Wersja APatch</string>
+    <string name="home_apatch_version">Wersja Aster</string>
     <string name="apm_reboot_to_apply">Uruchom ponownie aby zadziałało</string>
     <string name="apm_empty">Brak zainstalowanych modułów</string>
     <string name="home_working">Włączony</string>
@@ -138,7 +137,7 @@
     <string name="kpm_add_kpm">Dodaj KPM</string>
     <string name="kpm_embed">Osadź</string>
     <string name="kpm_control">Kontrola</string>
-    <string name="hide_apatch_manager">Ukryj menedżer APatch</string>
+    <string name="hide_apatch_manager">Ukryj menedżer Aster</string>
     <string name="hide_apatch_manager_summary">Zainstaluj aplikację proxy z losowym ID pakietu i niestandardową etykietą</string>
     <string name="mode_select_page_install_inactive_slot_warning">Twoje urządzenie będzie **ZMUSZONE** do uruchomienia się w bieżącym nieaktywnym slocie po ponownym uruchomieniu!\nUżywaj tej opcji tylko po zakończeniu aktualizacji OTA.\nKontynuować?</string>
     <string name="about_telegram_channel">Kanał na Telegramie</string>

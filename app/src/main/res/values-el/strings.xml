@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="patch_warnning">Η εγκατάσταση συνοδεύεται από κινδύνους. Βεβαιωθείτε ότι έχετε δημιουργήσει αντίγραφα ασφαλείας των δεδομένων σας.</string>
     <string name="kernel_patch">KernelPatch</string>
     <string name="android_patch">AndroidPatch</string>
@@ -13,8 +12,8 @@
     <string name="reboot_recovery">Επανεκκίνηση στο Recovery</string>
     <string name="reboot_download">Επανεκκίνηση για λήψη</string>
     <string name="about">Σχετικά με το</string>
-    <string name="home_learn_apatch">Μάθετε το APatch</string>
-    <string name="home_click_to_learn_apatch">Μάθετε για τα χαρακτηριστικά του APatch και πώς να το χρησιμοποιείτε</string>
+    <string name="home_learn_apatch">Μάθετε το Aster</string>
+    <string name="home_click_to_learn_apatch">Μάθετε για τα χαρακτηριστικά του Aster και πώς να το χρησιμοποιείτε</string>
     <string name="settings_app_language">Γλώσσα</string>
     <string name="patch">Επιδιόρθωση</string>
     <string name="apm">Ενότητα AP</string>
@@ -80,7 +79,7 @@
     <string name="apm_version">Έκδοση</string>
     <string name="apm_author">Δημιουργός</string>
     <string name="home_ap_cando_uninstall">Απεγκατάσταση</string>
-    <string name="home_apatch_version">Έκδοση APatch</string>
+    <string name="home_apatch_version">Έκδοση Aster</string>
     <string name="kpm_kp_not_installed">Το KernelPatch δεν έχει εγκατασταθεί</string>
     <string name="kpm_load_toast_succ">Επιτυχής φόρτωση</string>
     <string name="kpm_apm_empty">Δεν έχει φορτωθεί καμία ενότητα</string>
@@ -107,7 +106,7 @@
     <string name="purple_theme">Μώβ</string>
     <string name="crash_handle_title">Η εφαρμογή κατέρρευσε…</string>
     <string name="crash_handle_copy">Αντιγραφή αρχείου καταγραφής σφαλμάτων</string>
-    <string name="su_pkg_excluded_setting_summary">Η ενεργοποίηση αυτής της επιλογής θα επιτρέψει στο APatch να επαναφέρει τυχόν αρχεία που έχουν τροποποιηθεί από τις λειτουργικές μονάδες αυτής της εφαρμογής.</string>
+    <string name="su_pkg_excluded_setting_summary">Η ενεργοποίηση αυτής της επιλογής θα επιτρέψει στο Aster να επαναφέρει τυχόν αρχεία που έχουν τροποποιηθεί από τις λειτουργικές μονάδες αυτής της εφαρμογής.</string>
     <string name="blue_grey_theme">Μπλέ γκρί</string>
     <string name="enable_web_debugging_summary">Μπορεί να χρησιμοποιηθεί για εντοπισμό σφαλμάτων WebUI, Παρακαλώ ενεργοποιήσει μόνο όταν χρειάζεται.</string>
     <string name="hide_apatch_manager_summary">Εγκατάσταση μιας εφαρμογής proxy με τυχαίο αναγνωριστικό πακέτου και προσαρμοσμένη ετικέτα εφαρμογής</string>
@@ -130,7 +129,7 @@
     <string name="home_device_info">Συσκευή</string>
     <string name="home_system_version">Έκδοση συστήματος</string>
     <string name="kpm_add_kpm">Προσθήκη KPM</string>
-    <string name="hide_apatch_manager">Απόκρυψη Διαχειριστή APatch</string>
+    <string name="hide_apatch_manager">Απόκρυψη Διαχειριστή Aster</string>
     <string name="hide_apatch_dialog_new_manager_name">Νέο όνομα διαχειριστή</string>
     <string name="hide_apatch_dialog_summary">Θα χρησιμοποιηθεί ως η νέα ετικέτα εφαρμογής που εμφανίζεται στο πρόγραμμα εκκίνησης</string>
     <string name="hide_apatch_manager_failure">Αποτυχία απόκρυψης, Παρακαλώ αναφέρετε το σφάλμα!</string>

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="patch">Patch</string>
     <string name="kernel_patch">KernelPatch</string>
     <string name="android_patch">AndroidPatch</string>
@@ -12,7 +11,7 @@
     <string name="system_default">Systeem standaard</string>
     <string name="settings_global_namespace_mode">Globale naamruimtemodus</string>
     <string name="settings_global_namespace_mode_summary">Alle rootsessies gebruiken de globale mount-naamruimte</string>
-    <string name="home_learn_apatch">Leer APatch</string>
+    <string name="home_learn_apatch">Leer Aster</string>
     <string name="about_source_code">&lt;p&gt;Bekijk de broncode op %1$s&lt;p/&gt;Word lid van ons%2$s kanaal&lt;p/&gt;Word lid van ons%3$s groep</string>
     <string name="send_log">Logbestanden versturen</string>
     <string name="safe_mode">Veilige modus</string>
@@ -48,14 +47,14 @@
     <string name="home">Thuis</string>
     <string name="patch_warnning">"Installatie brengt risico\'s met zich mee. Zorg ervoor dat er een back-up van uw gegevens wordt gemaakt."</string>
     <string name="reboot_bootloader">Start opnieuw op naar Bootloader</string>
-    <string name="home_click_to_learn_apatch">Leer meer over de functies van APatch en hoe u deze kunt gebruiken</string>
+    <string name="home_click_to_learn_apatch">Leer meer over de functies van Aster en hoe u deze kunt gebruiken</string>
     <string name="reboot_download">Start opnieuw op naar Download</string>
     <string name="reboot_recovery">Start opnieuw op naar herstel</string>
     <string name="apatch_version">Versie: %s</string>
     <string name="home_su_path">Uitvoerbare su</string>
     <string name="home_ap_cando_update">Werk bij</string>
     <string name="apatch_version_update">Versie: %1$s -&gt; %2$s</string>
-    <string name="home_apatch_version">APatch versie</string>
+    <string name="home_apatch_version">Aster versie</string>
     <string name="home_ap_cando_install">Installeer</string>
     <string name="home_manager_version">Managerversie</string>
     <string name="kpm_kp_not_installed">KernelPatch niet geïnstalleerd</string>
@@ -69,7 +68,7 @@
     <string name="kpm_license">Licensie</string>
     <string name="su_pkg_excluded_label">uitsluiten</string>
     <string name="su_pkg_excluded_setting_title">Modificaties Uitsluiten</string>
-    <string name="su_pkg_excluded_setting_summary">Het inschakelen van deze optie zal APatch toelaten om enige gemodificeerde bestanden door de modules van deze applicatie te herstellen.</string>
+    <string name="su_pkg_excluded_setting_summary">Het inschakelen van deze optie zal Aster toelaten om enige gemodificeerde bestanden door de modules van deze applicatie te herstellen.</string>
     <string name="su_refresh">Vernieuwen</string>
     <string name="apm_not_installed">AndroidPatch niet geïnstalleerd</string>
     <string name="apm">APModule</string>
@@ -154,7 +153,7 @@
     <string name="home_kpatch_version">KernLap versie</string>
     <string name="home_device_info">Apparaat</string>
     <string name="kpm_add_kpm">Voeg KPM toe</string>
-    <string name="hide_apatch_manager">Verberg APatch Beheerder</string>
+    <string name="hide_apatch_manager">Verberg Aster Beheerder</string>
     <string name="hide_apatch_manager_summary">Installeer een proxy applicatie met een willekeurige package ID en een custom applicatie label</string>
     <string name="hide_apatch_dialog_new_manager_name">Nieuwe Beheerder Naam</string>
     <string name="hide_apatch_dialog_summary">Het zal gebruikt worden als de nieuwe applicatie label weergegeven in de launcher</string>

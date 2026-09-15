@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="home">হোম</string>
     <string name="kernel_patch">কার্নেলপ্যাচ</string>
     <string name="android_patch">অ্যান্ড্রয়েডপ্যাচ</string>
@@ -17,7 +16,7 @@
     <string name="apatch_version">সংস্করণ %s</string>
     <string name="apatch_version_update">সংস্করণ %1$s → %2$s</string>
     <string name="home_su_path">এক্সিকিউটেবল su</string>
-    <string name="home_apatch_version">APatch সংস্করণ</string>
+    <string name="home_apatch_version">Aster সংস্করণ</string>
     <string name="home_ap_cando_update">হালনাগাদ</string>
     <string name="home_ap_cando_uninstall">আনইনস্টল করুন</string>
     <string name="patch_warnning">ইনস্টলেশন ঝুঁকিপূর্ণ, অনুগ্রহ করে নিশ্চিত করুন যে আপনার ডেটা ব্যাকআপ করা আছে।</string>
@@ -72,7 +71,7 @@
     <string name="kpm_kp_not_installed">কার্নেল প্যাচ ইনস্টল করা নেই</string>
     <string name="kpm_load_toast_failed">লোড ব্যর্থ হয়েছে</string>
     <string name="kpm_load_toast_succ">লোড সফল</string>
-    <string name="su_pkg_excluded_setting_summary">এই অপশনটি দ্বারা APatch App এর ভিতরে মডিউল দ্বারা পরিবর্তন হওয়া ফাইল পুনরুদ্ধার করতে পারবে।</string>
+    <string name="su_pkg_excluded_setting_summary">এই অপশনটি দ্বারা Aster App এর ভিতরে মডিউল দ্বারা পরিবর্তন হওয়া ফাইল পুনরুদ্ধার করতে পারবে।</string>
     <string name="su_show_system_apps">সিস্টেম অ্যাপ দেখাও</string>
     <string name="kpm_apm_empty">কোনো মডিউল লোড করা হয়নি</string>
     <string name="apm_overlay_fs_not_available">কার্নেল দ্বারা OverlayFS বন্ধ হওয়ার কারণে মডিউলগুলি পাওয়া যায়নি!</string>
@@ -127,7 +126,7 @@
     <string name="patch_item_kernel">কার্নেল</string>
     <string name="kpm_embed">বসান</string>
     <string name="kpm_control">নিয়ন্ত্রন</string>
-    <string name="hide_apatch_manager">APatch ম্যানেজারকে লুকান</string>
+    <string name="hide_apatch_manager">Aster ম্যানেজারকে লুকান</string>
     <string name="hide_apatch_manager_summary">রেন্ডম প্যাকেজ আইডি এবং কাস্টম অ্যাপ লেবেল সহ নতুন প্রক্সি অ্যাপ ইনস্টল করুন</string>
     <string name="hide_apatch_dialog_new_manager_name">নতুন ম্যানেজারের নাম</string>
     <string name="hide_apatch_dialog_summary">এটি লঞ্চারে দেখানো নতুন অ্যাপ লেবেল হিসেবে ব্যবহার করা হবে</string>

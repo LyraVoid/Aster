@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="home">Fogar</string>
     <string name="patch_warnning">A instalación conleva uns riscos. Por favor, asegura os teus datos.</string>
     <string name="patch">Parche</string>
@@ -68,16 +67,16 @@
     <string name="green_theme">Verde</string>
     <string name="hide_apatch_dialog_new_manager_name">Novo nome do xestor</string>
     <string name="hide_apatch_dialog_summary">Usarase como a nova etiqueta da aplicación que se mostra no lanzador</string>
-    <string name="hide_apatch_manager">Ocultar o xestor de APatch</string>
+    <string name="hide_apatch_manager">Ocultar o xestor de Aster</string>
     <string name="hide_apatch_manager_failure">Non se puido ocultar. Por favor, informa do erro!</string>
     <string name="hide_apatch_manager_summary">Instala unha aplicación proxy cun ID de paquete aleatorio e unha etiqueta de aplicación personalizada</string>
     <string name="home_ap_cando_install">Instalar</string>
     <string name="home_ap_cando_reboot">Reiniciar</string>
     <string name="home_ap_cando_uninstall">Desinstalar</string>
     <string name="home_ap_cando_update">Actualizar</string>
-    <string name="home_apatch_version">Versión de APatch</string>
+    <string name="home_apatch_version">Versión de Aster</string>
     <string name="home_click_to_install">Preme para instalar</string>
-    <string name="home_click_to_learn_apatch">Coñece as funcións de APatch e como usalas</string>
+    <string name="home_click_to_learn_apatch">Coñece as funcións de Aster e como usalas</string>
     <string name="home_device_info">Dispositivo</string>
     <string name="home_dialog_uninstall_all">Desinstalar todo</string>
     <string name="home_dialog_uninstall_ap_only">Eliminar AndroidPatch</string>
@@ -89,7 +88,7 @@
     <string name="home_kernel">Versión do kernel</string>
     <string name="home_kpatch_info_title">Información</string>
     <string name="home_kpatch_version">Versión de KernelPatch</string>
-    <string name="home_learn_apatch">Coñece APatch</string>
+    <string name="home_learn_apatch">Coñece Aster</string>
     <string name="home_manager_version">Versión do xestor</string>
     <string name="home_more_menu_about">Acerca de</string>
     <string name="home_more_menu_feedback_or_suggestion">Comentarios ou suxestións</string>
@@ -207,7 +206,7 @@
     <string name="settings_selinux_hide_warning_non_gki">Os núcleos non GKI presentan un maior risco e poden provocar fallos de arranque. Asegúrate de ter unha copia de seguridade dos teus datos.</string>
     <string name="su_hide_system_apps">Ocultar as aplicacións do sistema</string>
     <string name="su_pkg_excluded_label">Excluír</string>
-    <string name="su_pkg_excluded_setting_summary">Activar esta opción permitirá que APatch restaure os ficheiros modificados polos módulos desta aplicación.</string>
+    <string name="su_pkg_excluded_setting_summary">Activar esta opción permitirá que Aster restaure os ficheiros modificados polos módulos desta aplicación.</string>
     <string name="su_pkg_excluded_setting_title">Excluír modificacións</string>
     <string name="su_refresh">Actualizar</string>
     <string name="su_selinux_via_hook">Contornar mediante hook</string>

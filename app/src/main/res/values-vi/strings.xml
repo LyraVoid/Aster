@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="home">Trang chủ</string>
     <string name="kernel_patch">Bản vá Kernel</string>
     <string name="android_patch">Bản vá Android</string>
@@ -73,7 +72,7 @@
     <string name="kpm_author">Tác giả</string>
     <string name="apm_not_installed">AndroidPatch chưa được cài đặt</string>
     <string name="su_pkg_excluded_setting_title">Loại trừ các sửa đổi</string>
-    <string name="su_pkg_excluded_setting_summary">Bật tùy chọn này sẽ cho phép APatch khôi phục mọi tệp đã được các mô-đun của ứng dụng này sửa đổi.</string>
+    <string name="su_pkg_excluded_setting_summary">Bật tùy chọn này sẽ cho phép Aster khôi phục mọi tệp đã được các mô-đun của ứng dụng này sửa đổi.</string>
     <string name="su_show_system_apps">Hiển thị ứng dụng hệ thống</string>
     <string name="su_hide_system_apps">Ẩn ứng dụng hệ thống</string>
     <string name="su_refresh">Làm mới</string>
@@ -87,7 +86,7 @@
     <string name="apm">APModule</string>
     <string name="settings_app_language">Ngôn ngữ</string>
     <string name="system_default">Mặc định hệ thống</string>
-    <string name="home_apatch_version">Phiên bản APatch</string>
+    <string name="home_apatch_version">Phiên bản Aster</string>
     <string name="patch">Bản vá</string>
     <string name="settings_global_namespace_mode">Chế độ Global Namespace</string>
     <string name="settings_global_namespace_mode_summary">Tất cả các phiên Root sử dụng Namespace Mount Global</string>
@@ -152,7 +151,7 @@
     <string name="patch_item_extra_version">Phiên bản:</string>
     <string name="kpm_install">Cài đặt</string>
     <string name="kpm_embed">Nhúng</string>
-    <string name="hide_apatch_manager">Ẩn Trình quản lý APatch</string>
+    <string name="hide_apatch_manager">Ẩn Trình quản lý Aster</string>
     <string name="hide_apatch_dialog_new_manager_name">Tên người quản lý mới</string>
     <string name="setting_reset_su_path">Đặt lại đường dẫn su</string>
     <string name="mode_select_page_title">Cài đặt</string>

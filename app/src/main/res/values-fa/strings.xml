@@ -11,8 +11,8 @@
     <string name="settings_global_namespace_mode">حالت نام جهانی</string>
     <string name="settings_clear_super_key_dialog">آیا واقعا میخواهید ادامه دهید؟</string>
     <string name="settings_check_update">برسی نسخه به روز</string>
-    <string name="home_click_to_learn_apatch">با ویژگی های APatch و نحو استفاده آن آشنا شوید</string>
-    <string name="home_learn_apatch">با APatch آشنا شو</string>
+    <string name="home_click_to_learn_apatch">با ویژگی های Aster و نحو استفاده آن آشنا شوید</string>
+    <string name="home_learn_apatch">با Aster آشنا شو</string>
     <string name="send_log">ارسال گزارشات</string>
     <string name="save_log">ذخیره گزارشات</string>
     <string name="safe_mode">حالت امن</string>
@@ -105,9 +105,9 @@
     <string name="kpm_desc">شرح</string>
     <string name="su_selinux_via_hook">دور زدن از طریق قلاب</string>
     <string name="su_pkg_excluded_setting_title">تغییرات صرف نظر شده</string>
-    <string name="su_pkg_excluded_setting_summary">فعال کردن این گزینه به APatch اجازه خواهد داد تا فایل‌های تغییر یافته توسط ماژول‌های این برنامه را بازیابی کند.</string>
+    <string name="su_pkg_excluded_setting_summary">فعال کردن این گزینه به Aster اجازه خواهد داد تا فایل‌های تغییر یافته توسط ماژول‌های این برنامه را بازیابی کند.</string>
     <string name="su_hide_system_apps">مخفی کردن برنامه‌های سیستمی</string>
-    <string name="home_apatch_version">نسخه APatch</string>
+    <string name="home_apatch_version">نسخه Aster</string>
     <string name="kpm_add_kpm">اضافه کردن KPM</string>
     <string name="kpm_apm_empty">هیچ ماژول بارگیری نشده</string>
     <string name="kpm_install">نصب</string>
@@ -159,7 +159,7 @@
     <string name="apm_update">بروزرسانی</string>
     <string name="apm_downloading">بارگیری ماژول \&quot;%s\&quot; …</string>
     <string name="apm_new_version_available">نسخه جدید %s در دسترس است، برای بروزرسانی کلیک کنید.</string>
-    <string name="hide_apatch_manager">مخفی کردن مدیر APatch</string>
+    <string name="hide_apatch_manager">مخفی کردن مدیر Aster</string>
     <string name="apm_reboot_to_apply">برای اعمال مجددا راه اندازی کنید</string>
     <string name="hide_apatch_manager_summary">نصب یک برنامه مدیریت با یک شناسه تصادفی و برچسب سفارشی</string>
     <string name="hide_apatch_manager_failure">پنهان کردن ناموفق بود. لطفا ایراد را گزارش کنید!</string>
@@ -201,7 +201,6 @@
     <string name="apm_module_undo_uninstall_failed">لغو حذف نصب ناموفق بود: %s</string>
     <string name="apm_module_undo_uninstall_success">لغو حذف نصب %s با موفقیت انجام شد</string>
     <string name="apm_undo">بازگردانی</string>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="back">بازگشت</string>
     <string name="learn_more">بیشتر بدانید</string>
     <string name="metamodule_uninstall_confirm">"آیا مطمئن هستید که می‌خواهید ماژول %s را حذف نصب کنید؟ این عمل بر همه ماژول‌ها تأثیر می‌گذارد و برخی از قابلیت‌های ارائه‌شده توسط متا ماژول (مانند نصب) دیگر کار نخواهند کرد.  "</string>

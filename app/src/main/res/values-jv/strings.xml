@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="android_patch">AndroidPatch</string>
     <string name="reboot">Mbalek</string>
     <string name="settings">Aturan</string>
@@ -71,14 +70,14 @@
     <string name="green_theme">Ijo</string>
     <string name="hide_apatch_dialog_new_manager_name">Jeneng manager anyar</string>
     <string name="hide_apatch_dialog_summary">Iki bakal digunakake minangka label aplikasi anyar sing ditampilake ing launcher</string>
-    <string name="hide_apatch_manager">Ndhelikake APatch Manager</string>
+    <string name="hide_apatch_manager">Ndhelikake Aster Manager</string>
     <string name="hide_apatch_manager_failure">Gagal ndhelikake. Laporake bug kasebut!</string>
     <string name="hide_apatch_manager_summary">Pasang aplikasi proxy kanthi ID paket acak lan label aplikasi kustom</string>
     <string name="home_ap_cando_install">Pasang</string>
     <string name="home_ap_cando_reboot">Mbalek</string>
     <string name="home_ap_cando_uninstall">Busak</string>
     <string name="home_ap_cando_update">Nganyari</string>
-    <string name="home_apatch_version">Versi APatch</string>
+    <string name="home_apatch_version">Versi Aster</string>
     <string name="home_click_to_install">Klik kanggo masang</string>
     <string name="home_device_info">Piranti</string>
     <string name="home_dialog_uninstall_all">Busak kabeh</string>
@@ -207,7 +206,7 @@
     <string name="settings_selinux_hide_warning_non_gki">Kernel non-GKI duwe risiko luwih gedhe lan bisa nyebabake boot gagal. Manawa data sampeyan wis digaring.</string>
     <string name="su_hide_system_apps">Ndhelikake aplikasi sistem</string>
     <string name="su_pkg_excluded_label">Ora kalebu</string>
-    <string name="su_pkg_excluded_setting_summary">Ngaktifake opsi iki bakal ngidini APatch mbalekake file apa wae sing diowahi dening modul aplikasi iki.</string>
+    <string name="su_pkg_excluded_setting_summary">Ngaktifake opsi iki bakal ngidini Aster mbalekake file apa wae sing diowahi dening modul aplikasi iki.</string>
     <string name="su_pkg_excluded_setting_title">Ora kalebu modifikasi</string>
     <string name="su_refresh">Segarake</string>
     <string name="su_selinux_via_hook">Ngliwati liwat hook</string>

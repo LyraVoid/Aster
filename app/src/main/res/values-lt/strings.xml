@@ -45,7 +45,6 @@
     <string name="apm_update">Atnaujinti</string>
     <string name="apm_version">Versija</string>
     <string name="apm_webui_open">Atidaryti</string>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="back">Atgal</string>
     <string name="blue_grey_theme">Mėlynai pilka</string>
     <string name="blue_theme">Mėlyna</string>
@@ -61,16 +60,16 @@
     <string name="green_theme">Žalia</string>
     <string name="hide_apatch_dialog_new_manager_name">Naujas valdiklio pavadinimas</string>
     <string name="hide_apatch_dialog_summary">Jis bus naudojamas kaip naujas programos pavadinimas, rodomas paleidimo priemonėje</string>
-    <string name="hide_apatch_manager">Paslėpti APatch valdiklį</string>
+    <string name="hide_apatch_manager">Paslėpti Aster valdiklį</string>
     <string name="hide_apatch_manager_failure">Nepavyko paslėpti. Praneškite apie klaidą!</string>
     <string name="hide_apatch_manager_summary">Įdiegti tarpinę programą su atsitiktiniu paketo ID ir pasirinktinu programos pavadinimu</string>
     <string name="home_ap_cando_install">Diegti</string>
     <string name="home_ap_cando_reboot">Perkrauti</string>
     <string name="home_ap_cando_uninstall">Pašalinti</string>
     <string name="home_ap_cando_update">Atnaujinti</string>
-    <string name="home_apatch_version">APatch versija</string>
+    <string name="home_apatch_version">Aster versija</string>
     <string name="home_click_to_install">Spustelėkite, kad įdiegtumėte</string>
-    <string name="home_click_to_learn_apatch">Sužinokite apie APatch funkcijas ir kaip jį naudoti</string>
+    <string name="home_click_to_learn_apatch">Sužinokite apie Aster funkcijas ir kaip jį naudoti</string>
     <string name="home_device_info">Įrenginys</string>
     <string name="home_dialog_uninstall_all">Pašalinti viską</string>
     <string name="home_dialog_uninstall_ap_only">Pašalinti AndroidPatch</string>
@@ -82,7 +81,7 @@
     <string name="home_kernel">Branduolio versija</string>
     <string name="home_kpatch_info_title">Informacija</string>
     <string name="home_kpatch_version">KernelPatch versija</string>
-    <string name="home_learn_apatch">Sužinokite apie APatch</string>
+    <string name="home_learn_apatch">Sužinokite apie Aster</string>
     <string name="home_manager_version">Valdiklio versija</string>
     <string name="home_more_menu_about">Apie</string>
     <string name="home_more_menu_feedback_or_suggestion">Atsiliepimas arba pasiūlymas</string>
@@ -207,7 +206,7 @@
     <string name="settings_selinux_hide_warning_non_gki">Ne GKI branduoliai kelia didesnę riziką ir gali sukelti įkrovos gedimą. Įsitikinkite, kad jūsų duomenys atsarginti.</string>
     <string name="su_hide_system_apps">Slėpti sistemos programas</string>
     <string name="su_pkg_excluded_label">Neįtraukti</string>
-    <string name="su_pkg_excluded_setting_summary">Įjungus šią parinktį APatch galės atkurti visus šios programos modulių pakeistus failus.</string>
+    <string name="su_pkg_excluded_setting_summary">Įjungus šią parinktį Aster galės atkurti visus šios programos modulių pakeistus failus.</string>
     <string name="su_pkg_excluded_setting_title">Neįtraukti pakeitimų</string>
     <string name="su_refresh">Atnaujinti</string>
     <string name="su_selinux_via_hook">Apeiti naudojant hook</string>

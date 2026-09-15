@@ -160,7 +160,7 @@ fun DiagnosticsSettingsScreen(navigator: DestinationsNavigator) {
             onSave = {
                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm")
                 val current = LocalDateTime.now().format(formatter)
-                exportBugreportLauncher.launch("APatch_bugreport_${current}.tar.gz")
+                exportBugreportLauncher.launch("Aster_bugreport_${current}.tar.gz")
                 showLogBottomSheet = false
             },
             onShare = {

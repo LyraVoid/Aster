@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="kernel_patch">KernelPatch</string>
     <string name="android_patch">AndroidPatch</string>
     <string name="reboot_recovery">Redémarrer en mode récupération</string>
@@ -24,7 +23,7 @@
     <string name="home_install_unknown">Non installé ou authentifié</string>
     <string name="kpatch_version">Version : %s</string>
     <string name="home_su_path">Exécutable su</string>
-    <string name="home_apatch_version">"Version d\'APatch"</string>
+    <string name="home_apatch_version">"Version d\'Aster"</string>
     <string name="apatch_version_update">Version : %1$s -&gt; %2$s</string>
     <string name="about_source_code">&lt;p&gt;Voir le code source sur %1$s&lt;p/&gt;Rejoindre notre canal %2$s&lt;p/&gt;Rejoindre notre groupe %3$s</string>
     <string name="patch_set_superkey">Initialiser la clé</string>
@@ -82,7 +81,7 @@
     <string name="kpm_apm_empty">Aucun module chargé</string>
     <string name="apm_failed_to_enable">"Impossible d\'activer le module \&quot;%s\&quot;"</string>
     <string name="kpm_args">Arguments</string>
-    <string name="su_pkg_excluded_setting_summary">"L\'activation de cette option permettra à APatch de restaurer tous les fichiers modifiés par les modules de cette application."</string>
+    <string name="su_pkg_excluded_setting_summary">"L\'activation de cette option permettra à Aster de restaurer tous les fichiers modifiés par les modules de cette application."</string>
     <string name="apm_remove">Désinstaller</string>
     <string name="su_pkg_excluded_setting_title">Exclure les modifications</string>
     <string name="apm_overlay_fs_not_available">Les modules sont indisponibles car OverlayFS est désactivé par le noyau !</string>
@@ -132,7 +131,7 @@
     <string name="patch_mode_uninstall_patch">Mode : Dépatch</string>
     <string name="patch_item_extra_version">Version :</string>
     <string name="patch_item_extra_args">Args :</string>
-    <string name="hide_apatch_manager">Masquer le gestionnaire APatch</string>
+    <string name="hide_apatch_manager">Masquer le gestionnaire Aster</string>
     <string name="setting_reset_su_new_path">nouveau chemin complet</string>
     <string name="patch_item_existed_extra_kpm">Existait</string>
     <string name="mode_select_page_select_file">Sélectionner une image boot à patcher</string>

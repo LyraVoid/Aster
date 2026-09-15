@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="home">Halaman Utama</string>
     <string name="patch_warnning">Pemasangan datang dengan risiko. Sila pastikan anda telah membuat sandaran data.</string>
     <string name="reboot">But semula (Reboot)</string>
     <string name="settings">Tetapan</string>
     <string name="about">Perihal</string>
-    <string name="home_learn_apatch">Ketahui tentang APatch</string>
+    <string name="home_learn_apatch">Ketahui tentang Aster</string>
     <string name="reboot_recovery">But semula ke Recovery</string>
     <string name="kernel_patch">KernelPatch</string>
     <string name="android_patch">AndroidPatch</string>
@@ -18,7 +17,7 @@
     <string name="safe_mode">Mod Selamat</string>
     <string name="super_key">SuperKey</string>
     <string name="settings_app_language">Bahasa</string>
-    <string name="home_click_to_learn_apatch">Ketahui tentang ciri-ciri APatch dan cara menggunakannya</string>
+    <string name="home_click_to_learn_apatch">Ketahui tentang ciri-ciri Aster dan cara menggunakannya</string>
     <string name="system_default">Lalai sistem</string>
     <string name="home_installing">Memasang</string>
     <string name="apatch_version_update">Versi: %1$s -&gt; %2$s</string>
@@ -67,7 +66,7 @@
     <string name="patch">tampalan</string>
     <string name="apm_uninstall_failed">Gagal menyahpasang: %s</string>
     <string name="apm_uninstall_success">%s dinyahpasang</string>
-    <string name="apm_install">APatch</string>
+    <string name="apm_install">Aster</string>
     <string name="apm_version">Versi</string>
     <string name="apm_update">Kemas kini</string>
     <string name="about_app_desc">Penyelesaian root kernel dengan hanya imej kernel yang dipangkas, menyediakan keupayaan untuk memasang modul sistem dan mencangkuk fungsi kernel.</string>
@@ -114,10 +113,10 @@
     <string name="green_theme">Hijau</string>
     <string name="hide_apatch_dialog_new_manager_name">Nama pengurus baharu</string>
     <string name="hide_apatch_dialog_summary">Ia akan digunakan sebagai label aplikasi baharu yang ditunjukkan dalam pelancar</string>
-    <string name="hide_apatch_manager">Sembunyikan Pengurus APatch</string>
+    <string name="hide_apatch_manager">Sembunyikan Pengurus Aster</string>
     <string name="hide_apatch_manager_failure">Gagal menyembunyikan. Sila laporkan pepijat!</string>
     <string name="hide_apatch_manager_summary">Pasang aplikasi proksi dengan ID pakej rawak dan label aplikasi tersuai</string>
-    <string name="home_apatch_version">Versi APatch</string>
+    <string name="home_apatch_version">Versi Aster</string>
     <string name="home_device_info">Peranti</string>
     <string name="home_dialog_uninstall_all">Nyahpasang semua</string>
     <string name="home_dialog_uninstall_ap_only">Buang AndroidPatch</string>
@@ -209,7 +208,7 @@
     <string name="settings_selinux_hide_warning_non_gki">Kernel bukan GKI membawa risiko yang lebih tinggi dan boleh menyebabkan kegagalan but. Pastikan data anda telah disandarkan.</string>
     <string name="su_hide_system_apps">Sembunyikan apl sistem</string>
     <string name="su_pkg_excluded_label">Kecualikan</string>
-    <string name="su_pkg_excluded_setting_summary">Mendayakan pilihan ini akan membenarkan APatch memulihkan sebarang fail yang diubah suai oleh modul apl ini.</string>
+    <string name="su_pkg_excluded_setting_summary">Mendayakan pilihan ini akan membenarkan Aster memulihkan sebarang fail yang diubah suai oleh modul apl ini.</string>
     <string name="su_pkg_excluded_setting_title">Kecualikan pengubahsuaian</string>
     <string name="su_refresh">Muat semula</string>
     <string name="su_selinux_via_hook">Pintasan melalui hook</string>

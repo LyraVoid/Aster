@@ -155,7 +155,7 @@ android {
             }
         }
         buildConfigField("String", "buildKPV", "\"$kernelPatchVersion\"")
-        base.archivesName = "APatch_${managerVersionCode}_${managerVersionName}_${branchName}"
+        base.archivesName = "Aster_${managerVersionCode}_${managerVersionName}_${branchName}"
     }
 
     compileOptions {

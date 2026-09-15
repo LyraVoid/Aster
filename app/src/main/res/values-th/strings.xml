@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="patch_warnning">APatch</string>
-    <string name="home_learn_apatch">เรียนรู้เกี่ยวกับ APatch</string>
+    <string name="patch_warnning">Aster</string>
+    <string name="home_learn_apatch">เรียนรู้เกี่ยวกับ Aster</string>
     <string name="reboot">รีบูต</string>
     <string name="settings">ตั้งค่า</string>
     <string name="send_log">ส่งบันทึก</string>
-    <string name="home_click_to_learn_apatch">เรียนรู้เกี่ยวกับคุณสมบัติ APatch และวิธีการใช้</string>
+    <string name="home_click_to_learn_apatch">เรียนรู้เกี่ยวกับคุณสมบัติ Aster และวิธีการใช้</string>
     <string name="home_installing">กำลังติดตั้ง</string>
     <string name="home_ap_cando_uninstall">ถอนการติดตั้ง</string>
     <string name="home_ap_cando_install">ติดตั้ง</string>
@@ -30,7 +30,6 @@
     <string name="kpm_license">ใบอนุญาต</string>
     <string name="kpm_apm_empty">ไม่มีการโหลดโมดูล</string>
     <string name="apm">APModule</string>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="kpm">KPModule</string>
     <string name="apm_reboot_to_apply">รีบูตเพื่อให้มีผล</string>
     <string name="apm_uninstall_success">กำลังดาวน์โหลดโมดูล: %s…</string>
@@ -38,7 +37,7 @@
     <string name="apm_remove">ถอนการติดตั้ง</string>
     <string name="apm_uninstall_confirm">กำลังดาวน์โหลดโมดูล: %s…</string>
     <string name="apm_version">APModule</string>
-    <string name="su_pkg_excluded_setting_summary">การเปิดใช้งานตัวเลือกนี้จะช่วยให้ APatch กู้คืนไฟล์ที่ถูกปรับเปลี่ยนโดยโมดูลสำหรับแอปพลิเคชันนี้</string>
+    <string name="su_pkg_excluded_setting_summary">การเปิดใช้งานตัวเลือกนี้จะช่วยให้ Aster กู้คืนไฟล์ที่ถูกปรับเปลี่ยนโดยโมดูลสำหรับแอปพลิเคชันนี้</string>
     <string name="apm_start_downloading">เริ่มดาวน์โหลด: %s</string>
     <string name="apm_overlay_fs_not_available">0.0019ไม่มี OverlayFS โมดูลไม่สามารถทำงานได้.</string>
     <string name="su_show_system_apps">แสดงแอประบบ</string>
@@ -67,14 +66,14 @@
     <string name="home_install_unknown">ไม่ทราบ</string>
     <string name="home_fingerprint">ลายนิ้วมือ</string>
     <string name="super_key">SuperKey</string>
-    <string name="kernel_patch">APatch</string>
+    <string name="kernel_patch">Aster</string>
     <string name="android_patch">AndroidPatch</string>
     <string name="reboot_bootloader">รีบูตเข้าสู่บูตโหลดเดอร์</string>
     <string name="reboot_download">รีบูตเข้าสู่โหมดดาวน์โหลด</string>
     <string name="reboot_edl">รีบูตเข้าสู่โหมด EDL</string>
     <string name="about_source_code"><![CDATA[<p>ดูซอร์สโค้ดที่ %1$s<p/>เข้าร่วมช่อง %2$s ของเรา<p/>เข้าร่วมกลุ่ม %3$s ของเรา]]></string>
     <string name="home_patch_set_key_desc">ข้อมูลรับรองสำหรับ KernelPatch เท่านั้น</string>
-    <string name="home_apatch_version">เวอร์ชั่น APatch</string>
+    <string name="home_apatch_version">เวอร์ชั่น Aster</string>
     <string name="patch_title">แพทซ์</string>
     <string name="home_kernel">Kernel</string>
     <string name="kpm_args">อาร์กิวเมนต์</string>
@@ -87,12 +86,12 @@
     <string name="su_selinux_via_hook">bypass via hook</string>
     <string name="su_pkg_excluded_label">exclude</string>
     <string name="settings_app_language">ภาษา</string>
-    <string name="patch">APatch</string>
+    <string name="patch">Aster</string>
     <string name="system_default">ค่าเริ่มต้นของระบบ</string>
     <string name="settings_global_namespace_mode">โหมดเนมสเปซทั่วโลก</string>
     <string name="settings_global_namespace_mode_summary">ทุกเซสชันรูทใช้เนมสเปซการเมานต์แบบทั่วโลก</string>
-    <string name="success">APatch</string>
-    <string name="failure">APatch</string>
+    <string name="success">Aster</string>
+    <string name="failure">Aster</string>
     <string name="home_kpatch_info_title">รายละเอียด</string>
     <string name="home_ap_cando_reboot">รีบูต</string>
     <string name="patch_config_title">แพทช์</string>
@@ -149,7 +148,7 @@
     <string name="enable_web_debugging_summary">สามารถใช้เพื่อดีบัก WebUI ได้ โปรดเปิดใช้งานเฉพาะเมื่อจำเป็นเท่านั้น</string>
     <string name="patch_item_extra_event">เหตุการณ์:</string>
     <string name="home_system_version">เวอร์ชันระบบ</string>
-    <string name="hide_apatch_manager">ซ่อนตัวจัดการ APatch</string>
+    <string name="hide_apatch_manager">ซ่อนตัวจัดการ Aster</string>
     <string name="hide_apatch_manager_summary">ติดตั้งแอปผู้จัดการใหม่ด้วยรหัสแพ็กเกจสุ่มและป้ายชื่อแอปที่กำหนดเอง</string>
     <string name="mode_select_page_title">ติดตั้ง</string>
     <string name="mode_select_page_patch_and_install">ยืนยันและติดตั้ง</string>

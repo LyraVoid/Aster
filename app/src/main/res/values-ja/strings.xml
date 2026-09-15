@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="home">ホーム</string>
     <string name="android_patch">AndroidPatch</string>
     <string name="kpm_unload_confirm">モジュール \&quot;%s\&quot; をアンロードしますか？</string>
     <string name="patch_warnning">インストールにはリスクが伴います。データがバックアップされていることを確認してください。</string>
     <string name="home_patch_set_key_desc">KernelPatch の資格情報のみ</string>
     <string name="reboot_download">ダウンロードモードへ再起動</string>
-    <string name="home_click_to_learn_apatch">APatch の機能と使い方はこちら</string>
+    <string name="home_click_to_learn_apatch">Aster の機能と使い方はこちら</string>
     <string name="reboot_edl">EDL モードへ再起動</string>
-    <string name="home_learn_apatch">APatch について</string>
+    <string name="home_learn_apatch">Aster について</string>
     <string name="kernel_patch">KernelPatch</string>
     <string name="home_need_update">新しいバージョンが利用可能</string>
     <string name="settings">設定</string>
@@ -19,7 +18,7 @@
     <string name="reboot_recovery">リカバリーへ再起動</string>
     <string name="reboot_bootloader">ブートローダーへ再起動</string>
     <string name="safe_mode">セーフモード</string>
-    <string name="about">APatch について</string>
+    <string name="about">Aster について</string>
     <string name="home_patch_next_step">次へ</string>
     <string name="home_not_installed">未インストール</string>
     <string name="send_log">ログを送信</string>
@@ -48,7 +47,7 @@
     <string name="kpm_load_toast_succ">ロード成功</string>
     <string name="kpm_load_toast_failed">ロード失敗</string>
     <string name="kpm_version">バージョン</string>
-    <string name="su_pkg_excluded_setting_summary">このオプションを有効にすると、APatch はこのアプリのモジュールによって変更されたすべてのファイルを復元できるようになります。</string>
+    <string name="su_pkg_excluded_setting_summary">このオプションを有効にすると、Aster はこのアプリのモジュールによって変更されたすべてのファイルを復元できるようになります。</string>
     <string name="su_show_system_apps">システムアプリを表示</string>
     <string name="su_refresh">更新</string>
     <string name="apm_not_installed">AndroidPatch はインストールされていません</string>
@@ -68,7 +67,7 @@
     <string name="home_selinux_status_enforcing">強制</string>
     <string name="su_pkg_excluded_setting_title">変更の除外</string>
     <string name="su_hide_system_apps">システムアプリを非表示</string>
-    <string name="home_apatch_version">APatch のバージョン</string>
+    <string name="home_apatch_version">Aster のバージョン</string>
     <string name="home_selinux_status_permissive">許容</string>
     <string name="patch">パッチ</string>
     <string name="settings_app_language">言語</string>
@@ -126,7 +125,7 @@
     <string name="patch_item_extra_kpm_license">ライセンス:</string>
     <string name="settings_check_update">アップデートを確認</string>
     <string name="hide_apatch_manager_summary">ランダムなパッケージIDとカスタムアプリラベルでプロキシアプリをインストールする</string>
-    <string name="hide_apatch_manager">APatchマネージャーを隠す</string>
+    <string name="hide_apatch_manager">Asterマネージャーを隠す</string>
     <string name="settings_check_update_summary">アプリを開いたときに自動でアップデートを確認する</string>
     <string name="kpm_install">インストール</string>
     <string name="kpm_embed">埋め込む</string>
@@ -154,7 +153,7 @@
     <string name="mode_select_page_install_inactive_slot_warning">デバイスは再起動後、**強制的に**アクティブでないスロットにブートされます。
 \nこのオプションは、OTA が完了した後のみ使用してください。
 \n続行しますか？</string>
-    <string name="home_dialog_uninstall_ap_only">APatch をアンインストール</string>
+    <string name="home_dialog_uninstall_ap_only">Aster をアンインストール</string>
     <string name="mode_select_page_select_file">パッチするブートイメージを選択</string>
     <string name="mode_select_page_install_inactive_slot">非アクティブなスロットにインストール (OTA 後)</string>
     <string name="home_more_menu_feedback_or_suggestion">フィードバック / 提案</string>
@@ -173,7 +172,7 @@
     <string name="light_blue_theme">ライトブルー</string>
     <string name="purple_theme">パープル</string>
     <string name="save_log">ログを保存</string>
-    <string name="home_more_menu_about">APatch について</string>
+    <string name="home_more_menu_about">Aster について</string>
     <string name="settings_night_mode_follow_sys">システムテーマに従う</string>
     <string name="amber_theme">アンバー</string>
     <string name="blue_grey_theme">ブルーグレー</string>

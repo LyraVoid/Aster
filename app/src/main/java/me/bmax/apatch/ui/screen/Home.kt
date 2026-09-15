@@ -329,7 +329,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 },
                 onFeedback = {
                     showMore = false
-                    uriHandler.openUri("https://github.com/bmax121/APatch/issues/new/choose")
+                    uriHandler.openUri("https://github.com/lyravoid/Aster/issues/new/choose")
                 },
                 onAbout = {
                     showMore = false
@@ -378,7 +378,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                         },
                         onFeedback = {
                             showMore = false
-                            uriHandler.openUri("https://github.com/bmax121/APatch/issues/new/choose")
+                            uriHandler.openUri("https://github.com/lyravoid/Aster/issues/new/choose")
                         },
                         onAbout = {
                             showMore = false

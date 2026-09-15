@@ -2,7 +2,6 @@
 <resources>
     <string name="apm">系统模块</string>
     <string name="super_key">超级密钥</string>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="kpm">内核模块</string>
     <string name="android_patch">系统补丁</string>
     <string name="save_log">保存日志</string>
@@ -13,12 +12,12 @@
     <string name="home_install_unknown">内核补丁未安装</string>
     <string name="home_install_unknown_summary">当前无法获取 Root，可能尚未修补或未刷入内核。</string>
     <string name="reboot_download">重启至 Download</string>
-    <string name="home_click_to_learn_apatch">查看 APatch 的特性和用法</string>
+    <string name="home_click_to_learn_apatch">查看 Aster 的特性和用法</string>
     <string name="reboot_edl">重启至 EDL</string>
     <string name="home_installing">安装中</string>
     <string name="safe_mode">安全模式</string>
     <string name="reboot_recovery">重启至 Recovery</string>
-    <string name="home_learn_apatch">了解 APatch</string>
+    <string name="home_learn_apatch">了解 Aster</string>
     <string name="kernel_patch">内核补丁</string>
     <string name="home_click_to_install">点此安装</string>
     <string name="about">关于</string>
@@ -43,7 +42,7 @@
     <string name="apatch_version">版本：%s</string>
     <string name="home_ap_cando_install">安装</string>
     <string name="home_more_menu_feedback_or_suggestion">反馈或建议</string>
-    <string name="home_apatch_version">APatch 版本</string>
+    <string name="home_apatch_version">Aster 版本</string>
     <string name="home_install_kernel_patch">安装内核补丁</string>
     <string name="home_update_kernel_patch">更新内核补丁</string>
     <string name="home_install_android_patch">安装系统补丁</string>
@@ -219,7 +218,7 @@
     <string name="hide_apatch_dialog_summary">将使用新的名称安装管理器</string>
     <string name="hide_apatch_manager_failure">隐藏失败，请提交反馈！</string>
     <string name="hide_apatch_manager_summary">安装代理应用，安装包 ID 随机且自定义应用标签</string>
-    <string name="hide_apatch_manager">隐藏 APatch 管理器</string>
+    <string name="hide_apatch_manager">隐藏 Aster 管理器</string>
     <string name="kpm_embed">嵌入</string>
     <string name="kpm_add_kpm">添加内核模块</string>
     <string name="kpm_install">安装</string>

@@ -201,7 +201,6 @@
     <string name="apm_module_undo_uninstall_failed">நிறுவல் நீக்கத்தை மீளமைக்க முடியவில்லை: %s</string>
     <string name="apm_module_undo_uninstall_success">%s இன் நிறுவல் நீக்கம் வெற்றிகரமாக ரத்து செய்யப்பட்டது</string>
     <string name="apm_undo">மீளமை</string>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="back">பின்செல்</string>
     <string name="learn_more">மேலும் அறிக</string>
     <string name="metamodule_uninstall_confirm">"தொகுதி %s ஐ நிறுவல் நீக்க விரும்புகிறீர்களா? இந்த செயல் அனைத்து தொகுதிகளையும் பாதிக்கும், மேலும் மெட்டாமாட்யூலால் வழங்கப்படும் சில அம்சங்கள் (மவுண்ட் செய்வது போன்றவை) இனி வேலை செய்யாது."</string>

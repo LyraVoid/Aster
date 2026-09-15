@@ -63,7 +63,6 @@
     <string name="apm_update">Opdater</string>
     <string name="apm_version">Version</string>
     <string name="apm_webui_open">Åbn</string>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="back">Tilbage</string>
     <string name="blue_grey_theme">Blågrå</string>
     <string name="blue_theme">Blå</string>
@@ -79,13 +78,13 @@
     <string name="green_theme">Grøn</string>
     <string name="hide_apatch_dialog_new_manager_name">Nyt manager-navn</string>
     <string name="hide_apatch_dialog_summary">Det bruges som den nye app-etiket, der vises i launcher\'en</string>
-    <string name="hide_apatch_manager">Skjul APatch Manager</string>
+    <string name="hide_apatch_manager">Skjul Aster Manager</string>
     <string name="hide_apatch_manager_failure">Kunne ikke skjule. Rapporter venligst fejlen!</string>
     <string name="hide_apatch_manager_summary">Installér en proxy-app med et tilfældigt pakke-ID og en brugerdefineret app-etiket</string>
     <string name="home_ap_cando_uninstall">Afinstallér</string>
     <string name="home_ap_cando_update">Opdater</string>
-    <string name="home_apatch_version">APatch-version</string>
-    <string name="home_click_to_learn_apatch">Lær om funktionerne i APatch, og hvordan du bruger det</string>
+    <string name="home_apatch_version">Aster-version</string>
+    <string name="home_click_to_learn_apatch">Lær om funktionerne i Aster, og hvordan du bruger det</string>
     <string name="home_device_info">Enhed</string>
     <string name="home_dialog_uninstall_all">Afinstallér alt</string>
     <string name="home_dialog_uninstall_ap_only">Fjern AndroidPatch</string>
@@ -95,7 +94,7 @@
     <string name="home_kernel">Kernel-version</string>
     <string name="home_kpatch_info_title">Info</string>
     <string name="home_kpatch_version">KernelPatch-version</string>
-    <string name="home_learn_apatch">Lær APatch</string>
+    <string name="home_learn_apatch">Lær Aster</string>
     <string name="home_manager_version">Manager-version</string>
     <string name="home_more_menu_about">Om</string>
     <string name="home_more_menu_feedback_or_suggestion">Feedback eller forslag</string>
@@ -207,7 +206,7 @@
     <string name="settings_selinux_hide_warning_non_gki">Ikke-GKI-kerner udgør en større risiko og kan forårsage opstartsfejl. Sørg for, at dine data er sikkerhedskopieret.</string>
     <string name="su_hide_system_apps">Skjul systemapps</string>
     <string name="su_pkg_excluded_label">Udeluk</string>
-    <string name="su_pkg_excluded_setting_summary">Aktivering af denne indstilling giver APatch mulighed for at gendanne filer, der er ændret af denne apps moduler.</string>
+    <string name="su_pkg_excluded_setting_summary">Aktivering af denne indstilling giver Aster mulighed for at gendanne filer, der er ændret af denne apps moduler.</string>
     <string name="su_pkg_excluded_setting_title">Udeluk ændringer</string>
     <string name="su_refresh">Opdater</string>
     <string name="su_selinux_via_hook">Omgå via hook</string>

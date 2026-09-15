@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="home">මුල් පිටුව</string>
     <string name="reboot">Restart කරන්න</string>
-    <string name="about">APatch පිළිබඳ</string>
+    <string name="about">Aster පිළිබඳ</string>
     <string name="super_key">මුරපදය</string>
     <string name="patch_set_superkey">නව මුර පදයක් සෑදීම</string>
     <string name="home_patch_set_key_desc">ඔබගේ මුරපදය ඇතුළත් කරන්න</string>
@@ -65,7 +64,7 @@
     <string name="kpm_desc">අවරෝහණ</string>
     <string name="su_title">රූට්</string>
     <string name="su_pkg_excluded_setting_summary">මොඩියුල්ස් සඳහා</string>
-    <string name="home_apatch_version">APatch අනුවාදය</string>
+    <string name="home_apatch_version">Aster අනුවාදය</string>
     <string name="home_kernel">කර්නල් එක</string>
     <string name="home_manager_version">කළමනාකරණයේ අනුවාදය</string>
     <string name="home_fingerprint">ආරක්ෂක සළකුණ</string>
@@ -183,7 +182,7 @@
     <string name="settings_night_theme_enabled">Dark theme එකදාමු</string>
     <string name="deep_purple_theme">Deep Purple Theme</string>
     <string name="green_theme">කොළ Theme</string>
-    <string name="hide_apatch_manager">APatch මැනේජර් හංගන්න</string>
+    <string name="hide_apatch_manager">Aster මැනේජර් හංගන්න</string>
     <string name="enable_web_debugging">WebView නිදොස්කරණය දාන්න</string>
     <string name="apm_webui_open">බලමු</string>
     <string name="enable_web_debugging_summary">WebUI නිදොස් කිරීමට භාවිතා කළ හැක, කරුණාකර අවශ්‍ය විට විතරක් දාගන්න.</string>

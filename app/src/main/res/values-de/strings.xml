@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
-    <string name="home_click_to_learn_apatch">Erfahre mehr über die Funktionen von APatch und wie man sie verwendet</string>
+    <string name="home_click_to_learn_apatch">Erfahre mehr über die Funktionen von Aster und wie man sie verwendet</string>
     <string name="about_source_code">&lt;p&gt;Quellcode anzeigen unter %1$s&lt;p/&gt;Trete unserem %2$s Kanel bei&lt;p/&gt;Trete unserer %3$s Gruppe bei</string>
     <string name="home">Startseite</string>
     <string name="reboot">Neustart</string>
@@ -19,13 +18,13 @@
     <string name="kernel_patch">KernelPatch</string>
     <string name="android_patch">AndroidPatch</string>
     <string name="reboot_bootloader">Neustart zum Bootloader</string>
-    <string name="home_learn_apatch">Lerne APatch kennen</string>
+    <string name="home_learn_apatch">Lerne Aster kennen</string>
     <string name="home_patch_set_key_desc">Nur Anmeldedaten für KernelPatch</string>
     <string name="home_patch_next_step">Nächster Schritt</string>
     <string name="kpatch_version">Version: %s</string>
     <string name="apatch_version_update">Version: %1$s -&gt; %2$s</string>
     <string name="home_manager_version">Manager Version</string>
-    <string name="su_pkg_excluded_setting_summary">Durch Aktivierung dieser Option kann APatch alle von den Modulen dieser App geänderten Dateien wiederherstellen.</string>
+    <string name="su_pkg_excluded_setting_summary">Durch Aktivierung dieser Option kann Aster alle von den Modulen dieser App geänderten Dateien wiederherstellen.</string>
     <string name="apm_failed_to_disable">Das Modul \&quot;%s\&quot; konnte nicht deaktiviert werden</string>
     <string name="home_selinux_status_disabled">Deaktiviert</string>
     <string name="apm_magisk_conflict">Module sind aufgrund eines Konfliktes mit Magisk nicht verfügbar.</string>
@@ -33,7 +32,7 @@
     <string name="apm_start_downloading">Download von %s starten</string>
     <string name="kpm_unload_confirm">Modul \&quot;%s\&quot; entladen?</string>
     <string name="apm_failed_to_enable">Das Modul \&quot;%s\&quot; konnte nicht eingeschaltet werden</string>
-    <string name="home_apatch_version">APatch Version</string>
+    <string name="home_apatch_version">Aster Version</string>
     <string name="home_selinux_status">SELinux-Status</string>
     <string name="reboot_recovery">Neustart zum Wiederherstellen</string>
     <string name="reboot_download">Neustart zum Herunterladen</string>
@@ -146,7 +145,7 @@
     <string name="kpm_control">Steuerung</string>
     <string name="kpm_add_kpm">KPM hinzufügen</string>
     <string name="kpm_install">Installieren</string>
-    <string name="hide_apatch_manager">APatch Manager ausblenden</string>
+    <string name="hide_apatch_manager">Aster Manager ausblenden</string>
     <string name="setting_reset_su_new_path">Neuer vollständiger Pfad</string>
     <string name="hide_apatch_dialog_new_manager_name">Neuer Name des Managers</string>
     <string name="mode_select_page_patch_and_install">Patchen und installieren</string>

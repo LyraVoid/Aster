@@ -459,7 +459,7 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
                 .addInterceptor { block ->
                     block.proceed(
                         block.request().newBuilder()
-                            .header("User-Agent", "APatch/${BuildConfig.VERSION_CODE}")
+                            .header("User-Agent", "Aster/${BuildConfig.VERSION_CODE}")
                             .header("Accept-Language", Locale.getDefault().toLanguageTag()).build()
                     )
                 }.build()

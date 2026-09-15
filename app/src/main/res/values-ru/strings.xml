@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="home">Главная</string>
     <string name="super_key">СуперКлюч</string>
     <string name="patch_warnning">Пожалуйста, убедитесь, что у вас есть резервная копия ваших данных. Установка сопряжена с рисками.</string>
@@ -16,7 +15,7 @@
     <string name="apatch_version">Версия: %s</string>
     <string name="apatch_version_update">Версия: %1$s → %2$s</string>
     <string name="home_su_path">Исполняемый файл su</string>
-    <string name="home_apatch_version">Версия APatch</string>
+    <string name="home_apatch_version">Версия Aster</string>
     <string name="home_kernel">Версия ядра</string>
     <string name="home_manager_version">Версия менеджера</string>
     <string name="home_fingerprint">Отпечаток</string>
@@ -55,8 +54,8 @@
     <string name="safe_mode">Безопасный режим</string>
     <string name="apm_reboot_to_apply">Перезагрузите, чтобы изменения вступили в силу</string>
     <string name="apm_magisk_conflict">Модули недоступны из-за конфликта с Magisk!</string>
-    <string name="home_learn_apatch">Узнать больше про APatch</string>
-    <string name="home_click_to_learn_apatch">Узнайте о возможностях APatch и о том, как его использовать</string>
+    <string name="home_learn_apatch">Узнать больше про Aster</string>
+    <string name="home_click_to_learn_apatch">Узнайте о возможностях Aster и о том, как его использовать</string>
     <string name="about_source_code">&lt;p&gt;Посмотрите исходный код на %1$s&lt;p/&gt;Присоединяйтесь к нашему каналу %2$s&lt;/p&gt;Присоединяйтесь к нашей группе %3$s</string>
     <string name="apm_update">Обновить</string>
     <string name="apm_downloading">Скачивание модуля \&quot;%s\&quot;…</string>
@@ -80,7 +79,7 @@
     <string name="su_selinux_via_hook">обход через хук</string>
     <string name="su_pkg_excluded_label">исключён</string>
     <string name="su_pkg_excluded_setting_title">Запретить изменения</string>
-    <string name="su_pkg_excluded_setting_summary">Включение этой опции позволит APatch восстановить любые файлы этого приложения, которые были модифицированы модулями.</string>
+    <string name="su_pkg_excluded_setting_summary">Включение этой опции позволит Aster восстановить любые файлы этого приложения, которые были модифицированы модулями.</string>
     <string name="home_ap_cando_install">Установить</string>
     <string name="home_ap_cando_update">Обновить</string>
     <string name="home_ap_cando_uninstall">Деинсталлировать</string>
@@ -129,7 +128,7 @@
     <string name="kpm_embed">Встроить</string>
     <string name="kpm_add_kpm">Добавить KPM</string>
     <string name="success">Успешно</string>
-    <string name="hide_apatch_manager">Скрыть менеджер APatch</string>
+    <string name="hide_apatch_manager">Скрыть менеджер Aster</string>
     <string name="hide_apatch_manager_failure">Не удалось скрыть. Пожалуйста, сообщите об ошибке!</string>
     <string name="hide_apatch_dialog_summary">Оно будет использоваться как новое название приложения</string>
     <string name="hide_apatch_dialog_new_manager_name">Новое название менеджера</string>

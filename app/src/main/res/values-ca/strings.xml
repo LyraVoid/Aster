@@ -12,8 +12,8 @@
     <string name="settings_app_language">Llengua</string>
     <string name="settings_global_namespace_mode">"Mode d\'espai de noms global"</string>
     <string name="settings_check_update">Cerca actualitzacions</string>
-    <string name="home_learn_apatch">Aprèn APatch</string>
-    <string name="home_click_to_learn_apatch">"Obteniu informació sobre les funcions d\'APatch i com utilitzar-lo"</string>
+    <string name="home_learn_apatch">Aprèn Aster</string>
+    <string name="home_click_to_learn_apatch">"Obteniu informació sobre les funcions d\'Aster i com utilitzar-lo"</string>
     <string name="home_install_unknown">No instal·lat ni autenticat</string>
     <string name="home_working">Treballant 😋</string>
     <string name="apatch_version">Versió: %s</string>
@@ -87,7 +87,7 @@
     <string name="patch_item_extra_name">Nom:</string>
     <string name="home_kernel">Kernel</string>
     <string name="home_selinux_status_disabled">Deshabilitat</string>
-    <string name="home_apatch_version">Versió de APatch</string>
+    <string name="home_apatch_version">Versió de Aster</string>
     <string name="kpm">KPModule</string>
     <string name="kpm_kp_not_installed">KernelPatch no instal·lat</string>
     <string name="kpm_embed">Inserir</string>
@@ -135,7 +135,6 @@
     <string name="apm_uninstall_success">%s desinstal·lat</string>
     <string name="apm_update">Actualitza</string>
     <string name="apm_webui_open">Obre</string>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="back">Enrere</string>
     <string name="blue_grey_theme">Gris blavós</string>
     <string name="blue_theme">Blau</string>
@@ -151,7 +150,7 @@
     <string name="green_theme">Verd</string>
     <string name="hide_apatch_dialog_new_manager_name">Nom nou del gestor</string>
     <string name="hide_apatch_dialog_summary">"S\'utilitzarà com a nova etiqueta de l\'aplicació que es mostra al llançador"</string>
-    <string name="hide_apatch_manager">"Amaga el Gestor d\'APatch"</string>
+    <string name="hide_apatch_manager">"Amaga el Gestor d\'Aster"</string>
     <string name="hide_apatch_manager_failure">"No s\'ha pogut amagar. Informeu de l\'error!"</string>
     <string name="hide_apatch_manager_summary">Instal·la una aplicació proxy amb un ID de paquet aleatori i una etiqueta personalitzada</string>
     <string name="home_dialog_uninstall_all">Desinstal·la-ho tot</string>
@@ -213,7 +212,7 @@
     <string name="settings_selinux_hide_warning_title">Avís</string>
     <string name="settings_selinux_hide_warning_below_5_10">"Aquesta funció només s'ha provat amb el nucli 5.10 o superior i pot ser inestable en versions de nucli inferiors."</string>
     <string name="settings_selinux_hide_warning_non_gki">"Els nuclis no-GKI comporten un risc més gran i poden provocar un error d'inici. Assegureu-vos que heu fet una còpia de seguretat de les vostres dades."</string>
-    <string name="su_pkg_excluded_setting_summary">"Activar aquesta opció permetrà a APatch restaurar qualsevol fitxer modificat pels mòduls d\'aquesta aplicació."</string>
+    <string name="su_pkg_excluded_setting_summary">"Activar aquesta opció permetrà a Aster restaurar qualsevol fitxer modificat pels mòduls d\'aquesta aplicació."</string>
     <string name="su_selinux_via_hook">Esquiva mitjançant hook</string>
     <string name="teal_theme">Blau verdós</string>
     <string name="yellow_theme">Groc</string>

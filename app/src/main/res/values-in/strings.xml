@@ -5,15 +5,14 @@
     <string name="android_patch">AndroidPatch</string>
     <string name="apm">APModul</string>
     <string name="super_key">SuperKey</string>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="kpm">KPModul</string>
     <string name="reboot_recovery">Reboot ke Recovery</string>
     <string name="reboot">Mulai ulang</string>
     <string name="settings">Setelan</string>
     <string name="reboot_bootloader">Reboot ke Bootloader</string>
-    <string name="home_click_to_learn_apatch">Pelajari fitur dan penggunaan APatch</string>
+    <string name="home_click_to_learn_apatch">Pelajari fitur dan penggunaan Aster</string>
     <string name="reboot_edl">Reboot ke EDL</string>
-    <string name="home_learn_apatch">Pelajari APatch</string>
+    <string name="home_learn_apatch">Pelajari Aster</string>
     <string name="about">Tentang</string>
     <string name="about_source_code">&lt;p&gt;Lihat kode sumber di %1$s&lt;p/&gt;Gabung kanal %2$s kami&lt;p/&gt;Gabung grup %3$s kami</string>
     <string name="send_log">Kirim log</string>
@@ -35,7 +34,7 @@
     <string name="home_ap_cando_update">Perbarui</string>
     <string name="home_ap_cando_uninstall">Hapus</string>
     <string name="home_ap_cando_install">Instal</string>
-    <string name="home_apatch_version">Versi APatch</string>
+    <string name="home_apatch_version">Versi Aster</string>
     <string name="home_su_path">Binari SU</string>
     <string name="home_kernel">Kernel</string>
     <string name="home_manager_version">Versi manajer</string>
@@ -66,7 +65,7 @@
     <string name="su_hide_system_apps">Sembunyikan aplikasi sistem</string>
     <string name="kpm_kp_not_installed">KernelPatch tidak terinstal</string>
     <string name="su_pkg_excluded_setting_title">Kecualikan modifikasi</string>
-    <string name="su_pkg_excluded_setting_summary">Aktifkan opsi ini agar APatch dapat memulihkan kembali berkas yang termodifikasi oleh modul ini.</string>
+    <string name="su_pkg_excluded_setting_summary">Aktifkan opsi ini agar Aster dapat memulihkan kembali berkas yang termodifikasi oleh modul ini.</string>
     <string name="su_pkg_excluded_label">dikecualikan</string>
     <string name="su_title">SuperUser</string>
     <string name="su_selinux_via_hook">bypass via hook</string>
@@ -130,7 +129,7 @@
     <string name="hide_apatch_manager_failure">Gagal menyembunyikan. Tolong laporkan bug ini!</string>
     <string name="hide_apatch_manager_summary">Instal apl proksi dengan ID acak dan label kustom</string>
     <string name="hide_apatch_dialog_new_manager_name">Nama manajer baru</string>
-    <string name="hide_apatch_manager">Sembunyikan manajer APatch</string>
+    <string name="hide_apatch_manager">Sembunyikan manajer Aster</string>
     <string name="hide_apatch_dialog_summary">Digunakan sebagai nama aplikasi di peluncur</string>
     <string name="success">Berhasil</string>
     <string name="failure">Gagal</string>

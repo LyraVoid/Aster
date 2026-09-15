@@ -6,12 +6,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting issues of APatch!
+        Thanks for reporting issues of Aster!
         To better assist you, please provide the following information.
         To avoid duplicate issues, please use English in the title.
         For KernelPatch specific issues (e.g., patching failures, kernel panics, etc.), please report them at: [KernelPatch](https://github.com/bmax121/KernelPatch)
 
-        感谢给 APatch 汇报问题！
+        感谢给 Aster 汇报问题！
         为了使我们更好地帮助你，请提供以下信息。
         为了防止重复汇报，标题请务必使用英文。
         如果是 KernelPatch 的问题（例如修补失败，内核崩溃等），请移步 [KernelPatch 仓库](https://github.com/bmax121/KernelPatch)。
@@ -27,7 +27,7 @@ body:
           - label: If the patch fails or the image cannot be booted after flashing the new boot.img, visit KernelPatch to clarify your doubts | 修复失败或刷入修补后镜像不能启动，请前往 KernelPatch 提问
             required: true
 
-          - label: I will upload the bug report file in APatch Manager > Settings > Send logs | 我会上传 Bug Report 文件从 APatch 管理器 > 设置 > 发送日志
+          - label: I will upload the bug report file in Aster Manager > Settings > Send logs | 我会上传 Bug Report 文件从 Aster 管理器 > 设置 > 发送日志
             required: true
 
           - label: I know how to reproduce the issue, which might not be specific to my device | 我知道如何重新复现这个问题
@@ -38,7 +38,7 @@ body:
     attributes:
       label: Version requirements | 版本要求
       options:
-        - label: I'm using the latest CI version of APatch Manager | 我正在使用最新 CI 版本
+        - label: I'm using the latest CI version of Aster Manager | 我正在使用最新 CI 版本
           required: true
 
   - type: textarea
@@ -110,7 +110,7 @@ body:
 
   - type: input
     attributes:
-      label: APatch version | APatch 版本
+      label: Aster version | Aster 版本
     validations:
       required: true
 

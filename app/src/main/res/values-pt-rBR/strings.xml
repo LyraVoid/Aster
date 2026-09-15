@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="home">Início</string>
     <string name="patch_warnning">A instalação apresenta riscos. Por favor, certifique-se de fazer backup de seus dados.</string>
     <string name="patch_title">Patch</string>
@@ -8,7 +7,7 @@
     <string name="kpm_desc">Descrição</string>
     <string name="kpm_args">Argumentos</string>
     <string name="su_title">SuperUsuário</string>
-    <string name="su_pkg_excluded_setting_summary">Ativar esta opção permitirá que o APatch restaure quaisquer arquivos modificados pelos módulos deste app.</string>
+    <string name="su_pkg_excluded_setting_summary">Ativar esta opção permitirá que o Aster restaure quaisquer arquivos modificados pelos módulos deste app.</string>
     <string name="su_refresh">Atualizar</string>
     <string name="apm_reboot_to_apply">Reinicie para entrar em vigor</string>
     <string name="kernel_patch">KernelPatch</string>
@@ -20,8 +19,8 @@
     <string name="reboot_download">Reiniciar em modo Download</string>
     <string name="reboot_edl">Reiniciar em modo EDL</string>
     <string name="about">Sobre</string>
-    <string name="home_learn_apatch">Saiba mais sobre o APatch</string>
-    <string name="home_click_to_learn_apatch">Conheça os recursos do APatch e como usá-lo</string>
+    <string name="home_learn_apatch">Saiba mais sobre o Aster</string>
+    <string name="home_click_to_learn_apatch">Conheça os recursos do Aster e como usá-lo</string>
     <string name="about_source_code">&lt;p&gt;Veja o código-fonte no %1$s&lt;p/&gt;Participe do nosso canal do %2$s&lt;p/&gt;Participe do nosso grupo do %3$s</string>
     <string name="send_log">Reportar registros</string>
     <string name="safe_mode">Modo de segurança</string>
@@ -39,7 +38,7 @@
     <string name="apatch_version">Versão: %s</string>
     <string name="home_su_path">Su executável</string>
     <string name="apatch_version_update">Versão: %1$s -&gt; %2$s</string>
-    <string name="home_apatch_version">Versão do APatch</string>
+    <string name="home_apatch_version">Versão do Aster</string>
     <string name="home_ap_cando_install">Instalar</string>
     <string name="home_ap_cando_update">Atualizar</string>
     <string name="home_ap_cando_uninstall">Desinstalar</string>
@@ -126,7 +125,7 @@
     <string name="patch_item_set_skey_label">A SuperKey deve ter de 8 a 63 caracteres e incluir números e letras, mas sem caracteres especiais.</string>
     <string name="hide_apatch_dialog_new_manager_name">Nome do novo gerenciador</string>
     <string name="hide_apatch_dialog_summary">Ele será usado como o novo nome do app mostrado na launcher</string>
-    <string name="hide_apatch_manager">Ocultar app do APatch</string>
+    <string name="hide_apatch_manager">Ocultar app do Aster</string>
     <string name="hide_apatch_manager_summary">Instala o app oculto com ID aleatório e nome personalizado</string>
     <string name="hide_apatch_manager_failure">Falha ao ocultar. Por favor, reporte o bug!</string>
     <string name="kpm_embed">Incorporar</string>

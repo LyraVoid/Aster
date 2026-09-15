@@ -31,8 +31,8 @@
     <string name="settings_clear_super_key_dialog">Haluatko todella edetä?</string>
     <string name="settings_check_update">Tarkista päivityksen varalta</string>
     <string name="settings_check_update_summary">Tarkista päivitysten varalta automaattisesti sovelluksen avaamisen yhteydessä</string>
-    <string name="home_learn_apatch">Opettele APatch</string>
-    <string name="home_click_to_learn_apatch">Tutustu APatchin ominaisuuksiin ja sen käyttöön</string>
+    <string name="home_learn_apatch">Opettele Aster</string>
+    <string name="home_click_to_learn_apatch">Tutustu Asterin ominaisuuksiin ja sen käyttöön</string>
     <string name="about_source_code">&lt;p&gt;Tarkastele lähdekoodia %1$s&lt;p/&gt;Liity %2$s-kanavallemme&lt;p/&gt;Liity %3$s-ryhmäämme:ssa</string>
     <string name="send_log">Lähetä lokit</string>
     <string name="save_log">Tallenna lokit</string>
@@ -95,7 +95,7 @@
     <string name="kpm_install">Asenna</string>
     <string name="kpm_embed">Upota</string>
     <string name="home_kpatch_version">KernelPatch-versio</string>
-    <string name="home_apatch_version">APatch-versio</string>
+    <string name="home_apatch_version">Aster-versio</string>
     <string name="kpm_load_toast_succ">Lataus onnistuu</string>
     <string name="kpm_kp_not_installed">KernelPatch ei asennettu</string>
     <string name="kpm_add_kpm">Lisää KPM</string>
@@ -124,7 +124,7 @@
     <string name="su_selinux_via_hook">ohita koukun kautta</string>
     <string name="su_pkg_excluded_label">sulje pois</string>
     <string name="su_pkg_excluded_setting_title">Sulje pois muutokset</string>
-    <string name="su_pkg_excluded_setting_summary">Tämän vaihtoehdon ottaminen käyttöön antaa APatchille mahdollisuuden palauttaa kaikki tämän sovelluksen moduulien muokkaamat tiedostot.</string>
+    <string name="su_pkg_excluded_setting_summary">Tämän vaihtoehdon ottaminen käyttöön antaa Asterille mahdollisuuden palauttaa kaikki tämän sovelluksen moduulien muokkaamat tiedostot.</string>
     <string name="su_show_system_apps">Näytä järjestelmäsovellukset</string>
     <string name="su_hide_system_apps">Piilota järjestelmäsovellukset</string>
     <string name="su_refresh">Virkistä</string>
@@ -146,7 +146,7 @@
     <string name="apm_changelog">Muutosloki</string>
     <string name="apm_start_downloading">Aloita %s:n lataaminen</string>
     <string name="apm_new_version_available">Uusi versio %s on saatavilla, päivitä napsauttamalla.</string>
-    <string name="hide_apatch_manager">Piilota APatch-hallinta</string>
+    <string name="hide_apatch_manager">Piilota Aster-hallinta</string>
     <string name="hide_apatch_dialog_new_manager_name">Uusi hallinnan nimi</string>
     <string name="hide_apatch_dialog_summary">Sitä käytetään käynnistysohjelmassa uutena näkyvänä sovelluksen nimikkeenä</string>
     <string name="hide_apatch_manager_failure">Piilottaminen epäonnistui. Ilmoita viasta!</string>
@@ -201,7 +201,6 @@
     <string name="apm_module_undo_uninstall_failed">Asennuksen poiston kumoaminen epäonnistui: %s</string>
     <string name="apm_module_undo_uninstall_success">%s:n asennuksen poisto peruutettu onnistuneesti</string>
     <string name="apm_undo">Kumoa</string>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="back">Takaisin</string>
     <string name="learn_more">Lue lisää</string>
     <string name="metamodule_uninstall_confirm">Haluatko varmasti poistaa moduulin %s? Tämä toiminto vaikuttaa kaikkiin moduuleihin, ja tietyt metamoduulin tarjoamat ominaisuudet (kuten liittäminen) eivät enää toimi.</string>

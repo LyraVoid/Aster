@@ -131,7 +131,7 @@ fun InstallScreen(navigator: DestinationsNavigator, uri: Uri, type: MODULE_TYPE)
                             Environment.getExternalStoragePublicDirectory(
                                 Environment.DIRECTORY_DOWNLOADS,
                             ),
-                            "APatch_install_${type}_log_${date}.log",
+                            "Aster_install_${type}_log_${date}.log",
                         )
                         file.writeText(logContent.toString())
                         file.absolutePath

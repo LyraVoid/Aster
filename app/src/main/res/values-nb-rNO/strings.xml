@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="apm_desc">Beskrivelse</string>
     <string name="home">Hjem</string>
     <string name="kernel_patch">Kjerneoppdatering</string>
@@ -11,7 +10,7 @@
     <string name="reboot_recovery">Omstart til gjenoppretting</string>
     <string name="reboot_bootloader">Omstart til oppstartslaster</string>
     <string name="reboot_edl">Omstart til EDL</string>
-    <string name="home_learn_apatch">Lær deg APatch</string>
+    <string name="home_learn_apatch">Lær deg Aster</string>
     <string name="send_log">Send loggen</string>
     <string name="home_click_to_learn_apatch">Lær mer om funksjonene i AndroidPatch og hvordan det brukes</string>
     <string name="safe_mode">Trygt modus</string>
@@ -60,8 +59,8 @@
     <string name="reboot_download">Start på nytt for å laste ned</string>
     <string name="about_source_code">&lt;p&gt; Vis kildekoden %1$s&lt;p/&gt; Bli med på %2$s kanalen vår &lt;p/&gt; Bli med i%3$s igruppa vår</string>
     <string name="kpm_unload_confirm">Vil du laste ut modulen «%s»?</string>
-    <string name="home_apatch_version">APatch-versjon</string>
-    <string name="su_pkg_excluded_setting_summary">Hvis du aktiverer dette alternativet, kan APatch gjenopprette filer som er endret av modulene i denne appen.</string>
+    <string name="home_apatch_version">Aster-versjon</string>
+    <string name="su_pkg_excluded_setting_summary">Hvis du aktiverer dette alternativet, kan Aster gjenopprette filer som er endret av modulene i denne appen.</string>
     <string name="su_pkg_excluded_setting_title">Ekskluder modifikasjoner</string>
     <string name="home_selinux_status_permissive">Tilforlatelig</string>
     <string name="kpm_apm_empty">Ingen modul innlastet</string>
@@ -148,7 +147,7 @@
     <string name="patch_item_bootimg_slot">Spor</string>
     <string name="patch_item_set_skey_label">SuperKey skal være 8–63 tegn lang og inneholde tall og bokstaver, men ingen spesialtegn.</string>
     <string name="hide_apatch_manager_summary">Installer en ny administratorapp med en tilfeldig ID og tilpasset navn</string>
-    <string name="hide_apatch_manager">Skjul APatch Manager</string>
+    <string name="hide_apatch_manager">Skjul Aster Manager</string>
     <string name="settings_global_namespace_mode">Global navnrom modus</string>
     <string name="patch_item_kpimg_config">Konfig:</string>
     <string name="patch_item_new_extra_kpm">Legg inn på nytt</string>

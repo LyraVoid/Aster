@@ -22,7 +22,7 @@
     <string name="reboot_download">Restartovat do: Stahování</string>
     <string name="reboot">Restartovat</string>
     <string name="settings">Nastavení</string>
-    <string name="home_click_to_learn_apatch">Zjistit více o funkcích APatch a jak je používat</string>
+    <string name="home_click_to_learn_apatch">Zjistit více o funkcích Aster a jak je používat</string>
     <string name="home_ap_cando_update">Aktualizovat</string>
     <string name="home">Domů</string>
     <string name="success">Úspěch</string>
@@ -58,7 +58,7 @@
     <string name="kpatch_version_update">Verze: %1$s -&gt; %2$s</string>
     <string name="home_install_unknown_summary">Kliknutím nainstalovat</string>
     <string name="about_source_code">&lt;p&gt;Zobrazit zdrojový kód na %1$s&lt;p/&gt; Připojit se k našemu kanálu %2$s&lt;p/&gt; Připojit se k naší skupině %3$s</string>
-    <string name="home_learn_apatch">Prozkoumat APatch</string>
+    <string name="home_learn_apatch">Prozkoumat Aster</string>
     <string name="patch_start_unpatch_btn">Odstranit záplatu</string>
     <string name="apm_uninstall_success">%s odinstalován</string>
     <string name="apm_overlay_fs_not_available">Moduly nejsou k dispozici, protože OverlayFS je zakázáno jádrem!</string>
@@ -80,7 +80,7 @@
     <string name="home_device_info">Zařízení</string>
     <string name="home_system_version">Verze systému</string>
     <string name="home_su_path">Spustitelný su</string>
-    <string name="home_apatch_version">Verze APatch</string>
+    <string name="home_apatch_version">Verze Aster</string>
     <string name="kpm">KPModul</string>
     <string name="kpm_kp_not_installed">KernelPatch není nainstalován</string>
     <string name="kpm_load">Načíst</string>
@@ -103,7 +103,7 @@
     <string name="setting_reset_su_path">Obnovit cestu su</string>
     <string name="setting_reset_su_new_path">Nová úplná cesta</string>
     <string name="home_patch_set_key_desc">Pouze pro ověření KernelPatch</string>
-    <string name="su_pkg_excluded_setting_summary">Zapnutí způsobí to, že APatch použije pro tuto aplikaci soubory, které nejsou upraveny moduly.</string>
+    <string name="su_pkg_excluded_setting_summary">Zapnutí způsobí to, že Aster použije pro tuto aplikaci soubory, které nejsou upraveny moduly.</string>
     <string name="su_show_system_apps">Zobrazit systémové aplikace</string>
     <string name="hide_apatch_manager_summary">Instalovat nového manažera s náhodným ID balíčku a vlastním názvem</string>
     <string name="hide_apatch_manager_failure">Skrytí se nezdařilo, prosím nahlaste chybu!</string>
@@ -139,7 +139,7 @@
     <string name="apm_magisk_conflict">Moduly nejsou k dispozici kvůli konfliktu s Magiskem!</string>
     <string name="hide_apatch_dialog_new_manager_name">Nový název manažera</string>
     <string name="apm_failed_to_disable">Nelze vypnout modul \&quot;%s\&quot;</string>
-    <string name="hide_apatch_manager">Skrýt manažera APatch</string>
+    <string name="hide_apatch_manager">Skrýt manažera Aster</string>
     <string name="apm_version">Verze</string>
     <string name="apm_changelog">Seznam změn</string>
     <string name="apm_update">Aktualizovat</string>
@@ -201,7 +201,6 @@
     <string name="apm_module_undo_uninstall_failed">Nepodařilo se vrátit odinstalaci: %s</string>
     <string name="apm_module_undo_uninstall_success">Úspěšně zrušena odinstalace %s</string>
     <string name="apm_undo">Zpět</string>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="back">Zpět</string>
     <string name="learn_more">Zjistit více</string>
     <string name="metamodule_uninstall_confirm">&quot;Opravdu chcete odinstalovat modul %s? Tato akce ovlivní všechny moduly a některé funkce poskytované metamodulem (například připojování) přestanou fungovat.  &quot;</string>

@@ -80,7 +80,7 @@ fun getBugreportFile(context: Context): File {
             pw.println("Sysname: ${uname.sysname}")
 
             pw.println("KPatch: ${Version.installedKPVString()}")
-            pw.println("APatch: ${Version.installedApdVString}")
+            pw.println("Aster: ${Version.installedApdVString}")
             val safeMode = false
             pw.println("SafeMode: $safeMode")
         }
@@ -92,7 +92,7 @@ fun getBugreportFile(context: Context): File {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm")
         val current = LocalDateTime.now().format(formatter)
 
-        val targetFile = File(context.cacheDir, "APatch_bugreport_${current}.tar.gz")
+        val targetFile = File(context.cacheDir, "Aster_bugreport_${current}.tar.gz")
 
         shell.newJob().add("tar czf ${targetFile.absolutePath} -C ${bugreportDir.absolutePath} .")
             .exec()

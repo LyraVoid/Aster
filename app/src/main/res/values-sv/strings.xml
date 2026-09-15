@@ -14,7 +14,7 @@
     <string name="settings_app_language">Språk</string>
     <string name="system_default">Systemstandard</string>
     <string name="settings_check_update">Sök efter uppdatering</string>
-    <string name="home_learn_apatch">Lär dig APatch</string>
+    <string name="home_learn_apatch">Lär dig Aster</string>
     <string name="reboot_edl">Starta om till EDL</string>
     <string name="settings_clear_super_key_dialog">Vill du verkligen fortsätta?</string>
     <string name="settings_check_update_summary">Sök automatiskt efter uppdateringar när appen öppnas</string>
@@ -71,7 +71,7 @@
     <string name="kpm">KP-modul</string>
     <string name="kpm_load">Ladda</string>
     <string name="home_system_version">Version på systemet</string>
-    <string name="home_apatch_version">Version på APatch</string>
+    <string name="home_apatch_version">Version på Aster</string>
     <string name="kpm_add_kpm">Lägg till KPM</string>
     <string name="kpm_install">Installera</string>
     <string name="kpm_load_toast_failed">Laddningen misslyckades</string>
@@ -88,7 +88,7 @@
     <string name="su_pkg_excluded_setting_title">Exkludera modifieringar</string>
     <string name="su_show_system_apps">Visa system-appar</string>
     <string name="su_hide_system_apps">Dölj system-appar</string>
-    <string name="su_pkg_excluded_setting_summary">Att aktivera det här alternativet kommer att tillåta APatch att återställa alla modifierade filer den här applikationens moduler.</string>
+    <string name="su_pkg_excluded_setting_summary">Att aktivera det här alternativet kommer att tillåta Aster att återställa alla modifierade filer den här applikationens moduler.</string>
     <string name="su_refresh">Uppdatera</string>
     <string name="apm">AP-modul</string>
     <string name="apm_remove">Ta bort</string>
@@ -144,7 +144,7 @@
     <string name="yellow_theme">Gult tema</string>
     <string name="light_green_theme">Ljusgrönt tema</string>
     <string name="about_telegram_channel">Kanal på Telegram</string>
-    <string name="home_click_to_learn_apatch">Lär dig om funktionerna i APatch och hur du använder</string>
+    <string name="home_click_to_learn_apatch">Lär dig om funktionerna i Aster och hur du använder</string>
     <string name="kpatch_shadow_path_title">kpatch</string>
     <string name="patch_start_patch_btn">Starta</string>
     <string name="patch_mode_bootimg_patch">Läge: Patchning</string>
@@ -178,7 +178,6 @@
     <string name="apm_module_undo_uninstall_success">Avinstallationen av %s avbröts framgångsrikt</string>
     <string name="apm_reboot_to_apply">Starta om för att ändringarna ska träda i kraft</string>
     <string name="apm_undo">Ångra</string>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="back">Tillbaka</string>
     <string name="crash_handle_copied">Kraschloggen kopierades till urklipp.</string>
     <string name="crash_handle_copy">Kopiera kraschlogg</string>
@@ -186,7 +185,7 @@
     <string name="deep_purple_theme">Djup lila</string>
     <string name="enable_web_debugging_summary">Kan användas för att felsöka WebUI. Aktivera endast vid behov.</string>
     <string name="hide_apatch_dialog_new_manager_name">Nytt managernamn</string>
-    <string name="hide_apatch_manager">Dölj APatch Manager</string>
+    <string name="hide_apatch_manager">Dölj Aster Manager</string>
     <string name="hide_apatch_manager_summary">Installera en proxyapp med ett slumpmässigt paket-ID och anpassad appetikett</string>
     <string name="home_kpatch_version">KernelPatch-version</string>
     <string name="home_manager_version">Manager-version</string>

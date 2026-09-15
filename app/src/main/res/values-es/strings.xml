@@ -2,14 +2,13 @@
 <resources>
     <string name="apm">APModule</string>
     <string name="super_key">Superclave</string>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="patch_warnning">La instalación conlleva riesgos. Así que asegúrate de tener una copia de seguridad de tus datos.</string>
     <string name="home">Inicio</string>
     <string name="reboot_download">Reiniciar al modo «download»</string>
-    <string name="home_click_to_learn_apatch">Aprende sobre las características de APatch y de cómo sacarles partido</string>
+    <string name="home_click_to_learn_apatch">Aprende sobre las características de Aster y de cómo sacarles partido</string>
     <string name="reboot_edl">Reiniciar al modo EDL</string>
     <string name="reboot_recovery">Reiniciar al modo recuperación</string>
-    <string name="home_learn_apatch">Más información sobre APatch</string>
+    <string name="home_learn_apatch">Más información sobre Aster</string>
     <string name="about">Acerca de</string>
     <string name="reboot">Reiniciar</string>
     <string name="settings">Ajustes</string>
@@ -72,7 +71,7 @@
     <string name="su_refresh">Actualizar</string>
     <string name="apm_failed_to_disable">No se pudo desactivar el módulo «%s»</string>
     <string name="kernel_patch">KernelPatch</string>
-    <string name="home_apatch_version">Versión de APatch</string>
+    <string name="home_apatch_version">Versión de Aster</string>
     <string name="apm_changelog">Notas de cambios</string>
     <string name="apm_uninstall_failed">No se pudo desinstalar %s</string>
     <string name="apm_failed_to_enable">No se pudo activar el módulo «%s»</string>
@@ -124,12 +123,12 @@
     <string name="patch_item_extra_name">Nombre:</string>
     <string name="patch_item_error">¡ERROR!</string>
     <string name="patch_item_bootimg_slot">slot:</string>
-    <string name="hide_apatch_manager">Ocultar APatch Manager</string>
+    <string name="hide_apatch_manager">Ocultar Aster Manager</string>
     <string name="kpm_embed">Insertar</string>
     <string name="success">Hecho</string>
     <string name="kpm_install">Instalar</string>
-    <string name="hide_apatch_dialog_new_manager_name">Nombre nuevo de APatch Manager</string>
-    <string name="hide_apatch_manager_summary">Instala una nueva aplicación de APatch Manager con un ID aleatorio y una etiqueta personalizada</string>
+    <string name="hide_apatch_dialog_new_manager_name">Nombre nuevo de Aster Manager</string>
+    <string name="hide_apatch_manager_summary">Instala una nueva aplicación de Aster Manager con un ID aleatorio y una etiqueta personalizada</string>
     <string name="hide_apatch_dialog_summary">Será la nueva etiqueta que aparezca en el lanzador de aplicaciones</string>
     <string name="hide_apatch_manager_failure">No se pudo ocultar, informa a los desarrolladores del error.</string>
     <string name="setting_reset_su_path">Restablecer la ruta a «su»</string>

@@ -107,7 +107,7 @@ fun ExecuteAPMActionScreen(navigator: DestinationsNavigator, moduleId: String) {
                                 Environment.getExternalStoragePublicDirectory(
                                     Environment.DIRECTORY_DOWNLOADS,
                                 ),
-                                "APatch_apm_action_log_${date}.log"
+                                "Aster_apm_action_log_${date}.log"
                             )
                             file.writeText(logContent.toString())
                             file.absolutePath

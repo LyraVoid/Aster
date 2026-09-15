@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">APatch</string>
     <string name="kpatch_version">Verzió: %s</string>
-    <string name="home_apatch_version">APatch verziója</string>
+    <string name="home_apatch_version">Aster verziója</string>
     <string name="reboot">Újraindítás</string>
     <string name="settings">Beállítások</string>
     <string name="home_install_unknown">Ismeretlen</string>
@@ -36,7 +35,7 @@
     <string name="home_patch_next_step">Következő Lépés</string>
     <string name="home_not_installed">Nincs telepítve</string>
     <string name="apatch_version">Verzió: %s</string>
-    <string name="su_pkg_excluded_setting_summary">Ennek az opciónak a bekapcsolása engedélyezi az APatch számára, hogy visszaállítson más modulok álltal módosított fájlokat.</string>
+    <string name="su_pkg_excluded_setting_summary">Ennek az opciónak a bekapcsolása engedélyezi az Aster számára, hogy visszaállítson más modulok álltal módosított fájlokat.</string>
     <string name="apm_uninstall_confirm">A(z) \&quot;%s\&quot; modul eltávolítása?</string>
     <string name="apm_uninstall_success">%s eltávolítva</string>
     <string name="apm_uninstall_failed">Nem sikerült eltávolítani a(z) %s-t</string>
@@ -60,10 +59,10 @@
     <string name="patch">Javítás</string>
     <string name="reboot_bootloader">Újraindítás a Bootloaderbe</string>
     <string name="settings_global_namespace_mode_summary">Minden gyökérmunka a globális hegyi neveket használja</string>
-    <string name="home_learn_apatch">APatch tanulása</string>
+    <string name="home_learn_apatch">Aster tanulása</string>
     <string name="apm_overlay_fs_not_available">A modulok nem elérhetőek, mert az OverlayFS ki van kapcsolva a kernelben!</string>
     <string name="settings_clear_super_key_dialog">Biztos folytatni akarod?</string>
-    <string name="home_click_to_learn_apatch">Ismerd meg az APatch funkcióit és használatát</string>
+    <string name="home_click_to_learn_apatch">Ismerd meg az Aster funkcióit és használatát</string>
     <string name="about_source_code">&lt;p&gt;Forráskód megtekintése %1$s-on&lt;p/&gt;Csatlakozz a %2$s csatornánkhoz&lt;p/&gt;Csatlakozz a %3$s csoportunkhoz</string>
     <string name="send_log">Naplók küldése</string>
     <string name="safe_mode">Biztonságos mód</string>
@@ -137,7 +136,7 @@
     <string name="save_log">ddd</string>
     <string name="hide_apatch_manager_summary">Új menedzser alk. telepítése véletlenszerű ID-vel és saját címkével</string>
     <string name="hide_apatch_dialog_new_manager_name">Új menedzser neve</string>
-    <string name="hide_apatch_manager">APatch Menedzser elrejtése</string>
+    <string name="hide_apatch_manager">Aster Menedzser elrejtése</string>
     <string name="setting_reset_su_new_path">Új, teljes elérési út</string>
     <string name="hide_apatch_manager_failure">Nem sikerült elrejteni. Kérlek jelentsd a hibát!</string>
     <string name="setting_reset_su_path">"a \'su\' elérési útjának visszaállítása"</string>
