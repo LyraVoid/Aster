@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -56,6 +57,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -127,6 +129,7 @@ import me.bmax.apatch.ui.home.resolveUpdateLayer
 import me.bmax.apatch.ui.home.resolveUpdateVersions
 import me.bmax.apatch.ui.shell.GlobalLayout
 import me.bmax.apatch.ui.shell.GlobalLayoutDialog
+import me.bmax.apatch.ui.shell.SceneShortHeight
 import me.bmax.apatch.ui.shell.HomeLayoutDialog
 import me.bmax.apatch.ui.shell.HomeLayout
 import me.bmax.apatch.ui.shell.LocalHomeSceneHostState
@@ -557,6 +560,11 @@ private fun HomeScenePanel(
         val sceneProgress = me.bmax.apatch.ui.shell.LocalSceneProgress.current
         val sidebarExpanded by me.bmax.apatch.ui.shell.rememberVisualFlag("scene_sidebar_expanded", true)
         val toggleSidebar = { me.bmax.apatch.ui.shell.setVisualFlag("scene_sidebar_expanded", !sidebarExpanded) }
+        // A window wider than it is tall, and shorter than the portrait composition asks for, is a
+        // phone held sideways. There the column would spend the whole fold on the hero and keep
+        // every card below it; the scene spends the width instead, keeping the photo in the left
+        // pane and the page in the right one, so the state and the cards are on screen at once.
+        val sceneAcross = maxWidth > maxHeight && maxHeight < SceneShortHeight
         val heroHeight = ((maxHeight - topInset) * if (maxHeight < 480.dp) 0.50f else 0.63f).coerceAtLeast(300.dp)
         val scrollState = rememberScrollState()
 
@@ -567,234 +575,104 @@ private fun HomeScenePanel(
                 .clip(RoundedCornerShape(topStart = 26.dp * sceneProgress, bottomStart = 26.dp * sceneProgress))
                 .background(MiuixTheme.colorScheme.background),
         ) {
-            PullToRefresh(
-                isRefreshing = state.conclusion == HomeConclusion.CHECKING,
-                onRefresh = onRefresh,
-                modifier = Modifier.fillMaxSize(),
-                refreshTexts = listOf(stringResource(R.string.refresh_pulling), stringResource(R.string.refresh_release), stringResource(R.string.refresh_refreshing), stringResource(R.string.refresh_complete)),
-            ) {
-            Column(
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .widthIn(max = 600.dp)
-                    .fillMaxSize()
-                    .verticalScroll(scrollState),
-            ) {
-                Spacer(Modifier.height(12.dp))
-
-                Box(
-                    Modifier
-                        .padding(horizontal = 14.dp)
-                        .fillMaxWidth()
-                        .height(heroHeight)
-                        .pointerInput(sidebarExpanded) {
-                            detectTapGestures(onDoubleTap = { toggleSidebar() })
-                        }
-                        .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
-                ) {
-                    if (!wallpaperState.isReady) {
-                        Box(
+            if (sceneAcross) {
+                Row(Modifier.fillMaxSize()) {
+                    SceneHero(
+                        state = state,
+                        wallpaperState = wallpaperState,
+                        sidebarExpanded = sidebarExpanded,
+                        onToggleSidebar = toggleSidebar,
+                        onTools = { onShowMoreChange(true) },
+                        onAppearance = onAppearance,
+                        scrollState = scrollState,
+                        shape = RoundedCornerShape(24.dp),
+                        modifier = Modifier
+                            .weight(0.46f)
+                            .fillMaxHeight()
+                            .padding(start = 14.dp, end = 7.dp, top = 12.dp, bottom = 12.dp),
+                    )
+                    // The photo no longer scrolls away with the page, so the refresh gesture belongs
+                    // to the page pane alone instead of opening across both of them.
+                    PullToRefresh(
+                        isRefreshing = state.conclusion == HomeConclusion.CHECKING,
+                        onRefresh = onRefresh,
+                        modifier = Modifier.weight(0.54f).fillMaxHeight(),
+                        refreshTexts = listOf(stringResource(R.string.refresh_pulling), stringResource(R.string.refresh_release), stringResource(R.string.refresh_refreshing), stringResource(R.string.refresh_complete)),
+                    ) {
+                        Column(
                             Modifier
                                 .fillMaxSize()
-                                .background(
-                                    Brush.linearGradient(
-                                        listOf(
-                                            MiuixTheme.colorScheme.primaryContainer,
-                                            MiuixTheme.colorScheme.secondaryContainer,
-                                        )
-                                    )
-                                )
-                        )
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .padding(horizontal = 28.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(14.dp),
+                                .verticalScroll(scrollState)
+                                .padding(start = 7.dp, end = 14.dp, top = 16.dp),
                         ) {
-                            Text(
-                                text = stringResource(
-                                    if (wallpaperState.phase == HomeWallpaperPhase.LOADING) {
-                                        R.string.home_wallpaper_loading
-                                    } else {
-                                        R.string.home_wallpaper_empty
-                                    }
-                                ),
-                                style = MiuixTheme.textStyles.body2,
-                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                                textAlign = TextAlign.Center,
+                            SceneGreeting(state)
+                            SceneInfoCards(
+                                state = state,
+                                onPrimaryAction = primaryAction,
+                                onDismissBackupWarning = onDismissBackupWarning,
+                                onUpdateClick = onUpdateClick,
+                                onApmClick = onApmClick,
+                                onKpmClick = onKpmClick,
+                                onLearnMore = onLearnMore,
+                                bottomInset = bottomInset,
                             )
-                            // Without this the only way into the wallpaper sheet is the rail icon
-                            // at the very bottom of the scene, which is easy to miss while the
-                            // hero is still an empty placeholder.
-                            if (wallpaperState.phase != HomeWallpaperPhase.LOADING) {
-                                Button(
-                                    onClick = onAppearance,
-                                    colors = ButtonDefaults.buttonColorsPrimary(),
-                                ) {
-                                    Text(stringResource(R.string.home_wallpaper_choose))
-                                }
-                            }
                         }
                     }
-                    // The photo gives a share of the scroll back, so the scene drifts instead of
-                    // sliding away with the list. The extra height keeps the crop covered while
-                    // it moves; the hero clip hides everything outside it.
-                    HomeWallpaperImage(
-                        state = wallpaperState,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(heroHeight * SceneParallaxOverscan)
-                            .graphicsLayer {
-                                translationY = (scrollState.value * SceneParallaxRate)
-                                    .coerceAtMost(size.height * SceneParallaxRate / SceneParallaxOverscan)
-                            },
-                    )
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    // Fade the photo into the panel colour instead of a black
-                                    // scrim, so the status strip stays readable on any wallpaper.
-                                    0f to Color.Transparent,
-                                    0.45f to Color.Transparent,
-                                    0.78f to MiuixTheme.colorScheme.background.copy(alpha = 0.88f),
-                                    0.90f to MiuixTheme.colorScheme.background,
-                                    1f to MiuixTheme.colorScheme.background,
-                                )
-                            )
-                    )
-                    // As the hero slides under the page top it would otherwise show a sliced
-                    // photo edge. Wash its own top with the panel colour, in proportion to how
-                    // far it has scrolled, so it dissolves instead of being cut. At rest the
-                    // wash is fully transparent.
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .graphicsLayer {
-                                alpha = (scrollState.value / size.height).coerceIn(0f, 1f) * 0.95f
-                            }
-                            .background(
-                                Brush.verticalGradient(
-                                    0f to MiuixTheme.colorScheme.background,
-                                    0.42f to Color.Transparent,
-                                )
-                            )
-                    )
-                    IconButton(
-                        onClick = toggleSidebar,
-                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).size(48.dp),
-                        backgroundColor = Color.Transparent,
-                    ) {
-                        Icon(
-                            painter = painterResource(if (sidebarExpanded) R.drawable.wallpaper_expand else R.drawable.wallpaper_collapse),
-                            contentDescription = stringResource(if (sidebarExpanded) R.string.scene_expand else R.string.scene_restore),
-                            modifier = Modifier.size(24.dp),
-                            tint = Color.Unspecified,
-                        )
-                    }
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .fillMaxWidth()
-                            .padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        SceneRootStatus(
-                            state = state,
-                            onTools = { onShowMoreChange(true) },
-                        )
-                        SceneStatusStrip(state = state)
-                    }
                 }
-
+            } else {
+                PullToRefresh(
+                    isRefreshing = state.conclusion == HomeConclusion.CHECKING,
+                    onRefresh = onRefresh,
+                    modifier = Modifier.fillMaxSize(),
+                    refreshTexts = listOf(stringResource(R.string.refresh_pulling), stringResource(R.string.refresh_release), stringResource(R.string.refresh_refreshing), stringResource(R.string.refresh_complete)),
+                ) {
                 Column(
                     Modifier
-                        .fillMaxWidth()
-                        .padding(start = 22.dp, end = 22.dp, top = 18.dp),
+                        .align(Alignment.TopCenter)
+                        .widthIn(max = 600.dp)
+                        .fillMaxSize()
+                        .verticalScroll(scrollState),
                 ) {
-                    Text(
-                        text = listOfNotNull(
-                            sceneGreeting(),
-                            state.environment?.displayName()?.takeIf { it.isNotBlank() },
-                        ).joinToString(" · "),
-                        style = MiuixTheme.textStyles.footnote1,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    Spacer(Modifier.height(12.dp))
+
+                    SceneHero(
+                        state = state,
+                        wallpaperState = wallpaperState,
+                        sidebarExpanded = sidebarExpanded,
+                        onToggleSidebar = toggleSidebar,
+                        onTools = { onShowMoreChange(true) },
+                        onAppearance = onAppearance,
+                        scrollState = scrollState,
+                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                        modifier = Modifier
+                            .padding(horizontal = 14.dp)
+                            .fillMaxWidth()
+                            .height(heroHeight),
                     )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = sceneQuote(),
-                        style = MiuixTheme.textStyles.title3,
+
+                    SceneGreeting(
+                        state = state,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 22.dp, end = 22.dp, top = 18.dp),
                     )
-                    Spacer(Modifier.height(18.dp))
+
+                    SceneInfoCards(
+                        state = state,
+                        onPrimaryAction = primaryAction,
+                        onDismissBackupWarning = onDismissBackupWarning,
+                        onUpdateClick = onUpdateClick,
+                        onApmClick = onApmClick,
+                        onKpmClick = onKpmClick,
+                        onLearnMore = onLearnMore,
+                        bottomInset = bottomInset,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp)
+                            .padding(top = 18.dp),
+                    )
                 }
-
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 14.dp)
-                        .padding(top = 18.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    if (state.showBackupWarning) {
-                        WarningCard(
-                            message = stringResource(R.string.patch_warnning),
-                            tone = WarningCardTone.Warning,
-                            onClose = onDismissBackupWarning,
-                        )
-                    }
-
-                    if (state.primaryAction != HomePrimaryAction.NONE) {
-                        Button(
-                            onClick = primaryAction,
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColorsPrimary(),
-                        ) {
-                            Text(stringResource(state.primaryAction.labelRes()))
-                        }
-                    }
-
-                    val availableUpdate = state.update as? HomeUpdateState.Available
-                    if (availableUpdate != null) {
-                        UpdateAvailableCard(
-                            update = availableUpdate,
-                            onClick = onUpdateClick,
-                        )
-                    }
-
-                    val showApm = state.capability.kernelPatch.isUsable() &&
-                        state.capability.androidPatch.isUsable()
-                    val showKpm = state.capability.kernelPatch.isUsable()
-                    if (showApm || showKpm) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            if (showApm) {
-                                ModuleCountCard(
-                                    label = stringResource(R.string.apm),
-                                    count = state.apmCount,
-                                    onClick = onApmClick,
-                                    modifier = Modifier.weight(1f),
-                                )
-                            }
-                            if (showKpm) {
-                                ModuleCountCard(
-                                    label = stringResource(R.string.kpm),
-                                    count = state.kpmCount,
-                                    onClick = onKpmClick,
-                                    modifier = Modifier.weight(1f),
-                                )
-                            }
-                        }
-                    }
-
-                    DeviceInfoCard(state = state)
-                    LearnMoreCard(onClick = onLearnMore)
-                    Spacer(Modifier.height(bottomInset + 24.dp))
                 }
-            }
             }
         }
 
@@ -812,6 +690,259 @@ private fun HomeScenePanel(
             onReboot = onReboot,
             onDangerousReboot = onDangerousReboot,
         )
+    }
+}
+
+/**
+ * The scene's photo, as one piece: the wallpaper with the wash that keeps its foot readable, the
+ * way back into the wallpaper sheet, the expand affordance and the two status blocks that stand on
+ * it. Only where it goes and how big it is differ between the window shapes, so the caller hands in
+ * its size and its corners instead of the scene growing a copy per shape.
+ *
+ * The photo gives a share of the scroll back, so the scene drifts instead of sliding away with the
+ * page. The extra height keeps the crop covered while it moves; the clip hides everything outside
+ * the card.
+ */
+@Composable
+private fun SceneHero(
+    state: HomeUiState,
+    wallpaperState: HomeWallpaperState,
+    sidebarExpanded: Boolean,
+    onToggleSidebar: () -> Unit,
+    onTools: () -> Unit,
+    onAppearance: () -> Unit,
+    scrollState: ScrollState,
+    shape: Shape,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        Modifier
+            .then(modifier)
+            .pointerInput(sidebarExpanded) {
+                detectTapGestures(onDoubleTap = { onToggleSidebar() })
+            }
+            .clip(shape),
+    ) {
+        if (!wallpaperState.isReady) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                MiuixTheme.colorScheme.primaryContainer,
+                                MiuixTheme.colorScheme.secondaryContainer,
+                            )
+                        )
+                    )
+            )
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = 28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Text(
+                    text = stringResource(
+                        if (wallpaperState.phase == HomeWallpaperPhase.LOADING) {
+                            R.string.home_wallpaper_loading
+                        } else {
+                            R.string.home_wallpaper_empty
+                        }
+                    ),
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    textAlign = TextAlign.Center,
+                )
+                // Without this the only way into the wallpaper sheet is the rail icon
+                // at the very bottom of the scene, which is easy to miss while the
+                // hero is still an empty placeholder.
+                if (wallpaperState.phase != HomeWallpaperPhase.LOADING) {
+                    Button(
+                        onClick = onAppearance,
+                        colors = ButtonDefaults.buttonColorsPrimary(),
+                    ) {
+                        Text(stringResource(R.string.home_wallpaper_choose))
+                    }
+                }
+            }
+        }
+        HomeWallpaperImage(
+            state = wallpaperState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(SceneParallaxOverscan)
+                .graphicsLayer {
+                    translationY = (scrollState.value * SceneParallaxRate)
+                        .coerceAtMost(size.height * SceneParallaxRate / SceneParallaxOverscan)
+                },
+        )
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        // Fade the photo into the panel colour instead of a black
+                        // scrim, so the status strip stays readable on any wallpaper.
+                        0f to Color.Transparent,
+                        0.45f to Color.Transparent,
+                        0.78f to MiuixTheme.colorScheme.background.copy(alpha = 0.88f),
+                        0.90f to MiuixTheme.colorScheme.background,
+                        1f to MiuixTheme.colorScheme.background,
+                    )
+                )
+        )
+        // As the hero slides under the page top it would otherwise show a sliced
+        // photo edge. Wash its own top with the panel colour, in proportion to how
+        // far it has scrolled, so it dissolves instead of being cut. At rest the
+        // wash is fully transparent.
+        Box(
+            Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    alpha = (scrollState.value / size.height).coerceIn(0f, 1f) * 0.95f
+                }
+                .background(
+                    Brush.verticalGradient(
+                        0f to MiuixTheme.colorScheme.background,
+                        0.42f to Color.Transparent,
+                    )
+                )
+        )
+        IconButton(
+            onClick = onToggleSidebar,
+            modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).size(48.dp),
+            backgroundColor = Color.Transparent,
+        ) {
+            Icon(
+                painter = painterResource(if (sidebarExpanded) R.drawable.wallpaper_expand else R.drawable.wallpaper_collapse),
+                contentDescription = stringResource(if (sidebarExpanded) R.string.scene_expand else R.string.scene_restore),
+                modifier = Modifier.size(24.dp),
+                tint = Color.Unspecified,
+            )
+        }
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            SceneRootStatus(
+                state = state,
+                onTools = onTools,
+            )
+            SceneStatusStrip(state = state)
+        }
+    }
+}
+
+/**
+ * The line the scene says to its reader: the greeting with the device it is running on, and the
+ * quote of the day under it. It is chrome rather than data, so it is the same in both window
+ * shapes and only its outer padding is the caller's to set.
+ */
+@Composable
+private fun SceneGreeting(
+    state: HomeUiState,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        Text(
+            text = listOfNotNull(
+                sceneGreeting(),
+                state.environment?.displayName()?.takeIf { it.isNotBlank() },
+            ).joinToString(" · "),
+            style = MiuixTheme.textStyles.footnote1,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = sceneQuote(),
+            style = MiuixTheme.textStyles.title3,
+        )
+        Spacer(Modifier.height(18.dp))
+    }
+}
+
+/**
+ * Everything under the greeting: what the scene has to warn about, what it asks the reader to do,
+ * the module counts, the device, and the way out to the project. The same page in both window
+ * shapes, so the two cannot drift apart when a card is added.
+ */
+@Composable
+private fun SceneInfoCards(
+    state: HomeUiState,
+    onPrimaryAction: () -> Unit,
+    onDismissBackupWarning: () -> Unit,
+    onUpdateClick: () -> Unit,
+    onApmClick: () -> Unit,
+    onKpmClick: () -> Unit,
+    onLearnMore: () -> Unit,
+    bottomInset: Dp,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (state.showBackupWarning) {
+            WarningCard(
+                message = stringResource(R.string.patch_warnning),
+                tone = WarningCardTone.Warning,
+                onClose = onDismissBackupWarning,
+            )
+        }
+
+        if (state.primaryAction != HomePrimaryAction.NONE) {
+            Button(
+                onClick = onPrimaryAction,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColorsPrimary(),
+            ) {
+                Text(stringResource(state.primaryAction.labelRes()))
+            }
+        }
+
+        val availableUpdate = state.update as? HomeUpdateState.Available
+        if (availableUpdate != null) {
+            UpdateAvailableCard(
+                update = availableUpdate,
+                onClick = onUpdateClick,
+            )
+        }
+
+        val showApm = state.capability.kernelPatch.isUsable() &&
+            state.capability.androidPatch.isUsable()
+        val showKpm = state.capability.kernelPatch.isUsable()
+        if (showApm || showKpm) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                if (showApm) {
+                    ModuleCountCard(
+                        label = stringResource(R.string.apm),
+                        count = state.apmCount,
+                        onClick = onApmClick,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if (showKpm) {
+                    ModuleCountCard(
+                        label = stringResource(R.string.kpm),
+                        count = state.kpmCount,
+                        onClick = onKpmClick,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        }
+
+        DeviceInfoCard(state = state)
+        LearnMoreCard(onClick = onLearnMore)
+        Spacer(Modifier.height(bottomInset + 24.dp))
     }
 }
 

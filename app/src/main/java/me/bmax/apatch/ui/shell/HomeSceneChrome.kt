@@ -17,6 +17,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -112,6 +113,26 @@ internal const val SceneClockStyleFlag = "scene_clock_style"
  * its switch sits with the rows that only exist while the standard family is in use.
  */
 internal const val HomeClassicEmojiFlag = "home_classic_emoji"
+
+/**
+ * How tall a window has to be before the scene draws its portrait composition.
+ *
+ * Below this the window is a phone held sideways, or a squat freeform window: the hero, the clock
+ * and five destinations in one column ask for more height than the window has, so the scene is laid
+ * out across instead of down. The rail and the page both read this, so they change shape together
+ * rather than one of them deciding the window is short on its own.
+ */
+internal val SceneShortHeight = 560.dp
+
+/**
+ * How tall a window has to be before the scene's strip keeps the labels under its destinations.
+ *
+ * Five labelled destinations ask for a little over 300dp of strip, so a window shorter than this
+ * would answer by hiding the last destination below the fold. The label is the one that can go
+ * instead, which is the same trade the side-label switch already offers: the icons keep their
+ * content descriptions, and the row that names them is one tap away.
+ */
+internal val SceneRailLabelledHeight = 330.dp
 
 /**
  * The scene clock has a few shapes, and the rail is narrow enough that they are genuinely
@@ -259,48 +280,72 @@ internal fun HomeSceneRail(
     onAppearance: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier.windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top)).verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
+    BoxWithConstraints(modifier) {
+        // A short window cannot hold the clock, the battery and five destinations in one strip.
+        // They asked for more height than the window has, which pushed the last destinations out of
+        // sight, and the strip only scrolled for someone who thought to try. The clock and the
+        // battery both repeat what the status bar already says, so a short strip draws the
+        // destinations alone, tightened until every one of them fits. The rail stays scrollable as
+        // the safety net for a window shorter than any phone asks for.
+        val compact = maxHeight < SceneShortHeight
+        // The labels are the next thing to give way, and only when the strip is too short to name
+        // and still show all five. Icons alone are still destinations; a destination below the fold
+        // is not.
+        val iconsOnly = compact && maxHeight < SceneRailLabelledHeight
         val showSceneClock by rememberVisualFlag(SceneRailClockFlag, true)
         val clockStyleValue by rememberVisualChoice(
             SceneClockStyleFlag,
             SceneClockStyle.Default.value,
         )
-        Spacer(Modifier.height(28.dp))
-        if (showSceneClock) {
-            SceneClock(SceneClockStyle.fromValue(clockStyleValue))
-            Spacer(Modifier.height(24.dp))
-            SceneBattery()
-        }
-        Spacer(Modifier.weight(1f))
         val showLabels by rememberVisualFlag(SceneRailLabelsFlag, true)
-        destinations
-            .filter { it != PrimaryDestination.Home }
-            .forEach { destination ->
-                val selected = currentDestination == destination
-                SceneRailItem(
-                    selected = selected,
-                    icon = destination.icon,
-                    label = stringResource(destination.label),
-                    showLabel = showLabels,
-                    onClick = { onSelectDestination(destination) },
-                )
+        val railLabels = showLabels && !iconsOnly
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top))
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Spacer(Modifier.height(if (compact) 10.dp else 28.dp))
+            if (!compact && showSceneClock) {
+                SceneClock(SceneClockStyle.fromValue(clockStyleValue))
+                Spacer(Modifier.height(24.dp))
+                SceneBattery()
             }
-        Spacer(Modifier.height(12.dp))
-        SceneRailItem(
-            selected = false,
-            icon = MiuixIcons.Photos,
-            label = stringResource(me.bmax.apatch.R.string.home_appearance),
-            showLabel = showLabels,
-            onClick = onAppearance,
-        )
-        Spacer(
-            Modifier
-                .height(20.dp)
-                .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)),
-        )
+            // The tall strip keeps the destinations at its foot, away from the clock. The short one
+            // has no clock to hold them down, so it takes a share of the slack at each end and the
+            // group reads as the middle of the strip instead of a list that ran out early.
+            Spacer(Modifier.weight(1f))
+            destinations
+                .filter { it != PrimaryDestination.Home }
+                .forEach { destination ->
+                    val selected = currentDestination == destination
+                    SceneRailItem(
+                        selected = selected,
+                        icon = destination.icon,
+                        label = stringResource(destination.label),
+                        showLabel = railLabels,
+                        compact = compact,
+                        onClick = { onSelectDestination(destination) },
+                    )
+                }
+            Spacer(Modifier.height(if (compact) 8.dp else 12.dp))
+            SceneRailItem(
+                selected = false,
+                icon = MiuixIcons.Photos,
+                label = stringResource(me.bmax.apatch.R.string.home_appearance),
+                showLabel = railLabels,
+                compact = compact,
+                onClick = onAppearance,
+            )
+            if (compact) {
+                Spacer(Modifier.weight(1f))
+            }
+            Spacer(
+                Modifier
+                    .height(if (compact) 12.dp else 20.dp)
+                    .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)),
+            )
+        }
     }
 }
 
@@ -310,22 +355,26 @@ private fun SceneRailItem(
     icon: ImageVector,
     label: String,
     showLabel: Boolean,
+    compact: Boolean,
     onClick: () -> Unit,
 ) {
     val alpha = if (selected) 1f else 0.74f
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp, vertical = 4.dp)
-            .clip(RoundedCornerShape(18.dp))
+            .padding(
+                horizontal = if (compact) 8.dp else 10.dp,
+                vertical = if (compact) 2.dp else 4.dp,
+            )
+            .clip(RoundedCornerShape(if (compact) 16.dp else 18.dp))
             .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
+            .padding(vertical = if (compact) 4.dp else 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(if (compact) 2.dp else 4.dp),
     ) {
         Box(
             modifier = Modifier
-                .size(38.dp)
+                .size(if (compact) 30.dp else 38.dp)
                 .clip(CircleShape)
                 .background(
                     if (selected) SceneOnWallpaper.copy(alpha = 0.22f) else Color.Transparent
@@ -335,18 +384,19 @@ private fun SceneRailItem(
             Icon(
                 imageVector = icon,
                 contentDescription = if (showLabel) null else label,
-                modifier = Modifier.size(23.dp),
+                modifier = Modifier.size(if (compact) 20.dp else 23.dp),
                 tint = SceneOnWallpaper.copy(alpha = alpha),
             )
         }
         // Labels matter more here than in a themed bar: the icons sit on a photo, and
         // "kernel patch" and "system patch" are not self-explaining shapes. They stay optional
-        // because a photo someone likes is worth leaving alone.
+        // because a photo someone likes is worth leaving alone, and the short strip keeps them
+        // until naming a destination would cost the destination itself.
         if (showLabel) {
             Text(
                 text = label,
                 style = TextStyle(
-                    fontSize = 10.sp,
+                    fontSize = if (compact) 9.sp else 10.sp,
                     fontWeight = FontWeight.Medium,
                     color = SceneOnWallpaper.copy(alpha = alpha * 0.88f),
                     shadow = SceneTextShadow,
