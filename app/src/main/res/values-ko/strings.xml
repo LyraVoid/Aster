@@ -199,7 +199,6 @@
     <string name="apm_action">동작</string>
     <string name="crash_handle_copied">충돌 로그가 클립보드에 복사됨.</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">제거 취소에 실패했습니다: %s</string>
     <string name="apm_module_undo_uninstall_success">%s의 제거를 취소했습니다</string>
     <string name="apm_undo">실행 취소</string>

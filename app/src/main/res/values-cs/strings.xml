@@ -197,7 +197,6 @@
     <string name="crash_handle_copy">Kopírovat protokol o selhání</string>
     <string name="crash_handle_copied">Kopírovat protokol o selhání do schránky.</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Nepodařilo se vrátit odinstalaci: %s</string>
     <string name="apm_module_undo_uninstall_success">Úspěšně zrušena odinstalace %s</string>
     <string name="apm_undo">Zpět</string>

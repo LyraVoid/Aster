@@ -199,7 +199,6 @@
     <string name="crash_handle_copy">Çökme raporunu kopyala</string>
     <string name="crash_handle_copied">Çökme raporu panoya kopyalandı.</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Kaldırma işlemi geri alınamadı: %s</string>
     <string name="apm_module_undo_uninstall_success">%s kaldırma işlemi başarıyla iptal edildi</string>
     <string name="apm_undo">Geri al</string>

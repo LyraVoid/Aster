@@ -21,7 +21,6 @@
     <string name="about_source_code"><![CDATA[<p>Ver o código fonte en %1$s<p/>Únete ao noso canle de %2$s<p/>Únete ao noso grupo de %3$s]]></string>
     <string name="about_telegram_channel">Canle de Telegram</string>
     <string name="about_telegram_group">Grupo de Telegram</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="amber_theme">Ámbar</string>
     <string name="apatch_version">Versión: %s</string>
     <string name="apatch_version_update">Versión: %1$s -&gt; %2$s</string>

@@ -199,7 +199,6 @@
     <string name="crash_handle_copy">نسخ سجل الأعطال</string>
     <string name="crash_handle_copied">تم نسخ سجل الأعطال إلى الحافظة.</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">فشل التراجع عن إلغاء التثبيت: %s</string>
     <string name="apm_module_undo_uninstall_success">تم التراجع عن إلغاء تثبيت %s بنجاح</string>
     <string name="apm_undo">تراجع</string>

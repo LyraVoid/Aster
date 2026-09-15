@@ -197,7 +197,6 @@
     <string name="about_source_code">&lt;p&gt;மூலக் குறியீட்டை %1$s&lt;p/&gt;எங்கள் %2$s சேனலில் சேர்&lt;p/&gt;எங்கள் %3$s குழுவில் சேர்</string>
     <string name="patch_item_kpimg">கேபிபட</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">நிறுவல் நீக்கத்தை மீளமைக்க முடியவில்லை: %s</string>
     <string name="apm_module_undo_uninstall_success">%s இன் நிறுவல் நீக்கம் வெற்றிகரமாக ரத்து செய்யப்பட்டது</string>
     <string name="apm_undo">மீளமை</string>

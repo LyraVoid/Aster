@@ -134,24 +134,7 @@ fun AboutScreen(navigator: DestinationsNavigator) {
                 AboutLinkButton(
                     iconRes = R.drawable.telegram,
                     label = stringResource(id = R.string.about_telegram_channel),
-                    onClick = { uriHandler.openUri("https://t.me/APatchChannel") },
-                )
-            }
-
-            Row(
-                modifier = Modifier.padding(top = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                AboutLinkButton(
-                    iconRes = R.drawable.weblate,
-                    label = stringResource(id = R.string.about_weblate),
-                    onClick = { uriHandler.openUri("https://hosted.weblate.org/engage/APatch") },
-                )
-                AboutLinkButton(
-                    iconRes = R.drawable.telegram,
-                    label = stringResource(id = R.string.about_telegram_group),
-                    onClick = { uriHandler.openUri("https://t.me/apatch_discuss") },
+                    onClick = { uriHandler.openUri("https://t.me/FolkPatch") },
                 )
             }
 

@@ -171,7 +171,6 @@
     <string name="deep_orange_theme">Djuporanget tema</string>
     <string name="about_app_desc">Kernelbaserad root-lösning med endast en avskalad kärnavbild, som ger möjlighet att montera systemmoduler och koppla in kärnfunktioner.</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="amber_theme">Bärnsten</string>
     <string name="apm_failed_to_enable">Kunde inte aktivera modulen: %s</string>
     <string name="apm_module_undo_uninstall_failed">Kunde inte ångra avinstallationen: %s</string>

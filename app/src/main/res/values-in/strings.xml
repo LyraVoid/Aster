@@ -197,7 +197,6 @@
     <string name="crash_handle_title">Aplikasi telah berhenti…</string>
     <string name="crash_handle_copied">Log kerusakan telah disalin.</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Gagal membatalkan penghapusan: %s</string>
     <string name="apm_module_undo_uninstall_success">Berhasil membatalkan penghapusan %s</string>
     <string name="apm_undo">Urungkan</string>

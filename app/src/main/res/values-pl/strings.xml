@@ -197,7 +197,6 @@
     <string name="crash_handle_copy">Kopiuj logi awarii</string>
     <string name="crash_handle_copied">Logi awarii skopiowano do schowka.</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Nie udało się cofnąć odinstalowania: %s</string>
     <string name="apm_module_undo_uninstall_success">Pomyślnie anulowano odinstalowanie modułu %s</string>
     <string name="apm_undo">Cofnij</string>

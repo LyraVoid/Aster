@@ -199,7 +199,6 @@
     <string name="crash_handle_copy">Copia registro di arresto anomalo</string>
     <string name="apm_action">Azione</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Impossibile annullare la disinstallazione: %s</string>
     <string name="apm_module_undo_uninstall_success">Disinstallazione di %s annullata con successo</string>
     <string name="apm_undo">Annulla</string>

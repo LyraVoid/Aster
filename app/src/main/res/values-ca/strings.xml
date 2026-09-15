@@ -114,7 +114,6 @@
     <string name="about_powered_by">Creat per %1$s</string>
     <string name="about_telegram_channel">Canal de Telegram</string>
     <string name="about_telegram_group">Grup de Telegram</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="amber_theme">Ambre</string>
     <string name="apm_action">Acció</string>
     <string name="apm_changelog">Registre de canvis</string>

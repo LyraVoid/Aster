@@ -300,7 +300,6 @@
     <string name="apm_action">執行</string>
     <string name="crash_handle_copied">已將崩潰日誌複製到剪貼簿。</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">取消解除安裝失敗：%s</string>
     <string name="apm_module_undo_uninstall_success">已成功取消解除安裝 %s</string>
     <string name="apm_undo">復原</string>

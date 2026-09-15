@@ -199,7 +199,6 @@
     <string name="crash_handle_copy">Copier le rapport de plantage</string>
     <string name="crash_handle_copied">Rapport de plantage copié dans le presse-papiers.</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">"Échec de l'annulation de la désinstallation : %s"</string>
     <string name="apm_module_undo_uninstall_success">Désinstallation de %s annulée avec succès</string>
     <string name="apm_undo">Annuler</string>

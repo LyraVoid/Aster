@@ -199,7 +199,6 @@
     <string name="crash_handle_copied">Absturzprotokoll in die Zwischenablage kopiert.</string>
     <string name="crash_handle_title">App ist abgestürzt…</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Widerruf der Deinstallation fehlgeschlagen: %s</string>
     <string name="apm_module_undo_uninstall_success">Deinstallation von %s erfolgreich abgebrochen</string>
     <string name="apm_undo">Rückgängig</string>

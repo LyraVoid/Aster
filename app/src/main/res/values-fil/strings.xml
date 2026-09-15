@@ -96,7 +96,6 @@
     <string name="about_source_code"><![CDATA[<p>Tingnan ang source code sa %1$s<p/>Sumali sa aming %2$s channel<p/>Sumali sa aming %3$s grupo]]></string>
     <string name="about_telegram_channel">Channel ng Telegram</string>
     <string name="about_telegram_group">Grupo ng Telegram</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="amber_theme">Amber</string>
     <string name="apatch_version">Bersyon: %s</string>
     <string name="apatch_version_update">Bersyon: %1$s -&gt; %2$s</string>

@@ -201,7 +201,6 @@
     <string name="crash_handle_copy">Çöküntü qeydini kopyala</string>
     <string name="crash_handle_copied">Clipboarda çöküntü qeydi kopyalandı.</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Silinməni geri qaytarmaq mümkün olmadı: %s</string>
     <string name="apm_module_undo_uninstall_success">%s silinməsi uğurla ləğv edildi</string>
     <string name="apm_undo">Geri qaytar</string>

@@ -193,7 +193,6 @@
     <string name="about_powered_by">%1$s මගින් බලගැන්වේ</string>
     <string name="about_telegram_channel">Telegram නාලිකාව</string>
     <string name="about_telegram_group">Telegram කණ්ඩායම</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">ඉවත් කිරීම අවලංගු කිරීමට නොහැකි විය: %s</string>
     <string name="apm_module_undo_uninstall_success">%s ඉවත් කිරීම සාර්ථකව අවලංගු කරන ලදී</string>
     <string name="apm_undo">අවලංගු කරන්න</string>

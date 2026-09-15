@@ -192,7 +192,6 @@
     <string name="about_app_desc">Rješenje za root na razini jezgre sa samo ogoljenom slikom jezgre, koje pruža mogućnost montiranja sistemskih modula i presretanja funkcija jezgre.</string>
     <string name="about_github" translatable="false">GitHub</string>
     <string name="about_powered_by">Pokreće %1$s</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Neuspješno poništavanje deinstalacije: %s</string>
     <string name="apm_module_undo_uninstall_success">Uspješno poništena deinstalacija %s</string>
     <string name="apm_undo">Poništi</string>

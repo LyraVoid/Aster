@@ -197,7 +197,6 @@
     <string name="crash_handle_copy">ক্রাশ এর লগ কপি করুন</string>
     <string name="sakura_theme">সাকুরা</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">আনইনস্টল বাতিল করা যায়নি: %s</string>
     <string name="apm_module_undo_uninstall_success">%s এর আনইনস্টল সফলভাবে বাতিল করা হয়েছে</string>
     <string name="apm_undo">পূর্বাবস্থায় ফেরান</string>

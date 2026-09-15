@@ -199,7 +199,6 @@
     <string name="crash_handle_copied">クラッシュ ログをクリップボードにコピーしました。</string>
     <string name="crash_handle_title">アプリがクラッシュしました。</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">アンインストールの取り消しに失敗しました: %s</string>
     <string name="apm_module_undo_uninstall_success">%s のアンインストールを取り消しました</string>
     <string name="apm_undo">元に戻す</string>

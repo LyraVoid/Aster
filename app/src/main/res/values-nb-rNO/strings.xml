@@ -165,7 +165,6 @@
     <string name="about_github" translatable="false">GitHub</string>
     <string name="about_telegram_channel">Telegram-kanal</string>
     <string name="about_telegram_group">Telegram-gruppe</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="amber_theme">Rav</string>
     <string name="apm_action">Handling</string>
     <string name="apm_module_undo_uninstall_failed">Kunne ikke angre avinstalleringen: %s</string>

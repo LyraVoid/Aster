@@ -197,7 +197,6 @@
     <string name="amber_theme">ธีมสีเหลือง</string>
     <string name="deep_orange_theme">ธีมสีส้มเข้ม</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">ไม่สามารถยกเลิกการถอนการติดตั้ง: %s</string>
     <string name="apm_module_undo_uninstall_success">ยกเลิกการถอนการติดตั้ง %s สำเร็จแล้ว</string>
     <string name="apm_undo">เลิกทำ</string>

@@ -14,7 +14,6 @@
     <string name="about_source_code">&lt;p&gt;Peržiūrėkite šaltinio kodą %1$s&lt;p/&gt;Prisijunkite prie mūsų %2$s kanalo&lt;p/&gt;Prisijunkite prie mūsų %3$s grupės</string>
     <string name="about_telegram_channel">Telegram kanalas</string>
     <string name="about_telegram_group">Telegram grupė</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="amber_theme">Gintaras</string>
     <string name="android_patch">AndroidPatch</string>
     <string name="apatch_version">Versija: %s</string>

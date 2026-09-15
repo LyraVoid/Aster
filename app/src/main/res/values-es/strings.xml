@@ -197,7 +197,6 @@
     <string name="crash_handle_title">La aplicación ha fallado…</string>
     <string name="crash_handle_copied">Se copió el registro de fallos al portapapeles.</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">No se pudo deshacer la desinstalación: %s</string>
     <string name="apm_module_undo_uninstall_success">Se canceló correctamente la desinstalación de %s</string>
     <string name="apm_undo">Deshacer</string>

@@ -201,7 +201,6 @@
     <string name="crash_handle_copy">Copiază jurnalul de eroare</string>
     <string name="crash_handle_copied">Jurnal de eroare copiat în clipboard.</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Nu s-a putut anula dezinstalarea: %s</string>
     <string name="apm_module_undo_uninstall_success">Anularea dezinstalării %s a fost realizată cu succes</string>
     <string name="apm_undo">Anulează</string>

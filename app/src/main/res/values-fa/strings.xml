@@ -197,7 +197,6 @@
     <string name="about_app_desc">راه حل روت کرنل فقط با یک ایمیج جدا از کرنل،قابلیت نصب ماژول سیستم و قلاب کردن توابع کرنل را ارئه می دهد.</string>
     <string name="about_powered_by">قدرت گرفته از %1$s</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">لغو حذف نصب ناموفق بود: %s</string>
     <string name="apm_module_undo_uninstall_success">لغو حذف نصب %s با موفقیت انجام شد</string>
     <string name="apm_undo">بازگردانی</string>

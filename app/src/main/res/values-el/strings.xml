@@ -197,7 +197,6 @@
     <string name="patch_item_extra_author">Δημιουργός</string>
     <string name="patch_item_extra_args">Επιχειρήματα:</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Αποτυχία αναίρεσης απεγκατάστασης: %s</string>
     <string name="apm_module_undo_uninstall_success">Η ακύρωση της απεγκατάστασης του %s ήταν επιτυχής</string>
     <string name="apm_undo">Αναίρεση</string>

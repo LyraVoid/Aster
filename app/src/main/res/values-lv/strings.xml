@@ -80,7 +80,6 @@
     <string name="about_source_code">&lt;p&gt;Skatiet pirmkodu %1$s&lt;p/&gt;Pievienojieties mūsu %2$s kanālam&lt;p/&gt;Pievienojieties mūsu %3$s grupai</string>
     <string name="about_telegram_channel">Telegram kanāls</string>
     <string name="about_telegram_group">Telegram grupa</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="amber_theme">Dzintara</string>
     <string name="android_patch">AndroidPatch</string>
     <string name="apatch_version_update">Versija: %1$s -&gt; %2$s</string>

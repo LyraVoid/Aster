@@ -199,7 +199,6 @@
     <string name="crash_handle_copied">Nhật ký sự cố đã được sao chép vào bảng tạm.</string>
     <string name="apm_action">Hoạt động</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Không thể hủy gỡ cài đặt: %s</string>
     <string name="apm_module_undo_uninstall_success">Đã hủy gỡ cài đặt %s thành công</string>
     <string name="apm_undo">Hoàn tác</string>

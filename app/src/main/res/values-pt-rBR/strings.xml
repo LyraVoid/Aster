@@ -199,7 +199,6 @@
     <string name="crash_handle_copy">Copiar registro de falhas</string>
     <string name="log_saved">Registros salvos</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Não foi possível desfazer a desinstalação: %s</string>
     <string name="apm_module_undo_uninstall_success">Desinstalação de %s cancelada com sucesso</string>
     <string name="apm_undo">Desfazer</string>

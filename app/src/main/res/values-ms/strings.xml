@@ -75,7 +75,6 @@
     <string name="about_powered_by">Dikuasakan oleh %1$s</string>
     <string name="about_telegram_channel">Saluran Telegram</string>
     <string name="about_telegram_group">Kumpulan Telegram</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="amber_theme">Ambar</string>
     <string name="apm">APModule</string>
     <string name="apm_action">Tindakan</string>

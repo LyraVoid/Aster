@@ -32,7 +32,6 @@
     <string name="about_source_code">&lt;p&gt;Se kildekoden på %1$s&lt;p/&gt;Deltag i vores %2$s-kanal&lt;p/&gt;Deltag i vores %3$s-gruppe</string>
     <string name="about_telegram_channel">Telegram-kanal</string>
     <string name="about_telegram_group">Telegram-gruppe</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="amber_theme">Rav</string>
     <string name="android_patch">AndroidPatch</string>
     <string name="apatch_version">Version: %s</string>

@@ -197,7 +197,6 @@
     <string name="kpm_control">Controle</string>
     <string name="patch_start_unpatch_btn">Ontsnipperen</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Kan het ongedaan maken van de verwijdering niet voltooien: %s</string>
     <string name="apm_module_undo_uninstall_success">Het verwijderen van %s is succesvol geannuleerd</string>
     <string name="apm_undo">Ongedaan maken</string>

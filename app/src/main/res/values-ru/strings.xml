@@ -197,7 +197,6 @@
     <string name="log_saved">Логи сохранены</string>
     <string name="crash_handle_title">Сбой приложения…</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Не удалось отменить удаление: %s</string>
     <string name="apm_module_undo_uninstall_success">Удаление %s успешно отменено</string>
     <string name="apm_undo">Отменить</string>

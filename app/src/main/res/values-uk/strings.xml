@@ -199,7 +199,6 @@
     <string name="crash_handle_copied">Журнал збоїв скопійовано в буфер обміну.</string>
     <string name="crash_handle_copy">Копіювати журнал збоїв</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Не вдалося скасувати видалення: %s</string>
     <string name="apm_module_undo_uninstall_success">Скасування видалення %s успішне</string>
     <string name="apm_undo">Скасувати</string>

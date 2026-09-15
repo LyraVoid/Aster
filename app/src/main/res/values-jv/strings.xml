@@ -24,7 +24,6 @@
     <string name="about_powered_by">Dikendhaleni dening %1$s</string>
     <string name="about_telegram_channel">Saluran Telegram</string>
     <string name="about_telegram_group">Grup Telegram</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="amber_theme">Amber</string>
     <string name="apatch_version">Versi: %s</string>
     <string name="apatch_version_update">Versi: %1$s -&gt; %2$s</string>

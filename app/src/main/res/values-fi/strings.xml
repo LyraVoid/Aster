@@ -197,7 +197,6 @@
     <string name="crash_handle_copy">Kopioi kaatumisloki</string>
     <string name="crash_handle_copied">Kaatumisloki kopioittu leikepöydälle.</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_weblate" translatable="false">Weblate</string>
     <string name="apm_module_undo_uninstall_failed">Asennuksen poiston kumoaminen epäonnistui: %s</string>
     <string name="apm_module_undo_uninstall_success">%s:n asennuksen poisto peruutettu onnistuneesti</string>
     <string name="apm_undo">Kumoa</string>
