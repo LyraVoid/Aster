@@ -1833,15 +1833,16 @@ private fun KStatusCard(
     }
 
     // The working mode is a word of its own on the screens this page takes its shapes from, so it is
-    // kept apart from the title and only the layouts that say it separately join it back.
+    // kept apart from the title and only the layouts that say it separately join it back. The words
+    // follow KernelSU's LKM/GKI: a bare mode name, never a bracketed token.
     val workingMode = when (conclusion) {
-        HomeConclusion.FULL_APATCH -> "<Full>"
-        HomeConclusion.KERNEL_PATCH_ONLY -> "<Half>"
+        HomeConclusion.FULL_APATCH -> "Full"
+        HomeConclusion.KERNEL_PATCH_ONLY -> "Half"
         else -> null
     }
 
     val title = when {
-        isWorking -> "${stringResource(R.string.home_working)} $workingMode"
+        isWorking -> stringResource(R.string.home_working)
 
         // Name the patch that is behind: the conclusion on its own only says that something is.
         conclusion == HomeConclusion.NEED_UPDATE && updateLayer != null ->
@@ -1908,6 +1909,7 @@ private fun KStatusCard(
                     StatusCardLarge(
                         title = title,
                         subtitle = subtitle,
+                        mode = workingMode,
                         isWorking = isWorking,
                         icon = decoIcon,
                         iconColor = decoIconColor,
@@ -1969,6 +1971,7 @@ private fun KStatusCard(
                     StatusCardListRow(
                         title = title,
                         subtitle = subtitle,
+                        mode = workingMode,
                         isWorking = isWorking,
                         icon = decoIcon,
                         iconColor = decoIconColor,
@@ -1991,6 +1994,7 @@ private fun KStatusCard(
 private fun StatusCardLarge(
     title: String,
     subtitle: String?,
+    mode: String?,
     isWorking: Boolean,
     icon: ImageVector,
     iconColor: Color,
@@ -2008,6 +2012,23 @@ private fun StatusCardLarge(
                 iconColor = iconColor,
                 size = 170.dp,
             )
+        }
+
+        // The working mode sits at the foot of the card the way it does on the KernelSU home: a
+        // bare word of its own, so the title can say only that the patch is working.
+        if (mode != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.BottomStart,
+            ) {
+                Text(
+                    text = mode,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
         }
 
         Column(
@@ -2043,6 +2064,7 @@ private fun StatusCardLarge(
 private fun StatusCardListRow(
     title: String,
     subtitle: String?,
+    mode: String?,
     isWorking: Boolean,
     icon: ImageVector,
     iconColor: Color,
@@ -2064,11 +2086,23 @@ private fun StatusCardListRow(
         )
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MiuixTheme.textStyles.body1,
-                fontWeight = FontWeight.SemiBold,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    text = title,
+                    style = MiuixTheme.textStyles.body1,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                if (mode != null) {
+                    Text(
+                        text = mode,
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                }
+            }
             if (subtitle != null) {
                 Text(
                     text = subtitle,
