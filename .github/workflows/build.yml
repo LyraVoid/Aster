@@ -28,11 +28,24 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    # Mapped once, at job level, so every step can ask whether a key was provided: a step's own
+    # env is not there yet when its if is evaluated. The names are the ones keystore.properties
+    # uses, which is also what a release signed on a workstation reads.
+    env:
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+
+      # The manager and the daemon each keep their own copy of KernelPatch's supercall numbers and
+      # structs, and a copy that drifts fails on a device rather than here.
+      - name: Check the supercall ABI against the kernel side
+        run: python3 scripts/check_kp_abi.py
 
       - name: Generate version
         id: parse_version
@@ -70,6 +83,14 @@ jobs:
           workspaces: apd
           cache-targets: false
 
+      - name: Provide the signing key
+        if: ${{ env.KEYSTORE_BASE64 != '' }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > key.jks
+          printf 'KEYSTORE_FILE=key.jks\nKEYSTORE_PASSWORD=%s\nKEY_ALIAS=%s\nKEY_PASSWORD=%s\n' \
+            "$KEYSTORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD" > keystore.properties
+          chmod 600 key.jks keystore.properties
+
       - name: Build with Gradle
         run: |
           echo 'org.gradle.parallel=true' >> gradle.properties
@@ -78,45 +99,6 @@ jobs:
           echo 'android.native.buildOutput=verbose' >> gradle.properties
           sed -i 's/org.gradle.configuration-cache=true//g' gradle.properties
           ./gradlew clean assembleDebug assembleRelease
-          echo "BUILD_TOOL_VERSION=$(ls /usr/local/lib/android/sdk/build-tools/ | tail -n 1)" >> $GITHUB_ENV
-
-      - name: Sign Release (v2 only)
-        id: sign_app
-        if: ${{ env.SIGNING_KEY != '' }}
-        continue-on-error: true
-        env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-          BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION }}
-          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          echo "$SIGNING_KEY" | base64 -d > "$RUNNER_TEMP/apatch-signing.jks"
-          export KEYSTORE_FILE="$RUNNER_TEMP/apatch-signing.jks"
-          SIGNED=$(bash .github/scripts/sign_v2_only.sh app/build/outputs/apk/release | tail -n 1)
-          echo "signedReleaseFile=$SIGNED" >> "$GITHUB_OUTPUT"
-          echo "signedReleaseFile0=$SIGNED" >> "$GITHUB_OUTPUT"
-          echo "signedReleaseFiles=$SIGNED" >> "$GITHUB_OUTPUT"
-          echo "nofSignedReleaseFiles=1" >> "$GITHUB_OUTPUT"
-
-      - name: Sign Debug APK (v2 only)
-        id: sign_debug_app
-        if: ${{ env.SIGNING_KEY != '' }}
-        continue-on-error: true
-        env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-          BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION }}
-          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          echo "$SIGNING_KEY" | base64 -d > "$RUNNER_TEMP/apatch-signing.jks"
-          export KEYSTORE_FILE="$RUNNER_TEMP/apatch-signing.jks"
-          SIGNED=$(bash .github/scripts/sign_v2_only.sh app/build/outputs/apk/debug | tail -n 1)
-          echo "signedReleaseFile=$SIGNED" >> "$GITHUB_OUTPUT"
-          echo "signedReleaseFile0=$SIGNED" >> "$GITHUB_OUTPUT"
-          echo "signedReleaseFiles=$SIGNED" >> "$GITHUB_OUTPUT"
-          echo "nofSignedReleaseFiles=1" >> "$GITHUB_OUTPUT"
 
       - name: Upload mappings
         uses: actions/upload-artifact@v7
@@ -125,24 +107,21 @@ jobs:
           path: "app/build/outputs/mapping/release/"
 
       - name: Upload build artifact1
-        env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-        if: ${{ env.SIGNING_KEY != '' }}
+        if: ${{ env.KEYSTORE_BASE64 != '' }}
         uses: actions/upload-artifact@v7
         with:
-          name: APatch-Release
+          name: Aster-Release
           path: |
-            ${{ steps.sign_app.outputs.signedReleaseFile }}
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/apk/release/*.idsig
 
       - name: Upload build artifact2
-        env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-        if: ${{ env.SIGNING_KEY != '' }}
+        if: ${{ env.KEYSTORE_BASE64 != '' }}
         uses: actions/upload-artifact@v7
         with:
-          name: APatch-Debug
+          name: Aster-Debug
           path: |
-            ${{ steps.sign_debug_app.outputs.signedReleaseFile }}
+            app/build/outputs/apk/debug/*.apk
 
       - name: Post to channel
         if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.ref_type != 'tag' }}
@@ -154,8 +133,8 @@ jobs:
         run: |
           if [ -n "${BOT_TOKEN}" ]; then
             CHANNELS=(-1002058433411 -1001910818234 -1002312454396)
-            RELEASE_APK="${{ steps.sign_app.outputs.signedReleaseFile }}"
-            DEBUG_APK="${{ steps.sign_debug_app.outputs.signedReleaseFile }}"
+            RELEASE_APK=$(find app/build/outputs/apk/release -name '*.apk' | head -1)
+            DEBUG_APK=$(find app/build/outputs/apk/debug -name '*.apk' | head -1)
           
             for CHANNEL in "${CHANNELS[@]}"; do
               URL=$(python3 .github/scripts/telegram_url.py $CHANNEL)
@@ -166,15 +145,15 @@ jobs:
           fi
 
       - name: Release apk
-        env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-        if: ${{ env.SIGNING_KEY != '' && github.ref_type == 'tag' }}
+        if: ${{ env.KEYSTORE_BASE64 != '' && github.ref_type == 'tag' }}
         continue-on-error: true
         uses: ncipollo/release-action@v1
         with:
           token: ${{ github.token }}
           tag: ${{ steps.parse_version.outputs.VERSION }}
-          artifacts: ${{steps.sign_app.outputs.signedReleaseFile}}
+          artifacts: |
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/apk/release/*.idsig
           generateReleaseNotes: true
           makeLatest: true
           replacesArtifacts: true

@@ -17,3 +17,4 @@ app/src/main/resources/
 private
 .claude
 .research/
+__pycache__/
