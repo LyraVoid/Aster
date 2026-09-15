@@ -91,6 +91,8 @@ import me.bmax.apatch.root.RootDetailState
 import me.bmax.apatch.root.RootLayerState
 import me.bmax.apatch.root.RootMode
 import me.bmax.apatch.root.isUsable
+import me.bmax.apatch.ui.component.WarningCard
+import me.bmax.apatch.ui.component.WarningCardTone
 import me.bmax.apatch.ui.component.IndicatorSwitch
 import me.bmax.apatch.ui.home.HomeConclusion
 import me.bmax.apatch.ui.home.HomeDeviceDensity
@@ -408,7 +410,11 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     if (state.showBackupWarning) {
-                        BackupWarningCard(onDismiss = viewModel::dismissBackupWarning)
+                        WarningCard(
+                            message = stringResource(R.string.patch_warnning),
+                            tone = WarningCardTone.Warning,
+                            onClose = viewModel::dismissBackupWarning,
+                        )
                     }
 
                     KStatusCard(
@@ -732,7 +738,11 @@ private fun HomeScenePanel(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     if (state.showBackupWarning) {
-                        BackupWarningCard(onDismiss = onDismissBackupWarning)
+                        WarningCard(
+                            message = stringResource(R.string.patch_warnning),
+                            tone = WarningCardTone.Warning,
+                            onClose = onDismissBackupWarning,
+                        )
                     }
 
                     if (state.primaryAction != HomePrimaryAction.NONE) {
@@ -2565,46 +2575,6 @@ private fun CompactValue(
             text = value,
             style = MiuixTheme.textStyles.body2,
         )
-    }
-}
-
-@Composable
-private fun BackupWarningCard(onDismiss: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.defaultColors(
-            color = MiuixTheme.colorScheme.errorContainer,
-            contentColor = MiuixTheme.colorScheme.onErrorContainer,
-        ),
-        insideMargin = PaddingValues(16.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = MiuixIcons.Info,
-                contentDescription = null,
-                modifier = Modifier.size(22.dp),
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.patch_warnning),
-                modifier = Modifier.weight(1f),
-                style = MiuixTheme.textStyles.body2,
-            )
-            IconButton(
-                onClick = onDismiss,
-                minWidth = 36.dp,
-                minHeight = 36.dp,
-            ) {
-                Icon(
-                    imageVector = MiuixIcons.Close,
-                    contentDescription = stringResource(R.string.home_close),
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-        }
     }
 }
 
