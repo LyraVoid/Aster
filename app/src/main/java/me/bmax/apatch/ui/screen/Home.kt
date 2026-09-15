@@ -1971,7 +1971,6 @@ private fun KStatusCard(
                     StatusCardListRow(
                         title = title,
                         subtitle = subtitle,
-                        mode = workingMode,
                         isWorking = isWorking,
                         icon = decoIcon,
                         iconColor = decoIconColor,
@@ -2064,7 +2063,6 @@ private fun StatusCardLarge(
 private fun StatusCardListRow(
     title: String,
     subtitle: String?,
-    mode: String?,
     isWorking: Boolean,
     icon: ImageVector,
     iconColor: Color,
@@ -2086,23 +2084,11 @@ private fun StatusCardListRow(
         )
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Text(
-                    text = title,
-                    style = MiuixTheme.textStyles.body1,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                if (mode != null) {
-                    Text(
-                        text = mode,
-                        style = MiuixTheme.textStyles.body2,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                    )
-                }
-            }
+            Text(
+                text = title,
+                style = MiuixTheme.textStyles.body1,
+                fontWeight = FontWeight.SemiBold,
+            )
             if (subtitle != null) {
                 Text(
                     text = subtitle,
