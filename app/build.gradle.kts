@@ -3,6 +3,7 @@
 import com.android.build.gradle.tasks.PackageApplication
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.net.URI
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.agp.app)
@@ -22,6 +23,16 @@ val managerVersionCode: Int = rootProject.extra["managerVersionCode"] as Int
 val managerVersionName: String = rootProject.extra["managerVersionName"] as String
 val branchName: String = rootProject.extra["branchName"] as String
 val kernelPatchVersion: String = rootProject.extra["kernelPatchVersion"] as String
+
+// Signing keys live in keystore.properties next to the project (not committed; the template is),
+// and reach the signing plugin as ordinary project properties so the same four names work locally
+// and, as environment variables, in CI.
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+if (keystorePropertiesFile.exists()) {
+    Properties().apply {
+        keystorePropertiesFile.inputStream().use { load(it) }
+    }.forEach { (name, value) -> extra[name.toString()] = value.toString() }
+}
 
 apksign {
     storeFileProperty = "KEYSTORE_FILE"
