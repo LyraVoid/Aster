@@ -29,6 +29,8 @@
     <string name="reboot_edl_confirm">Reboot into EDL (Emergency Download) mode? The screen will stay black and the device can only be recovered with a deep flash tool.</string>
     <string name="about">About</string>
     <string name="settings_app_language">Language</string>
+    <string name="settings_home_title">Home title</string>
+    <string name="settings_home_title_summary">The name shown at the top of the standard home</string>
     <string name="settings_section_appearance">Appearance</string>
     <string name="settings_section_navigation">Navigation &amp; shell</string>
     <string name="settings_section_kernel">Kernel</string>

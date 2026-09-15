@@ -20,8 +20,12 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -35,8 +39,11 @@ import androidx.core.os.LocaleListCompat
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import me.bmax.apatch.APApplication
+import androidx.core.content.edit
 import me.bmax.apatch.Natives
 import me.bmax.apatch.R
+import me.bmax.apatch.apApp
 import me.bmax.apatch.ui.component.IndicatorSwitchPreference
 import me.bmax.apatch.ui.theme.CustomFont
 import top.yukonga.miuix.kmp.basic.Button
@@ -226,6 +233,49 @@ internal fun LanguageDialog(
                                 LocaleListCompat.forLanguageTags(languageValues[index]),
                             )
                         }
+                        onDismiss()
+                    },
+                )
+            }
+        }
+    }
+}
+
+/**
+ * The brand the standard home calls itself. The names are products rather than prose, so they are
+ * kept beside their stable keys and never translated; the panorama home keeps its own title.
+ */
+@Composable
+internal fun HomeTitleDialog(
+    show: Boolean,
+    onDismiss: () -> Unit,
+    onSelected: (key: String) -> Unit = {},
+) {
+    val titles = stringArrayResource(R.array.home_titles)
+    val values = stringArrayResource(R.array.home_titles_values)
+    var selected by remember { mutableStateOf(APApplication.sharedPreferences.getString(APApplication.HOME_TITLE, "aster") ?: "aster") }
+
+    OverlayDialog(
+        show = show,
+        title = stringResource(R.string.settings_home_title),
+        onDismissRequest = onDismiss,
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 480.dp),
+        ) {
+            itemsIndexed(
+                items = titles,
+                key = { index, _ -> values[index] },
+            ) { index, title ->
+                RadioButtonPreference(
+                    title = title,
+                    selected = values[index] == selected,
+                    onClick = {
+                        APApplication.sharedPreferences.edit { putString(APApplication.HOME_TITLE, values[index]) }
+                        selected = values[index]
+                        onSelected(values[index])
                         onDismiss()
                     },
                 )

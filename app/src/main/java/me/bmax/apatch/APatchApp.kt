@@ -104,6 +104,7 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
         private const val CONFIRM_MODULE_INSTALL = "confirm_module_install"
         private const val SHOW_SWITCH_INDICATOR = "show_switch_indicator"
         private const val STAY_ON_ACTION_PAGE = "stay_on_action_page"
+        const val HOME_TITLE = "home_title"
         lateinit var sharedPreferences: SharedPreferences
 
         private val logCallback: CallbackList<String?> = object : CallbackList<String?>() {

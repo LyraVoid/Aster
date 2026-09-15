@@ -84,6 +84,7 @@ import com.ramcosta.composedestinations.generated.destinations.InstallModeSelect
 import com.ramcosta.composedestinations.generated.destinations.KPModuleScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.PatchesDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
 import me.bmax.apatch.root.RootAccessProbeState
 import me.bmax.apatch.root.RootDetailState
@@ -979,6 +980,19 @@ private fun sceneQuote(): String {
 }
 
 @Composable
+private fun rememberHomeTitle(): String {
+    // The title is the brand the reader picked, not the package's own name. Presets live beside
+    // their keys so the choice is stable across versions; anything unknown falls back to Aster.
+    val titles = stringArrayResource(R.array.home_titles)
+    val values = stringArrayResource(R.array.home_titles_values)
+    val key = APApplication.sharedPreferences
+        .getString(APApplication.HOME_TITLE, "aster") ?: "aster"
+    return remember(key, titles) {
+        titles.elementAtOrNull(values.indexOf(key)) ?: "Aster"
+    }
+}
+
+@Composable
 private fun HomeTopBar(
     scrollBehavior: ScrollBehavior,
     canReboot: Boolean,
@@ -995,7 +1009,7 @@ private fun HomeTopBar(
     onReboot: (String) -> Unit,
     onDangerousReboot: (String) -> Unit,
 ) {
-    val title = stringResource(R.string.app_name)
+    val title = rememberHomeTitle()
 
     // How the page lays its head out does not reach the bar: every layout keeps the large title
     // that leaves as the page scrolls, and every layout is offered the same two actions.

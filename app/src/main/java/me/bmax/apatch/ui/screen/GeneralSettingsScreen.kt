@@ -16,11 +16,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
@@ -41,6 +43,7 @@ import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.icon.extended.Edit
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Info
 import top.yukonga.miuix.kmp.icon.extended.Pin
@@ -68,6 +71,7 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
     val updateState by updateModel.uiState.collectAsStateWithLifecycle()
     var showVersionCheck by rememberSaveable { mutableStateOf(false) }
     var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
+    var showHomeTitleDialog by rememberSaveable { mutableStateOf(false) }
     var checkUpdate by rememberSaveable {
         mutableStateOf(prefs.getBoolean("check_update", true))
     }
@@ -76,6 +80,14 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
     }
     var stayOnActionPage by rememberSaveable {
         mutableStateOf(apApp.getStayOnActionPageState())
+    }
+    var homeTitleKey by rememberSaveable {
+        mutableStateOf(prefs.getString(APApplication.HOME_TITLE, "aster") ?: "aster")
+    }
+    val homeTitles = stringArrayResource(R.array.home_titles)
+    val homeTitleValues = stringArrayResource(R.array.home_titles_values)
+    val homeTitleLabel = remember(homeTitleKey, homeTitles) {
+        homeTitles.elementAtOrNull(homeTitleValues.indexOf(homeTitleKey)) ?: "Aster"
     }
     val languageSummary = AppCompatDelegate.getApplicationLocales()[0]?.displayLanguage
         ?.replaceFirstChar {
@@ -198,6 +210,17 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
                 }
             }
 
+            item(key = "home_title") {
+                SettingsCard {
+                    ArrowPreference(
+                        title = stringResource(R.string.settings_home_title),
+                        summary = homeTitleLabel,
+                        startAction = { SettingsIcon(MiuixIcons.Edit) },
+                        onClick = { showHomeTitleDialog = true },
+                    )
+                }
+            }
+
             item(key = "module_install") {
                 SettingsCard {
                     IndicatorSwitchPreference(
@@ -234,6 +257,12 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
         LanguageDialog(
             show = showLanguageDialog,
             onDismiss = { showLanguageDialog = false },
+        )
+
+        HomeTitleDialog(
+            show = showHomeTitleDialog,
+            onDismiss = { showHomeTitleDialog = false },
+            onSelected = { homeTitleKey = it },
         )
     }
 }
