@@ -103,7 +103,7 @@
     <string name="home_selinux_status_unknown">Descoñecido</string>
     <string name="home_su_path">su executábel</string>
     <string name="home_system_version">Versión do sistema</string>
-    <string name="home_working">Traballando 😋</string>
+    <string name="home_working">Traballando</string>
     <string name="indigo_theme">Índigo</string>
     <string name="kpatch_shadow_path_title">kpatch</string>
     <string name="kpatch_version">Versión: %s</string>

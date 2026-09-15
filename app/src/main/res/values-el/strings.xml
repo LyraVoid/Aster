@@ -20,7 +20,7 @@
     <string name="apm_install">Εγκατάσταση</string>
     <string name="apm_update">Ενημέρωση</string>
     <string name="home_need_update">Νέα έκδοση διαθέσιμη</string>
-    <string name="home_working">Λειτουργεί 😋</string>
+    <string name="home_working">Λειτουργεί</string>
     <string name="patch_title">Επιδιόρθωση</string>
     <string name="kpatch_version">Έκδοση: %s</string>
     <string name="kpm_unload_confirm">Ξεφόρτωση ενότητας \&quot;%s\&quot;?</string>

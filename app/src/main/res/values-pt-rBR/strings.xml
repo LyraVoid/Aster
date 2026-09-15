@@ -30,7 +30,7 @@
     <string name="home_patch_next_step">Próximo passo</string>
     <string name="home_not_installed">Não instalado</string>
     <string name="home_click_to_install">Clique para instalar</string>
-    <string name="home_working">Em execução 😋</string>
+    <string name="home_working">Em execução</string>
     <string name="home_install_unknown">Não instalado ou autenticado</string>
     <string name="home_installing">Instalando</string>
     <string name="home_need_update">Nova versão disponível</string>

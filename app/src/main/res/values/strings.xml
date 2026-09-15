@@ -79,7 +79,7 @@
     <string name="home_install_unknown">KernelPatch not installed</string>
     <string name="home_install_unknown_summary">Root is unavailable. The kernel may not be patched or flashed yet.</string>
     <string name="home_click_to_install">Click to install</string>
-    <string name="home_working">Working 😋</string>
+    <string name="home_working">Working</string>
 
     <string name="home_installing">Installing</string>
     <string name="home_need_update">New version available</string>
@@ -419,6 +419,8 @@
 
     <string name="home_more_menu_about">About</string>
     <string name="home_scene_working">Working normally</string>
+    <string name="home_classic_emoji">Use classic emoji</string>
+    <string name="home_classic_emoji_summary">Turn the home status badge into classic emoji</string>
     <string name="home_root_access_missing">Root access unavailable</string>
     <string name="home_root_access_missing_summary">KernelPatch is installed, but this manager cannot open a root session. Grant root permission again or refresh after fixing the root layer.</string>
 

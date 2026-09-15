@@ -44,7 +44,7 @@
     <string name="save_log">Simpan Log</string>
     <string name="patch_set_superkey">Tetapkan SuperKey</string>
     <string name="home_patch_set_key_desc">Hanya kelayakan untuk KernelPatch</string>
-    <string name="home_working">Sedang bekerja 😋</string>
+    <string name="home_working">Sedang bekerja</string>
     <string name="kpatch_version_update">Versi: %1$s -&gt; %2$s</string>
     <string name="kpatch_shadow_path_title">kpatch</string>
     <string name="home_kpatch_info_title">Maklumat</string>

@@ -107,6 +107,13 @@ internal const val SceneRailLabelsFlag = "scene_rail_labels"
 internal const val SceneClockStyleFlag = "scene_clock_style"
 
 /**
+ * The status line says the root is working; with this on it also wears a face, the way the app
+ * drew that line before it had an icon of its own. It describes the standard Home's heading, so
+ * its switch sits with the rows that only exist while the standard family is in use.
+ */
+internal const val HomeClassicEmojiFlag = "home_classic_emoji"
+
+/**
  * The scene clock has a few shapes, and the rail is narrow enough that they are genuinely
  * different designs rather than one design with options. The stored string is read through
  * [fromValue], so a value written by a newer version falls back instead of breaking the rail.

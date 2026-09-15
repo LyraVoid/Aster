@@ -953,6 +953,24 @@ private fun SceneRootStatus(state: HomeUiState, onTools: () -> Unit) {
     }
 }
 
+/** What the Home's working word wears when the classic emoji choice is on. */
+private const val HomeClassicEmoji = "😋"
+
+/**
+ * The word the Home says while the root is working, with the face the classic emoji choice adds to
+ * it. Only this word wears one - the states the app is complaining about keep saying what is wrong,
+ * which is also how the reference draws it.
+ */
+@Composable
+private fun homeWorkingWord(): String {
+    val word = stringResource(R.string.home_working)
+    val classicEmoji by me.bmax.apatch.ui.shell.rememberVisualFlag(
+        me.bmax.apatch.ui.shell.HomeClassicEmojiFlag,
+        false,
+    )
+    return if (classicEmoji) word + HomeClassicEmoji else word
+}
+
 // How much taller than the hero the photo is drawn, and how much of the scroll it absorbs.
 private const val SceneParallaxOverscan = 1.35f
 private const val SceneParallaxRate = 0.35f
@@ -1842,7 +1860,7 @@ private fun KStatusCard(
     }
 
     val title = when {
-        isWorking -> stringResource(R.string.home_working)
+        isWorking -> homeWorkingWord()
 
         // Name the patch that is behind: the conclusion on its own only says that something is.
         conclusion == HomeConclusion.NEED_UPDATE && updateLayer != null ->
@@ -1951,7 +1969,7 @@ private fun KStatusCard(
             // come from do, and leave the counts to the tab that owns them.
             if (layout == HomeLayout.Compact) {
                 StatusCardCompact(
-                    title = if (isWorking) stringResource(R.string.home_working) else title,
+                    title = if (isWorking) homeWorkingWord() else title,
                     subtitle = subtitle,
                     mode = workingMode,
                     isWorking = isWorking,
@@ -2305,7 +2323,7 @@ private fun AStatusCard(
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = stringResource(titleRes),
+                    text = if (titleRes == R.string.home_working) homeWorkingWord() else stringResource(titleRes),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )

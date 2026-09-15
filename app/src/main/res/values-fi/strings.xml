@@ -45,7 +45,7 @@
     <string name="home_install_unknown">Ei asennettu tai todennettu</string>
     <string name="home_install_unknown_summary">Napauta asentaaksesi</string>
     <string name="home_click_to_install">Napauta asentaaksesi</string>
-    <string name="home_working">Toimii 😋</string>
+    <string name="home_working">Toimii</string>
     <string name="home_installing">Asentaminen</string>
     <string name="home_need_update">Uusi versio saatavilla</string>
     <string name="kpatch_version">Versio: %s</string>

@@ -67,7 +67,7 @@
     <string name="settings">Ayarlar</string>
     <string name="apm_new_version_available">Yeni %s sürümü mevcut, yükseltmek için tıklayın.</string>
     <string name="apatch_version_update">Sürüm: %1$s -&gt; %2$s</string>
-    <string name="home_working">Çalışıyor 😋</string>
+    <string name="home_working">Çalışıyor</string>
     <string name="apm_empty">Hiç modül kurulmadı</string>
     <string name="kpm_load">Yükle</string>
     <string name="home_patch_next_step">Sonraki adım</string>

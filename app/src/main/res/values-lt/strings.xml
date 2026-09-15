@@ -96,7 +96,7 @@
     <string name="home_selinux_status_unknown">Nežinoma</string>
     <string name="home_su_path">Vykdomasis su</string>
     <string name="home_system_version">Sistemos versija</string>
-    <string name="home_working">Veikia 😋</string>
+    <string name="home_working">Veikia</string>
     <string name="indigo_theme">Indigo</string>
     <string name="kernel_patch">KernelPatch</string>
     <string name="kpatch_shadow_path_title">kpatch</string>

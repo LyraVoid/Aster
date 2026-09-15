@@ -17,7 +17,7 @@
     <string name="home_not_installed">설치되지 않음</string>
     <string name="home_install_unknown">설치되지 않았거나 인증되지 않음</string>
     <string name="home_click_to_install">클릭하여 설치</string>
-    <string name="home_working">작동 중 😋</string>
+    <string name="home_working">작동 중</string>
     <string name="home_installing">설치 중</string>
     <string name="home_need_update">새 버전 사용 가능</string>
     <string name="kpatch_version">버전: %s</string>

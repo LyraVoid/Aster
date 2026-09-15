@@ -32,7 +32,7 @@
     <string name="learn_more">了解更多</string>
     <string name="patch_set_superkey">设置超级密钥</string>
     <string name="settings">设置</string>
-    <string name="home_working">工作中 😋</string>
+    <string name="home_working">工作中</string>
     <string name="home_patch_next_step">下一步</string>
     <string name="home_not_installed">未安装</string>
     <string name="reboot_bootloader">重启至 Bootloader</string>
@@ -238,6 +238,8 @@
     <string name="home_more_menu_about">关于</string>
     <string name="home_more">更多</string>
     <string name="home_scene_working">运行正常</string>
+    <string name="home_classic_emoji">使用经典表情</string>
+    <string name="home_classic_emoji_summary">首页的状态徽章即刻变身经典表情</string>
     <string name="home_root_access_missing">Root 权限不可用</string>
     <string name="home_root_access_missing_summary">已检测到 KernelPatch，但管理器当前无法获取 Root 会话。请重新授权，或修复 Root 层后刷新。</string>
     <string name="settings_check_update">检查更新</string>

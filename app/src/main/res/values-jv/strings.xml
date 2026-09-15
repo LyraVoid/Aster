@@ -104,7 +104,7 @@
     <string name="home_selinux_status_unknown">Ora dingerteni</string>
     <string name="home_su_path">su sing bisa dieksekusi</string>
     <string name="home_system_version">Versi sistem</string>
-    <string name="home_working">Makarya 😋</string>
+    <string name="home_working">Makarya</string>
     <string name="indigo_theme">Indigo</string>
     <string name="kpatch_shadow_path_title">kpatch</string>
     <string name="kpatch_version">Versi: %s</string>

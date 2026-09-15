@@ -134,7 +134,7 @@
     <string name="home_selinux_status_permissive">Pieļaujošais</string>
     <string name="home_su_path">Izpildāmais su</string>
     <string name="home_system_version">Sistēmas versija</string>
-    <string name="home_working">Darbojas 😋</string>
+    <string name="home_working">Darbojas</string>
     <string name="indigo_theme">Indigo</string>
     <string name="kernel_patch">KernelPatch</string>
     <string name="kpatch_shadow_path_title">kpatch</string>

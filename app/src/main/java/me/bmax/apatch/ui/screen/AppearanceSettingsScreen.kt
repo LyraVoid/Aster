@@ -65,6 +65,7 @@ import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.icon.extended.Reset
 import top.yukonga.miuix.kmp.icon.extended.ScreenMirroring
 import top.yukonga.miuix.kmp.icon.extended.Theme
+import top.yukonga.miuix.kmp.icon.extended.Tune
 import top.yukonga.miuix.kmp.icon.extended.ZoomOut
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.ArrowPreference
@@ -209,6 +210,26 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
                             summary = stringResource(homeLayout.label),
                             startAction = { SettingsIcon(MiuixIcons.HorizontalSplit) },
                             onClick = { showHomeLayoutDialog = true },
+                        )
+
+                        // The status line wears the face only in the standard Home, so the switch
+                        // is inside this block rather than beside the scene's own switches: while
+                        // the panorama Home is the one in use there is nothing here to change.
+                        val classicEmoji by me.bmax.apatch.ui.shell.rememberVisualFlag(
+                            me.bmax.apatch.ui.shell.HomeClassicEmojiFlag,
+                            false,
+                        )
+                        IndicatorSwitchPreference(
+                            checked = classicEmoji,
+                            onCheckedChange = {
+                                me.bmax.apatch.ui.shell.setVisualFlag(
+                                    me.bmax.apatch.ui.shell.HomeClassicEmojiFlag,
+                                    it,
+                                )
+                            },
+                            title = stringResource(R.string.home_classic_emoji),
+                            summary = stringResource(R.string.home_classic_emoji_summary),
+                            startAction = { SettingsIcon(MiuixIcons.Tune) },
                         )
                     }
                 }

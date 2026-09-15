@@ -24,7 +24,7 @@
     <string name="home_patch_next_step">Langkah selanjutnya</string>
     <string name="home_not_installed">Tidak terinstal</string>
     <string name="home">Beranda</string>
-    <string name="home_working">Berfungsi 😋</string>
+    <string name="home_working">Berfungsi</string>
     <string name="kpatch_version">Versi: %s</string>
     <string name="home_installing">Menginstal</string>
     <string name="apatch_version">Versi: %s</string>
