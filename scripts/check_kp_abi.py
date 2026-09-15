@@ -13,9 +13,11 @@ Usage:
     scripts/check_kp_abi.py [--kp PATH] [--ref REF] [--repo OWNER/REPO]
 
     --kp    read the kernel side from a KernelPatch checkout instead of downloading it
+            (by default the KernelPatch/ directory next to this repository is used when it is
+            there, and its own version file has to agree with the one this manager reports)
     --ref   the revision to compare against (default: the version the manager reports, as read
             from app/src/main/cpp/version, e.g. 0.13.8 - which is also the release tag the
-            artifacts come from)
+            artifacts come from, and what the local KernelPatch/ checkout has to say as well)
     --repo  the KernelPatch repository the headers are fetched from
 """
 
@@ -32,6 +34,7 @@ OUR_C_HEADER = ROOT / "app/src/main/cpp/uapi/scdefs.h"
 OUR_CALLS_HEADER = ROOT / "app/src/main/cpp/supercall.h"
 OUR_RUST_CALLS = ROOT / "apd/src/supercall.rs"
 OUR_VERSION = ROOT / "app/src/main/cpp/version"
+LOCAL_KERNELPATCH = ROOT / "KernelPatch"
 
 KP_HEADER = "kernel/patch/include/uapi/scdefs.h"
 
@@ -44,13 +47,24 @@ RUST_FIELD = re.compile(r"^\s+(?:pub\s+)?(\w+)\s*:", re.M)
 REFERENCED = re.compile(r"\b((?:SUPERCALL|KPM)_[A-Z0-9_]+)\b")
 
 
-def read_version() -> str:
-    parts = dict(re.findall(r"#define\s+(MAJOR|MINOR|PATCH)\s+(\d+)", OUR_VERSION.read_text()))
+def read_version(version_file: pathlib.Path) -> str:
+    parts = dict(re.findall(r"#define\s+(MAJOR|MINOR|PATCH)\s+(\d+)", version_file.read_text()))
     return "{}.{}.{}".format(parts["MAJOR"], parts["MINOR"], parts["PATCH"])
 
 
 def kernel_source(ref: str, repo: str, local: pathlib.Path | None) -> str:
+    # A checkout kept next to the manager is the one to read, when there is one. It has to be the
+    # revision this manager is built against, though: comparing against a different tree would
+    # report drift that is really a checkout in the wrong place.
+    if local is None and (LOCAL_KERNELPATCH / KP_HEADER).exists():
+        local = LOCAL_KERNELPATCH
     if local is not None:
+        version_file = local / "version"
+        if version_file.exists():
+            found = read_version(version_file)
+            if found != ref:
+                sys.exit(f"{local} is at {found}, while this manager is built against {ref}.\n"
+                         f"Check that tree out at the right revision, or pass --ref to compare elsewhere.")
         return (local / KP_HEADER).read_text()
     url = f"https://raw.githubusercontent.com/{repo}/{ref}/{KP_HEADER}"
     try:
@@ -83,7 +97,7 @@ def main() -> int:
     parser.add_argument("--repo", default="lyravoid/KernelPatch-Aster")
     args = parser.parse_args()
 
-    ref = args.ref or read_version()
+    ref = args.ref or read_version(OUR_VERSION)
     kernel = kernel_source(ref, args.repo, args.kp)
 
     # Not every name carries a number: the hello echo is a string the kernel logs. Existence and

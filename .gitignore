@@ -18,3 +18,7 @@ private
 .claude
 .research/
 __pycache__/
+
+# The kernel side, kept next to the manager for building its artifacts and for the
+# supercall ABI check, but never part of this repository's history.
+/KernelPatch/
