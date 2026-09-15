@@ -2350,6 +2350,10 @@ private fun AStatusCard(
 @Composable
 private fun DeviceInfoCard(state: HomeUiState) {
     val env = state.environment
+    // The manager names its own version in this card, beside the device it runs on - the place the
+    // reference keeps it in. It comes from the package manager, so unlike the rows that follow it
+    // needs no root probe to answer.
+    val managerVersion = remember { Version.getManagerVersion() }
     val selinuxText = when (env?.selinuxStatus) {
         HomeSelinuxStatus.ENFORCING -> stringResource(R.string.home_selinux_status_enforcing)
         HomeSelinuxStatus.PERMISSIVE -> stringResource(R.string.home_selinux_status_permissive)
@@ -2374,6 +2378,10 @@ private fun DeviceInfoCard(state: HomeUiState) {
                 InfoItem(
                     title = stringResource(R.string.home_device_info),
                     content = "${env.brand.replaceFirstChar { it.uppercase() }} ${env.model}",
+                )
+                InfoItem(
+                    title = stringResource(R.string.home_manager_version),
+                    content = "${managerVersion.first} (${managerVersion.second})",
                 )
                 InfoItem(
                     title = stringResource(R.string.home_kernel),
