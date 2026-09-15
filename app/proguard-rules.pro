@@ -17,6 +17,23 @@
 # Keep ini4j Service Provider Interface
 -keep,allowobfuscation,allowoptimization class org.ini4j.spi.** { *; }
 
+# JNI. libapjni.so registers its methods by the names and signatures written in apjni.cpp, so a
+# class, a method or a type inside one of those signatures that R8 renames or moves makes
+# RegisterNatives fail, JNI_OnLoad return JNI_ERR, and every process of this app die while loading
+# Natives - which is what a minified build did before these rules were here.
+-keep class me.bmax.apatch.Natives { *; }
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+-keep class me.bmax.apatch.Natives$Profile { *; }
+-keep class me.bmax.apatch.Natives$KPMCtlRes { *; }
+-keep class me.bmax.apatch.Natives$SuUidsResult { *; }
+-keep class me.bmax.apatch.Natives$SuPathResult { *; }
+
+# Named by the manifest's zygotePreloadName, which R8 cannot see, and registered by the same
+# library.
+-keep class me.bmax.apatch.magica.AppZygotePreload { *; }
+
 # Kotlin
 -assumenosideeffects class kotlin.jvm.internal.Intrinsics {
     public static void check*(...);
