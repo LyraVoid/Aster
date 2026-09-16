@@ -1,6 +1,5 @@
 package me.bmax.apatch.ui.screen
 
-import android.os.Environment
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
@@ -32,6 +32,7 @@ import kotlinx.coroutines.withContext
 import me.bmax.apatch.R
 import me.bmax.apatch.apApp
 import me.bmax.apatch.ui.component.KeyEventBlocker
+import me.bmax.apatch.util.Downloads
 import me.bmax.apatch.util.runAPModuleAction
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -44,7 +45,6 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.FileDownloads
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -54,10 +54,15 @@ import java.util.Locale
 fun ExecuteAPMActionScreen(navigator: DestinationsNavigator, moduleId: String) {
     var text by rememberSaveable { mutableStateOf("") }
     val logContent = remember { StringBuilder() }
+    val context = LocalContext.current
     val snackBarHost = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val logSavedLabel = stringResource(R.string.log_saved)
+    val logSaveFailedLabel = stringResource(R.string.log_save_failed)
+    // Saving the log is the only thing this screen does that reaches outside the app, so the
+    // storage permission below Android 10 is asked for at that tap and not before.
+    val withStoragePermission = rememberStoragePermissionForWrite()
 
     fun appendLog(line: String) {
         logContent.append(line).append("\n")
@@ -96,23 +101,25 @@ fun ExecuteAPMActionScreen(navigator: DestinationsNavigator, moduleId: String) {
                     navigator.popBackStack()
                 },
                 onSave = {
-                    scope.launch {
-                        val path = withContext(Dispatchers.IO) {
-                            val format = SimpleDateFormat(
-                                "yyyy-MM-dd-HH-mm-ss",
-                                Locale.getDefault(),
+                    withStoragePermission {
+                        scope.launch {
+                            val saved = withContext(Dispatchers.IO) {
+                                val format = SimpleDateFormat(
+                                    "yyyy-MM-dd-HH-mm-ss",
+                                    Locale.getDefault(),
+                                )
+                                val date = format.format(Date())
+                                Downloads.write(
+                                    context = context,
+                                    displayName = "Aster_apm_action_log_${date}.log",
+                                    mimeType = "text/plain",
+                                ) { stream -> stream.write(logContent.toString().toByteArray()) }
+                            }
+                            snackBarHost.showSnackbar(
+                                message = if (saved != null) "$logSavedLabel: $saved"
+                                else logSaveFailedLabel,
                             )
-                            val date = format.format(Date())
-                            val file = File(
-                                Environment.getExternalStoragePublicDirectory(
-                                    Environment.DIRECTORY_DOWNLOADS,
-                                ),
-                                "Aster_apm_action_log_${date}.log"
-                            )
-                            file.writeText(logContent.toString())
-                            file.absolutePath
                         }
-                        snackBarHost.showSnackbar(message = "$logSavedLabel: $path")
                     }
                 }
             )

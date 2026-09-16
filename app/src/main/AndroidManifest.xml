@@ -3,12 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!--
+      The only thing this app writes outside itself is a file it leaves in Downloads for the reader,
+      and below Android 10 that folder is written as a path. From Android 10 on the write goes
+      through MediaStore and needs nothing. Reading is always through a picker — Storage Access
+      Framework or the photo picker — which hands back a grant for the one file that was chosen, so
+      no read permission is declared and none is ever asked for.
+    -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="29" />
-    <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
+        android:maxSdkVersion="28" />
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />

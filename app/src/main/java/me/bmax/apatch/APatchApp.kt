@@ -261,6 +261,10 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
                             return@thread
                         }
 
+                        // Root is in hand on this thread, which is the only place that can give the
+                        // app's own directories back if an earlier install left them owned by root.
+                        apApp.reclaimPrivateStorage()
+
                         // KernelPatch version
                         //val buildV = Version.buildKPVUInt()
                         //val installedV = Version.installedKPVUInt()
@@ -438,6 +442,9 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
         }
         apApp = this
 
+        // Before any thread escalates: see ensurePrivateStorage for why the order matters.
+        ensurePrivateStorage()
+
         val isArm64 = Build.SUPPORTED_ABIS.any { it == "arm64-v8a" }
         if (!isArm64) {
             Toast.makeText(applicationContext, "Unsupported architecture!", Toast.LENGTH_LONG)
@@ -468,6 +475,54 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
 
         // Whichever mark was chosen last time is the one the desktop should find after a restart.
         LauncherIconUtils.applySaved(this)
+    }
+
+    /**
+     * Whether the app's own directories came out owned by root, read while the process is still
+     * itself. Every thread that has escalated can write anywhere and would answer for root.
+     */
+    @Volatile
+    private var privateStorageOwnedByRoot = false
+
+    /**
+     * Makes the private directories exist, owned by the app.
+     *
+     * The platform creates each of these the first time it is asked for, and whoever asks becomes
+     * its owner. A thread that has escalated with [Natives.su] therefore creates them owned by
+     * root, and a directory the app does not own is one it cannot write to at all — which is how
+     * the Home wallpaper, the imported font and every other file this app keeps came to fail while
+     * the app itself looked healthy. Asking here, before anything escalates, is what keeps them
+     * the app's.
+     */
+    private fun ensurePrivateStorage() {
+        val directories = listOf(filesDir, cacheDir, noBackupFilesDir)
+        directories.forEach { it.mkdirs() }
+        privateStorageOwnedByRoot = directories.any { !it.canWrite() }
+    }
+
+    /**
+     * Hands the private directories back when the install predates [ensurePrivateStorage] and a
+     * root thread made them first. Everything under the data directory was written by this app, so
+     * this only restores the ownership the platform would have given them; it is a no-op on an
+     * install that was never affected, and it runs on the one thread that can already do it.
+     */
+    private fun reclaimPrivateStorage() {
+        if (!privateStorageOwnedByRoot) return
+        val uid = applicationInfo.uid
+        val paths = listOf(filesDir, cacheDir, noBackupFilesDir)
+            .filter { it.exists() }
+            .joinToString(" ") { "'${it.absolutePath}'" }
+        if (paths.isEmpty()) return
+        runCatching { rootShellForResult("chown -R $uid:$uid $paths") }
+            .onSuccess { result ->
+                if (result.isSuccess) {
+                    privateStorageOwnedByRoot = false
+                    Log.i(TAG, "took the private directories back from root")
+                } else {
+                    Log.w(TAG, "could not take the private directories back: ${result.err}")
+                }
+            }
+            .onFailure { Log.w(TAG, "could not take the private directories back", it) }
     }
 
     fun getBackupWarningState(): Boolean {

@@ -1,11 +1,8 @@
 package me.bmax.apatch.ui.screen
 
-import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -50,8 +47,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
@@ -96,7 +91,6 @@ import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private const val TAG = "Patches"
-private const val LEGACY_STORAGE_REQUEST_CODE = 1001
 
 @Destination<RootGraph>
 @Composable
@@ -134,9 +128,12 @@ fun Patches(
     LaunchedEffect(mode) {
         viewModel.prepare(mode)
     }
-    LaunchedEffect(context) {
-        requestLegacyStoragePermissions(context)
-    }
+    // Nothing here reaches outside the app to read: every picker below is a Storage Access
+    // Framework one, which hands back a grant for the file that was picked. The one thing that
+    // does reach outside is writing the patched boot image into Downloads, and below Android 10
+    // that needs the storage permission — asked for at the tap that starts the run that produces
+    // it, rather than when the screen opens.
+    val withStoragePermission = rememberStoragePermissionForWrite()
 
     Scaffold(topBar = {
         PatchesTopBar(onBack = dropUnlessResumed { navigator.popBackStack() })
@@ -273,7 +270,14 @@ fun Patches(
                         StartButton(
                             text = stringResource(R.string.patch_start_patch_btn),
                             icon = MiuixIcons.Play,
-                            onClick = { viewModel.doPatch(mode, needKey) },
+                            onClick = {
+                                // Only a patch-only run leaves the patched image in Downloads.
+                                if (mode == PatchesViewModel.PatchMode.PATCH_ONLY) {
+                                    withStoragePermission { viewModel.doPatch(mode, needKey) }
+                                } else {
+                                    viewModel.doPatch(mode, needKey)
+                                }
+                            },
                         )
                     }
                 }
@@ -310,30 +314,6 @@ fun Patches(
                 }
             }
         }
-    }
-}
-
-internal fun legacyStoragePermissions(sdkInt: Int): List<String> = buildList {
-    if (sdkInt <= Build.VERSION_CODES.Q) {
-        add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    }
-    if (sdkInt <= Build.VERSION_CODES.S_V2) {
-        add(Manifest.permission.READ_EXTERNAL_STORAGE)
-    }
-}
-
-private fun requestLegacyStoragePermissions(context: android.content.Context) {
-    val permissionsToRequest = legacyStoragePermissions(Build.VERSION.SDK_INT).filter {
-        ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
-    }
-    if (permissionsToRequest.isEmpty()) return
-
-    (context as? Activity)?.let { activity ->
-        ActivityCompat.requestPermissions(
-            activity,
-            permissionsToRequest.toTypedArray(),
-            LEGACY_STORAGE_REQUEST_CODE,
-        )
     }
 }
 

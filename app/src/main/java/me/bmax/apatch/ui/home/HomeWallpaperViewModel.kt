@@ -2,6 +2,7 @@ package me.bmax.apatch.ui.home
 
 import android.app.Application
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -138,6 +139,9 @@ class HomeWallpaperViewModel(application: Application) : AndroidViewModel(applic
             result.fold(
                 onSuccess = { publish(it) },
                 onFailure = {
+                    // The reader is told that it failed and nothing else, so the reason has to be
+                    // left somewhere it can be read afterwards.
+                    Log.w(Tag, "the Home wallpaper could not be changed", it)
                     mutableUiState.value = previous
                     mutableEvents.emit(failure)
                 },
@@ -156,6 +160,8 @@ class HomeWallpaperViewModel(application: Application) : AndroidViewModel(applic
     }
 
     private companion object {
+        const val Tag = "HomeWallpaper"
+
         fun failedSlot() = HomeWallpaperSlotState(phase = HomeWallpaperPhase.ERROR)
     }
 }

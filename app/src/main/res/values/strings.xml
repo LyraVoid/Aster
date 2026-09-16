@@ -68,6 +68,7 @@
     <string name="send_log">Send logs</string>
     <string name="save_log">Save logs</string>
     <string name="log_saved">Logs saved</string>
+    <string name="log_save_failed">Logs could not be saved</string>
     <string name="safe_mode">Safe mode</string>
 
     <string name="super_key">SuperKey</string>

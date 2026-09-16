@@ -3,7 +3,6 @@ package me.bmax.apatch.ui.screen
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import android.os.Environment
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,6 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.component.KeyEventBlocker
+import me.bmax.apatch.util.Downloads
 import me.bmax.apatch.util.installModule
 import me.bmax.apatch.util.reboot
 import top.yukonga.miuix.kmp.basic.Button
@@ -55,7 +55,6 @@ import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.FileDownloads
 import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -85,6 +84,10 @@ fun InstallScreen(navigator: DestinationsNavigator, uri: Uri, type: MODULE_TYPE)
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val logSavedLabel = stringResource(R.string.log_saved)
+    val logSaveFailedLabel = stringResource(R.string.log_save_failed)
+    // Saving the log is the only thing this screen does that reaches outside the app, so the
+    // storage permission below Android 10 is asked for at that tap and not before.
+    val withStoragePermission = rememberStoragePermissionForWrite()
 
     LaunchedEffect(Unit) {
         if (text.isNotEmpty()) {
@@ -120,23 +123,25 @@ fun InstallScreen(navigator: DestinationsNavigator, uri: Uri, type: MODULE_TYPE)
                 navigator.popBackStack()
             },
             onSave = {
-                scope.launch {
-                    val path = withContext(Dispatchers.IO) {
-                        val format = SimpleDateFormat(
-                            "yyyy-MM-dd-HH-mm-ss",
-                            Locale.getDefault(),
+                withStoragePermission {
+                    scope.launch {
+                        val saved = withContext(Dispatchers.IO) {
+                            val format = SimpleDateFormat(
+                                "yyyy-MM-dd-HH-mm-ss",
+                                Locale.getDefault(),
+                            )
+                            val date = format.format(Date())
+                            Downloads.write(
+                                context = context,
+                                displayName = "Aster_install_${type}_log_${date}.log",
+                                mimeType = "text/plain",
+                            ) { stream -> stream.write(logContent.toString().toByteArray()) }
+                        }
+                        snackBarHost.showSnackbar(
+                            message = if (saved != null) "$logSavedLabel: $saved"
+                            else logSaveFailedLabel,
                         )
-                        val date = format.format(Date())
-                        val file = File(
-                            Environment.getExternalStoragePublicDirectory(
-                                Environment.DIRECTORY_DOWNLOADS,
-                            ),
-                            "Aster_install_${type}_log_${date}.log",
-                        )
-                        file.writeText(logContent.toString())
-                        file.absolutePath
                     }
-                    snackBarHost.showSnackbar(message = "$logSavedLabel: $path")
                 }
             },
         )
