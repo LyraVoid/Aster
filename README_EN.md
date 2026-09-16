@@ -7,13 +7,13 @@
 
 </div>
 
-🌏 **README Language:** [**English**](./README_EN.md) / [**中文**](./README.md) / [**日本語**](./README_JA.md)
+**Language:** [English](./README_EN.md) / [中文](./README.md) / [日本語](./README_JA.md)
 
 Aster - A Miuix single-UI Root control surface for the APatch capability chain
 
 Built on [KernelPatch](https://github.com/bmax121/KernelPatch), Aster brings Root state, kernel modules (KPM), system modules (APM) and superuser management into one coherent Miuix interface. Home answers "is Root trustworthy right now" first, instead of being a system performance dashboard.
 
-[📚 Read Full Documentation](https://aster.mysqil.com/) →
+[Read Full Documentation](https://aster.mysqil.com/)
 
 <table>
   <tr>
@@ -30,38 +30,38 @@ Built on [KernelPatch](https://github.com/bmax121/KernelPatch), Aster brings Roo
 
 ---
 
-## ✨ Introduction
+## Introduction
 
-### 🎨 Core
+### Core
 
-- [x] A Root implementation built on KernelPatch
-- [x] Hook kernel functions without recompiling the kernel
+- A Root implementation built on KernelPatch
+- Hook kernel functions without recompiling the kernel
 
-### 📱 Requirements
+### Requirements
 
 - **Required:** an ARM64 Android device
 - Android kernel 3.18 - 6.18
 - Kernel config `CONFIG_KALLSYMS=y`, with `CONFIG_KALLSYMS_ALL=y` recommended as well
 
-### 🖥️ Interface
+### Interface
 
-- [x] A single Miuix UI shell: five entries live in a permanent left rail on phones, and the first level of navigation depends on neither a floating bottom bar nor a pager
-- [x] A first-level entry never disappears because of Root state; when it is unavailable it is dimmed and says why, with a way back
-- [x] The foot of the rail states the running mode directly: `Full APatch` / `KernelPatch-only` / `Jailbreak` / `Unavailable`
-- [x] A panoramic Home where the wallpaper is only an ambient layer, off by default and never at the cost of readable state or dangerous actions
-- [x] App colours can follow the wallpaper, the system Material You palette, or a preset
-- [x] Custom fonts and app display size
-- [x] The desktop icon can switch between the Aster and APatch marks, and choose whether it follows the app's colours
+- A single Miuix UI shell: five entries live in a permanent left rail on phones, and the first level of navigation depends on neither a floating bottom bar nor a pager
+- A first-level entry never disappears because of Root state; when it is unavailable it is dimmed and says why, with a way back
+- The foot of the rail states the running mode directly: `Full APatch` / `KernelPatch-only` / `Jailbreak` / `Unavailable`
+- A panoramic Home where the wallpaper is only an ambient layer, off by default and never at the cost of readable state or dangerous actions
+- App colours can follow the wallpaper, the system Material You palette, or a preset
+- Custom fonts and app display size
+- The desktop icon can switch between the Aster and APatch marks, and choose whether it follows the app's colours
 
-### 📦 Modules
+### Modules
 
-- [x] **APM**: a Magisk-like module system with batch install and full backup
-- [x] **KPM**: kernel modules (`inline-hook` and `syscall-table-hook`), with automatic loading
-- [x] A module repository for browsing and installing popular APM / KPM modules
-- [x] WebUI support for modules
-- [x] Magic mount
+- **APM**: a Magisk-like module system with batch install and full backup
+- **KPM**: kernel modules (`inline-hook` and `syscall-table-hook`), with automatic loading
+- A module repository for browsing and installing popular APM / KPM modules
+- WebUI support for modules
+- Magic mount
 
-### 🛡️ Protected Runtime Operations
+### Protected Runtime Operations
 
 Operations that change system properties do not take effect directly. They run inside a session that can be rolled back:
 
@@ -73,20 +73,20 @@ Operations that change system properties do not take effect directly. They run i
 
 State hiding touches only the four `ro.boot.*` properties that actually need to change. It does not re-lock the bootloader, does not modify ADB, debugging, logging or `persist.*` configuration, and does not promise to defeat hardware attestation. See [Protected Runtime Operations](docs/cn/runtime-safety.md) (Chinese).
 
-### ⚡ Technical
+### Technical
 
-- [x] Built on [KernelPatch](https://github.com/bmax121/KernelPatch)
-- [x] The UI and the APModule source are derived from [KernelSU](https://github.com/tiann/KernelSU)
+- Built on [KernelPatch](https://github.com/bmax121/KernelPatch)
+- The UI and the APModule source are derived from [KernelSU](https://github.com/tiann/KernelSU)
 
-## 🔐 Security Alert
+## Security Alert
 
 The **SuperKey** has higher privileges than root access. Weak or compromised keys can lead to unauthorized control of your device. It is critical to use robust keys and safeguard them from exposure.
 
-## 🌏 Translation
+## Translation
 
 Translations are managed by LLM. Chinese and English are the reference languages and do not accept PR corrections. If you want to contribute a new language or improve an existing translation, please open a PR with the specific language only.
 
-## 🚀 Download and Install
+## Download and Install
 
 1. **Download:**
    Get the latest package from the [Releases page](https://github.com/LyraVoid/Aster/releases/latest)
@@ -97,7 +97,7 @@ Translations are managed by LLM. Chinese and English are the reference languages
 3. **Get started:**
    Read the [full documentation](https://aster.mysqil.com/), or browse the [in-repo documents](docs/)
 
-## 🙏 Credits
+## Credits
 
 This project is based on the following open-source projects:
 
@@ -107,7 +107,7 @@ This project is based on the following open-source projects:
 - [APatch](https://github.com/bmax121/APatch) - the upstream branch
 - [Miuix](https://github.com/miuix-kotlin-multiplatform/miuix) - the interface component library
 
-## 📄 License
+## License
 
 - Aster is licensed under the [GNU General Public License v3 (GPL-3)](http://www.gnu.org/copyleft/gpl.html). As a modifier or distributor, you must meet the following:
 - If you modify the code, or integrate Aster into a project and distribute it, your whole project must be released under the same GPLv3 licence
@@ -117,6 +117,6 @@ This project is based on the following open-source projects:
 - The software is provided "as is", without warranty of any kind; the authors are not liable for any loss caused by its use
 - Violating any of the above terminates your GPLv3 grant automatically, and with it your right to distribute Aster
 
-## 💬 Community
+## Community
 
 - Telegram channel: [**@FolkPatch**](https://t.me/FolkPatch)
