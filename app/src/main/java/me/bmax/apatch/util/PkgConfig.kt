@@ -60,11 +60,25 @@ object PkgConfig {
     internal fun normaliseConfigLines(lines: List<String>): List<String> =
         lines.map { it.removePrefix("\uFEFF").trimEnd('\r') }.filter { it.isNotBlank() }
 
+    /**
+     * Whether a rewrite may be based on these lines, which is what the strict read is for: a file
+     * read only in part would lose the grants of every record that was skipped.
+     *
+     * An empty file counts as a configuration we can read, because it has no record to lose. The
+     * kernel side already treats it that way — `load_ap_package_config` accepts a file that is "not
+     * found or empty" — and so must we: a device sitting on an empty file would otherwise refuse
+     * every authorization the reader ever attempts, which is exactly what an overseas report of
+     * "tapping the switch does nothing" turned out to be. Kept apart from the file so the rule can
+     * be checked without a device.
+     */
+    internal fun isReadableConfig(lines: List<String>): Boolean =
+        lines.isEmpty() || lines.first() == CSV_HEADER
+
     internal fun readConfigs(file: File, strict: Boolean): HashMap<Int, Config> {
         val configs = HashMap<Int, Config>()
         if (file.exists()) {
             val lines = normaliseConfigLines(file.readLines())
-            if (strict) check(lines.firstOrNull() == CSV_HEADER) { "Invalid package configuration header" }
+            if (strict) check(isReadableConfig(lines)) { "Invalid package configuration header" }
             lines.filter { it != CSV_HEADER }.forEach {
                 Log.d(TAG, it)
                 val p = Config.fromLine(it)
