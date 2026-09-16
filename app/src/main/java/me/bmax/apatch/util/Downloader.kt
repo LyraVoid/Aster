@@ -14,6 +14,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.core.net.toUri
 import me.bmax.apatch.apApp
 import androidx.core.content.ContextCompat
+import org.json.JSONObject
 import java.io.File
 
 @SuppressLint("Range")
@@ -68,6 +69,30 @@ fun download(
     downloadManager.enqueue(request)
 }
 
+/**
+ * The version a release announces.
+ *
+ * The tag is the version: the release workflow tags each build with the number it computed, so the
+ * tag is read first and the title only stands in for it. Both are read strictly, a whole number or
+ * nothing, and "nothing" comes back as no version at all — which the caller reports as a check that
+ * failed, rather than as being up to date.
+ *
+ * This used to read the title alone. That worked only because the workflow happens to set the title
+ * to that same number; a title edited to read "Aster 11408" would have thrown, been swallowed by
+ * the caller's runCatching, and left every reader quietly told there was nothing to install.
+ */
+internal fun releaseVersionCode(json: JSONObject): Int =
+    listOf("tag_name", "name")
+        .firstNotNullOfOrNull { parseVersionNumber(json.optString(it)) }
+        ?: -1
+
+/** The number a release tag carries: "11408" and "v11408" mean 11408, "kp0.13.8" means nothing. */
+internal fun parseVersionNumber(text: String?): Int? =
+    text?.trim()
+        ?.removePrefix("v")
+        ?.takeIf { it.isNotEmpty() && it.all(Char::isDigit) }
+        ?.toIntOrNull()
+
 fun checkNewVersion(): LatestVersionInfo {
     val url = "https://api.github.com/repos/lyravoid/Aster/releases/latest"
     val defaultValue = LatestVersionInfo()
@@ -81,7 +106,7 @@ fun checkNewVersion(): LatestVersionInfo {
 
                 val json = org.json.JSONObject(body)
                 val changelog = json.optString("body")
-                val versionCode = json.getInt("name")
+                val versionCode = releaseVersionCode(json)
 
                 val assets = json.getJSONArray("assets")
                 for (i in 0 until assets.length()) {
