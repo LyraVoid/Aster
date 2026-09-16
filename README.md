@@ -15,20 +15,18 @@ Aster 基于 [KernelPatch](https://github.com/bmax121/KernelPatch) 打造，把 
 
 [📚 阅读完整文档](https://aster.mysqil.com/) →
 
-<!-- TODO: 截图表格，放 6 张到 docs/screenshots/1.png … 6.png。现在没有截图，先注释掉。
 <table>
   <tr>
     <td><img alt="" src="docs/screenshots/1.png"></td>
     <td><img alt="" src="docs/screenshots/2.png"></td>
     <td><img alt="" src="docs/screenshots/3.png"></td>
-  <tr>
+  </tr>
   <tr>
     <td><img alt="" src="docs/screenshots/4.png"></td>
     <td><img alt="" src="docs/screenshots/5.png"></td>
     <td><img alt="" src="docs/screenshots/6.png"></td>
-  <tr>
+  </tr>
 </table>
--->
 
 ---
 

@@ -15,20 +15,18 @@ Built on [KernelPatch](https://github.com/bmax121/KernelPatch), Aster brings Roo
 
 [📚 Read Full Documentation](https://aster.mysqil.com/) →
 
-<!-- TODO: screenshot table, six images at docs/screenshots/1.png … 6.png. None exist yet.
 <table>
   <tr>
     <td><img alt="" src="docs/screenshots/1.png"></td>
     <td><img alt="" src="docs/screenshots/2.png"></td>
     <td><img alt="" src="docs/screenshots/3.png"></td>
-  <tr>
+  </tr>
   <tr>
     <td><img alt="" src="docs/screenshots/4.png"></td>
     <td><img alt="" src="docs/screenshots/5.png"></td>
     <td><img alt="" src="docs/screenshots/6.png"></td>
-  <tr>
+  </tr>
 </table>
--->
 
 ---
 

@@ -15,20 +15,18 @@ Aster は [KernelPatch](https://github.com/bmax121/KernelPatch) を基盤に、R
 
 [📚 ドキュメントを読む](https://aster.mysqil.com/) →
 
-<!-- TODO: スクリーンショット表。docs/screenshots/1.png … 6.png に 6 枚。まだ存在しません。
 <table>
   <tr>
     <td><img alt="" src="docs/screenshots/1.png"></td>
     <td><img alt="" src="docs/screenshots/2.png"></td>
     <td><img alt="" src="docs/screenshots/3.png"></td>
-  <tr>
+  </tr>
   <tr>
     <td><img alt="" src="docs/screenshots/4.png"></td>
     <td><img alt="" src="docs/screenshots/5.png"></td>
     <td><img alt="" src="docs/screenshots/6.png"></td>
-  <tr>
+  </tr>
 </table>
--->
 
 ---
 
