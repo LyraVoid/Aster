@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.update
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.ui.home.HomeWallpaperFiles
 import me.bmax.apatch.ui.home.HomeWallpaperState
+import me.bmax.apatch.util.LauncherIconUtils
 
 /** What the app knows about the wallpaper derived colours right now. */
 @Immutable
@@ -159,6 +160,9 @@ internal object WallpaperColorTheme {
             remove(LegacySeedRevisionKey)
         }
         _state.update { it.copy(seed = seed, deriving = false, failed = false) }
+        // The icon follows this colour while the wallpaper is what the app is painted from, and the
+        // picture can be read long after the page that chose it was closed.
+        LauncherIconUtils.refreshForColorChange()
         return true
     }
 
@@ -176,6 +180,7 @@ internal object WallpaperColorTheme {
             remove(LegacySeedRevisionKey)
         }
         _state.update { it.copy(seed = 0) }
+        LauncherIconUtils.refreshForColorChange()
     }
 
     private fun readState(): WallpaperColorThemeState {

@@ -506,6 +506,8 @@
     <string name="navigation_show_entry_summary">在导航与左右滑动中显示；首页和设置始终保留</string>
     <string name="settings_launcher_icon">桌面图标</string>
     <string name="settings_launcher_icon_summary">在桌面显示 APatch 图标，替代 Aster 图标</string>
+    <string name="settings_launcher_icon_app_colors">跟随软件配色</string>
+    <string name="settings_launcher_icon_app_colors_summary">图标使用 App 当前主题配色，而非系统动态取色</string>
     <string name="settings_magic_mount">Magic mount</string>
     <string name="settings_magic_mount_summary">启用内置模块挂载，替代元模块挂载。更改后需重启生效。</string>
     <string name="module_mount_unavailable">挂载方式不可用。请开启 Magic mount 或安装挂载元模块，然后重启。</string>

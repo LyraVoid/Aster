@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.edit
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
+import me.bmax.apatch.util.LauncherIconUtils
 import org.json.JSONObject
 import top.yukonga.miuix.kmp.theme.ThemePaletteStyle
 
@@ -144,6 +145,9 @@ internal fun selectThemeColorSource(source: ThemeColorSource) {
     WallpaperColorTheme.setEnabled(switches.wallpaper)
     prefs.edit { putBoolean(SystemDynamicColorKey, switches.system) }
     refreshTheme.value = true
+    // The desktop icon can be painted from this colour, and it is told here rather than by the
+    // screen: the colour is also changed from places that never show an icon switch.
+    LauncherIconUtils.refreshForColorChange()
 }
 
 /**

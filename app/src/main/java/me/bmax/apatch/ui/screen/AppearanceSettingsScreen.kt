@@ -120,6 +120,9 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
     var useAltIcon by rememberSaveable {
         mutableStateOf(prefs.getBoolean(LauncherIconUtils.USE_ALT_ICON, false))
     }
+    var useAppIconColors by rememberSaveable {
+        mutableStateOf(prefs.getBoolean(LauncherIconUtils.FOLLOW_APP_COLORS, false))
+    }
     var showFontDialog by rememberSaveable { mutableStateOf(false) }
     val font = CustomFont.state
     val snackBarHost = LocalSnackbarHost.current
@@ -243,6 +246,10 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
             // How the app is marked on the desktop is a choice between its own letter and the
             // APatch mark it came from, so it stands on its own rather than inside the card about
             // Home, which is about what the app draws rather than what the system draws for it.
+            //
+            // Which mark it is and what colour it wears are the two halves of the same question, so
+            // they are asked together: the second one decides whether the icon is painted by the
+            // platform palette or by whichever colour the app is currently painted with.
             item(key = "launcher_icon") {
                 SettingsCard {
                     IndicatorSwitchPreference(
@@ -255,6 +262,22 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
                         title = stringResource(R.string.settings_launcher_icon),
                         summary = stringResource(R.string.settings_launcher_icon_summary),
                         startAction = { SettingsIcon(MiuixIcons.GridView) },
+                    )
+
+                    IndicatorSwitchPreference(
+                        checked = useAppIconColors,
+                        onCheckedChange = { enabled ->
+                            prefs.edit {
+                                putBoolean(LauncherIconUtils.FOLLOW_APP_COLORS, enabled)
+                            }
+                            LauncherIconUtils.updateLauncherState(context)
+                            useAppIconColors = enabled
+                        },
+                        title = stringResource(R.string.settings_launcher_icon_app_colors),
+                        summary = stringResource(
+                            R.string.settings_launcher_icon_app_colors_summary,
+                        ),
+                        startAction = { SettingsIcon(MiuixIcons.Theme) },
                     )
                 }
             }

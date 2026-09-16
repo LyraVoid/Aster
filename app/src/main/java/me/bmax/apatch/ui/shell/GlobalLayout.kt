@@ -60,6 +60,15 @@ fun setGlobalLayout(layout: GlobalLayout) {
     APApplication.sharedPreferences.edit { putString(GlobalLayoutKey, layout.value) }
 }
 
+/**
+ * The layout family in force, for callers that are not drawing a screen.
+ *
+ * Whether the wallpaper is a colour source depends on which Home is in use, and the desktop icon
+ * has to be able to ask that question without being on one.
+ */
+fun currentGlobalLayout(): GlobalLayout =
+    GlobalLayout.fromValue(APApplication.sharedPreferences.getString(GlobalLayoutKey, null))
+
 // Persist visual choices independently of the standard navigation layout.
 @Composable
 fun rememberVisualFlag(key: String, default: Boolean): State<Boolean> {

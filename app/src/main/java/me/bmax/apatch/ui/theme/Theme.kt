@@ -221,3 +221,12 @@ private val LegacyMiuixThemeSeeds = mapOf(
     "teal" to Color(0xFF009688),
     "yellow" to Color(0xFFFFD600),
 )
+
+/**
+ * The preset colours by name, in the order they are offered.
+ *
+ * The desktop icon carries a built form of each, because a launcher cannot be handed a colour that
+ * only exists in our preferences. Reading the names off the map itself is what keeps the two lists
+ * from drifting apart.
+ */
+internal val presetColorNames: List<String> = LegacyMiuixThemeSeeds.keys.toList()

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The mark's own colour while the icon follows the app. -->
+    <color name="ic_launcher_glyph">#EBEBEB</color>
+    <color name="ic_launcher_bg_amber">#553F00</color>
+    <color name="ic_launcher_bg_blue_grey">#294653</color>
+    <color name="ic_launcher_bg_blue">#044474</color>
+    <color name="ic_launcher_bg_brown">#5B3A2E</color>
+    <color name="ic_launcher_bg_cyan">#014954</color>
+    <color name="ic_launcher_bg_deep_orange">#7F1E00</color>
+    <color name="ic_launcher_bg_deep_purple">#4E259F</color>
+    <color name="ic_launcher_bg_green">#014E11</color>
+    <color name="ic_launcher_bg_indigo">#173A99</color>
+    <color name="ic_launcher_bg_light_blue">#044668</color>
+    <color name="ic_launcher_bg_light_green">#294B01</color>
+    <color name="ic_launcher_bg_lime">#3F4600</color>
+    <color name="ic_launcher_bg_orange">#633801</color>
+    <color name="ic_launcher_bg_pink">#870234</color>
+    <color name="ic_launcher_bg_purple">#740286</color>
+    <color name="ic_launcher_bg_red">#8A010B</color>
+    <color name="ic_launcher_bg_sakura">#762342</color>
+    <color name="ic_launcher_bg_teal">#014B43</color>
+    <color name="ic_launcher_bg_yellow">#4F4101</color>
+</resources>
