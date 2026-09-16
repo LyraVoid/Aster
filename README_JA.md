@@ -7,7 +7,7 @@
 
 </div>
 
-**言語：** [English](./README_EN.md) / [中文](./README.md) / [日本語](./README_JA.md)
+**言語：** [English](./README.md) / [中文](./README_CN.md) / [日本語](./README_JA.md)
 
 Aster - APatch のケイパビリティチェーンに向けた Miuix 単一 UI の Root コントロールサーフェス
 

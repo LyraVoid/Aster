@@ -7,13 +7,13 @@
 
 </div>
 
-**语言：** [English](./README_EN.md) / [中文](./README.md) / [日本語](./README_JA.md)
+**Language:** [English](./README.md) / [中文](./README_CN.md) / [日本語](./README_JA.md)
 
-Aster - 面向 APatch 能力链的 Miuix 单 UI Root 控制面
+Aster - A Miuix single-UI Root control surface for the APatch capability chain
 
-Aster 基于 [KernelPatch](https://github.com/bmax121/KernelPatch) 打造，把 Root 状态、内核模块（KPM）、系统模块（APM）与超级用户管理收进一套连贯的 Miuix 界面里。首页优先回答「当前 Root 是否可信」，而不是堆一张系统性能仪表盘。
+Built on [KernelPatch](https://github.com/bmax121/KernelPatch), Aster brings Root state, kernel modules (KPM), system modules (APM) and superuser management into one coherent Miuix interface. Home answers "is Root trustworthy right now" first, instead of being a system performance dashboard.
 
-[阅读完整文档](https://aster.mysqil.com/)
+[Read Full Documentation](https://aster.mysqil.com/)
 
 <table>
   <tr>
@@ -30,93 +30,93 @@ Aster 基于 [KernelPatch](https://github.com/bmax121/KernelPatch) 打造，把 
 
 ---
 
-## 介绍
+## Introduction
 
-### 核心功能
+### Core
 
-- 基于 KernelPatch 的 Root 实现
-- 无需重新编译内核即可 Hook 内核函数
+- A Root implementation built on KernelPatch
+- Hook kernel functions without recompiling the kernel
 
-### 前置要求
+### Requirements
 
-- **必须：** ARM64 架构的 Android 设备
-- Android 内核 3.18 - 6.18
-- 内核配置 `CONFIG_KALLSYMS=y`，并建议同时开启 `CONFIG_KALLSYMS_ALL=y`
+- **Required:** an ARM64 Android device
+- Android kernel 3.18 - 6.18
+- Kernel config `CONFIG_KALLSYMS=y`, with `CONFIG_KALLSYMS_ALL=y` recommended as well
 
-### 界面与交互
+### Interface
 
-- Miuix 单 UI 壳：手机端五入口常驻左轨，一级导航不依赖悬浮底栏或 Pager
-- 一级入口不因 Root 状态消失；不可用时置灰，并给出原因与恢复入口
-- 左轨底部直接表达运行模式语义：`Full APatch` / `KernelPatch-only` / `Jailbreak` / `Unavailable`
-- 全景首页：壁纸只作为环境层，默认关闭，开启后仍保证状态与危险操作可读
-- 应用配色可跟随壁纸取色、系统 Material You 或预设色
-- 自定义字体与应用显示大小
-- 桌面图标可在 Aster 与 APatch 两种标记间切换，并选择是否跟随应用配色
+- A single Miuix UI shell: five entries live in a permanent left rail on phones, and the first level of navigation depends on neither a floating bottom bar nor a pager
+- A first-level entry never disappears because of Root state; when it is unavailable it is dimmed and says why, with a way back
+- The foot of the rail states the running mode directly: `Full APatch` / `KernelPatch-only` / `Jailbreak` / `Unavailable`
+- A panoramic Home where the wallpaper is only an ambient layer, off by default and never at the cost of readable state or dangerous actions
+- App colours can follow the wallpaper, the system Material You palette, or a preset
+- Custom fonts and app display size
+- The desktop icon can switch between the Aster and APatch marks, and choose whether it follows the app's colours
 
-### 模块与扩展体系
+### Modules
 
-- **APM**：类 Magisk 模块系统，支持批量刷入与全量备份
-- **KPM**：内核模块系统（支持 `inline-hook` 与 `syscall-table-hook`），支持自动加载
-- 模块仓库：浏览并一键安装热门 APM / KPM
-- 模块 WebUI 支持
+- **APM**: a Magisk-like module system with batch install and full backup
+- **KPM**: kernel modules (`inline-hook` and `syscall-table-hook`), with automatic loading
+- A module repository for browsing and installing popular APM / KPM modules
+- WebUI support for modules
 - Magic mount
 
-### 受保护的运行时操作
+### Protected Runtime Operations
 
-会改动系统属性的操作不直接生效，而是放进一个可回退的会话里：
+Operations that change system properties do not take effect directly. They run inside a session that can be rolled back:
 
-- 预检先展示**实际的属性变化**，或源文件与目标文件的差别
-- 正式保留前先做 **60 秒试运行**
-- 应用失败、试运行到期或检测到安全模式时**自动尝试恢复**
-- 保留只对**当前 boot ID** 有效，重启后保持关闭
-- 恢复失败会明确报错并保留恢复记录，不会谎报已经恢复
+- A pre-check first shows the **actual property changes**, or the difference between the source and target files
+- Every change runs as a **60-second trial** before it can be kept
+- A failed apply, an expired trial, or a detected safe mode triggers an **automatic recovery attempt**
+- Keeping a change is valid only for the **current boot ID**; after a reboot it is off again
+- A failed recovery reports the error and keeps the recovery record rather than claiming success
 
-状态隐藏只处理确实需要变化的四项 `ro.boot.*` 属性，不会实际重新锁定 Bootloader，不修改 ADB、调试、日志或 `persist.*` 配置，也不承诺绕过硬件认证。详见[受保护的运行时操作](docs/cn/runtime-safety.md)。
+State hiding touches only the four `ro.boot.*` properties that actually need to change. It does not re-lock the bootloader, does not modify ADB, debugging, logging or `persist.*` configuration, and does not promise to defeat hardware attestation. See [Protected Runtime Operations](docs/cn/runtime-safety.md) (Chinese).
 
-### 技术特性
+### Technical
 
-- 基于 [KernelPatch](https://github.com/bmax121/KernelPatch)
-- 应用 UI 与 APModule 源码派生自 [KernelSU](https://github.com/tiann/KernelSU)
+- Built on [KernelPatch](https://github.com/bmax121/KernelPatch)
+- The UI and the APModule source are derived from [KernelSU](https://github.com/tiann/KernelSU)
 
-## 安全提示
+## Security Alert
 
-**SuperKey 的权限高于 root。** 弱密钥或已泄露的密钥会导致设备被未授权控制。请务必使用强密钥，并妥善保管、避免外泄。
+The **SuperKey** has higher privileges than root access. Weak or compromised keys can lead to unauthorized control of your device. It is critical to use robust keys and safeguard them from exposure.
 
-## 翻译
+## Translation
 
-翻译由 LLM 维护。中文与英文是参考语言，不接受对这两种语言的 PR 修正。如果你想新增语言或改进已有翻译，请只针对该语言提交 PR。
+Translations are managed by LLM. Chinese and English are the reference languages and do not accept PR corrections. If you want to contribute a new language or improve an existing translation, please open a PR with the specific language only.
 
-## 下载安装
+## Download and Install
 
-1. **下载：**
-   从[发布页面](https://github.com/LyraVoid/Aster/releases/latest)获取最新版安装包
+1. **Download:**
+   Get the latest package from the [Releases page](https://github.com/LyraVoid/Aster/releases/latest)
 
-2. **安装：**
-   将安装包安装到你的 Android 设备，按应用内引导完成部署
+2. **Install:**
+   Install the package on your Android device and follow the in-app guide to deploy
 
-3. **开始使用：**
-   阅读[完整文档](https://aster.mysqil.com/)，也可直接查看[仓库内文档](docs/)
+3. **Get started:**
+   Read the [full documentation](https://aster.mysqil.com/), or browse the [in-repo documents](docs/)
 
-## 开源致谢
+## Credits
 
-本项目基于以下开源项目：
+This project is based on the following open-source projects:
 
-- [KernelPatch](https://github.com/bmax121/KernelPatch) - 核心组件
+- [KernelPatch](https://github.com/bmax121/KernelPatch) - the core
 - [Magisk](https://github.com/topjohnwu/Magisk) - magiskpolicy
-- [KernelSU](https://github.com/tiann/KernelSU) - 应用 UI 和类似 Magisk 的模块支持
-- [APatch](https://github.com/bmax121/APatch) - 上游分支
-- [Miuix](https://github.com/miuix-kotlin-multiplatform/miuix) - 界面组件库
+- [KernelSU](https://github.com/tiann/KernelSU) - app UI and Magisk-like module support
+- [APatch](https://github.com/bmax121/APatch) - the upstream branch
+- [Miuix](https://github.com/miuix-kotlin-multiplatform/miuix) - the interface component library
 
-## 许可证
+## License
 
-- Aster 遵循 [GNU General Public License v3 (GPL-3)](http://www.gnu.org/copyleft/gpl.html) 许可证开源。作为二改者或分发者，您需遵守以下标准：
-- 若您修改了代码或在项目中集成了 Aster 并向第三方分发，您的整个项目必须同样采用 GPLv3 协议开源
-- 分发二进制文件时，必须主动提供或承诺提供完整且可读的源代码
-- 严禁对软件授权本身收取许可费；您可以针对分发、技术支持或定制开发收费
-- 分发行为即代表您授予所有用户使用该项目涉及的您的相关专利
-- 本软件“按原样”提供，不含任何担保，原作者不对因使用本软件造成的任何损失负责
-- 任何违反上述条款的行为将导致您的 GPLv3 授权自动终止，届时您将失去分发 Aster 的合法权利
+- Aster is licensed under the [GNU General Public License v3 (GPL-3)](http://www.gnu.org/copyleft/gpl.html). As a modifier or distributor, you must meet the following:
+- If you modify the code, or integrate Aster into a project and distribute it, your whole project must be released under the same GPLv3 licence
+- When distributing binaries you must offer, or promise to offer, complete and readable source code
+- You may not charge a licence fee for the software itself; you may charge for distribution, support or custom development
+- Distribution grants every user a licence to any of your patents that the project involves
+- The software is provided "as is", without warranty of any kind; the authors are not liable for any loss caused by its use
+- Violating any of the above terminates your GPLv3 grant automatically, and with it your right to distribute Aster
 
-## 社区交流
+## Community
 
-- Telegram 频道：[**@FolkPatch**](https://t.me/FolkPatch)
+- Telegram channel: [**@FolkPatch**](https://t.me/FolkPatch)
