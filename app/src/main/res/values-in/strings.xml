@@ -377,6 +377,8 @@
     <string name="home_appearance">Tampilan Beranda</string>
     <string name="home_scene_labels_switch">Label rel</string>
     <string name="home_scene_labels_switch_summary">Tampilkan label di bawah setiap ikon rel.</string>
+    <string name="home_scene_quote_title">Slogan beranda</string>
+    <string name="home_scene_quote_hint">Satu baris masing-masing; beberapa akan bergiliran. Kosong mempertahankan baris bawaan.</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">Pilih wallpaper Beranda terlebih dahulu.</string>
     <string name="settings_wallpaper_color_theme_failed">Tidak dapat membaca warna dari wallpaper ini.</string>
     <string name="home_wallpaper_color_deriving">Membaca warna wallpaper…</string>

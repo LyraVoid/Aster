@@ -308,9 +308,73 @@ internal fun HomeTitleDialog(
     }
 }
 
+/**
+ * The lines the panorama Home says under the greeting, one per line.
+ *
+ * An empty field is an answer rather than a mistake: it puts the scene back on the set the app
+ * ships with. That is why there is no separate reset to find — clearing what is written is the way
+ * back. Several lines take turns by the day, the same way the built-in set does.
+ */
+@Composable
+internal fun HomeSceneQuoteDialog(
+    show: Boolean,
+    onDismiss: () -> Unit,
+    onApply: (String) -> Unit = {},
+) {
+    val controlParam = rememberTextFieldState()
+
+    LaunchedEffect(show) {
+        if (show) {
+            val stored = APApplication.sharedPreferences
+                .getString(APApplication.HOME_SCENE_QUOTE, null)
+                .orEmpty()
+            controlParam.edit { replace(0, length, stored) }
+        }
+    }
+
+    OverlayDialog(
+        show = show,
+        title = stringResource(R.string.home_scene_quote_title),
+        onDismissRequest = onDismiss,
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            TextField(
+                state = controlParam,
+                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.home_scene_quote_hint),
+                lineLimits = TextFieldLineLimits.MultiLine(
+                    minHeightInLines = 3,
+                    maxHeightInLines = 6,
+                ),
+            )
+            Spacer(Modifier.height(18.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                TextButton(
+                    text = stringResource(android.R.string.cancel),
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f),
+                )
+                Button(
+                    onClick = {
+                        val lines = controlParam.text.toString()
+                        onDismiss()
+                        onApply(lines)
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColorsPrimary(),
+                ) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            }
+        }
+    }
+}
+
 internal fun suPathChecked(path: String): Boolean =
     path.startsWith("/") && path.trim().length > 1
-
 /**
  * The font the app is drawn in: whether it is the reader's own, which file it came from, and the two
  * ways to change either.

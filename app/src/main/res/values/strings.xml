@@ -359,6 +359,8 @@
     <string name="home_appearance">Home appearance</string>
     <string name="home_scene_labels_switch">Rail labels</string>
     <string name="home_scene_labels_switch_summary">Show a label under each rail icon.</string>
+    <string name="home_scene_quote_title">Home slogan</string>
+    <string name="home_scene_quote_hint">One line each, several take turns. Empty keeps the built-in lines.</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">Choose a Home wallpaper first.</string>
     <string name="settings_wallpaper_color_theme_failed">Could not read a colour from this wallpaper.</string>
     <string name="home_wallpaper_color_deriving">Reading the wallpaper colours…</string>

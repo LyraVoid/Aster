@@ -379,6 +379,8 @@
     <string name="home_appearance">Ana sayfa görünümü</string>
     <string name="home_scene_labels_switch">Şerit etiketleri</string>
     <string name="home_scene_labels_switch_summary">Her şerit simgesinin altında bir etiket göster.</string>
+    <string name="home_scene_quote_title">Ana ekran sloganı</string>
+    <string name="home_scene_quote_hint">Her satıra bir tane; birkaçı sırayla gösterilir. Boş bırakılırsa yerleşik satırlar kalır.</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">Önce bir ana sayfa duvar kağıdı seçin.</string>
     <string name="settings_wallpaper_color_theme_failed">Bu duvar kağıdından bir renk okunamadı.</string>
     <string name="home_wallpaper_color_deriving">Duvar kağıdı renkleri okunuyor…</string>

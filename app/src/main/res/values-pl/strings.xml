@@ -377,6 +377,8 @@
     <string name="home_appearance">Wygląd pulpitu</string>
     <string name="home_scene_labels_switch">Etykiety paska</string>
     <string name="home_scene_labels_switch_summary">Pokaż etykietę pod każdą ikoną paska.</string>
+    <string name="home_scene_quote_title">Hasło ekranu głównego</string>
+    <string name="home_scene_quote_hint">Jedna na wiersz; kilka zmienia się kolejno. Puste zostawia wbudowane.</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">Najpierw wybierz tapetę pulpitu.</string>
     <string name="settings_wallpaper_color_theme_failed">Nie udało się odczytać koloru z tej tapety.</string>
     <string name="home_wallpaper_color_deriving">Odczytywanie kolorów tapety…</string>

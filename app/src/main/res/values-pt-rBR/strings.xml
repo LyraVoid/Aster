@@ -379,6 +379,8 @@
     <string name="home_appearance">Aparência da tela inicial</string>
     <string name="home_scene_labels_switch">Rótulos da barra</string>
     <string name="home_scene_labels_switch_summary">Mostrar um rótulo sob cada ícone da barra.</string>
+    <string name="home_scene_quote_title">Lema da tela inicial</string>
+    <string name="home_scene_quote_hint">Uma por linha; várias se alternam. Vazio mantém as frases internas.</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">Escolha primeiro um papel de parede da tela inicial.</string>
     <string name="settings_wallpaper_color_theme_failed">Não foi possível extrair uma cor deste papel de parede.</string>
     <string name="home_wallpaper_color_deriving">Lendo as cores do papel de parede…</string>

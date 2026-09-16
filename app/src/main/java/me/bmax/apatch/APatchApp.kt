@@ -106,6 +106,12 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
         private const val SHOW_SWITCH_INDICATOR = "show_switch_indicator"
         private const val STAY_ON_ACTION_PAGE = "stay_on_action_page"
         const val HOME_TITLE = "home_title"
+
+        /**
+         * The lines the reader wrote for the panorama Home, one per line. Empty means the set the
+         * app ships with, so clearing the field is how the scene is put back the way it arrived.
+         */
+        const val HOME_SCENE_QUOTE = "home_scene_quote"
         lateinit var sharedPreferences: SharedPreferences
 
         private val logCallback: CallbackList<String?> = object : CallbackList<String?>() {

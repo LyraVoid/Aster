@@ -377,6 +377,8 @@
     <string name="home_appearance">Apariencia de Inicio</string>
     <string name="home_scene_labels_switch">Etiquetas de la barra</string>
     <string name="home_scene_labels_switch_summary">Mostrar una etiqueta debajo de cada icono de la barra.</string>
+    <string name="home_scene_quote_title">Lema de inicio</string>
+    <string name="home_scene_quote_hint">Una por línea; varias se alternan. Vacío conserva las líneas incluidas.</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">Elige primero un fondo de pantalla para Inicio.</string>
     <string name="settings_wallpaper_color_theme_failed">No se pudo leer ningún color de este fondo de pantalla.</string>
     <string name="home_wallpaper_color_deriving">Leyendo los colores del fondo de pantalla…</string>

@@ -278,6 +278,8 @@
     <string name="home_appearance">仙府主殿仙容</string>
     <string name="home_scene_labels_switch">侧阵文字灵签</string>
     <string name="home_scene_labels_switch_summary">于每道侧阵灵标之下现出文字。</string>
+    <string name="home_scene_quote_title">仙府题词</string>
+    <string name="home_scene_quote_hint">每行一句，多句轮转。留空则沿用内置仙句。</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">请先于仙府主殿择取仙画。</string>
     <string name="settings_wallpaper_color_theme_failed">无法自此仙画取色。</string>
     <string name="home_wallpaper_color_deriving">正读取仙画配色…</string>

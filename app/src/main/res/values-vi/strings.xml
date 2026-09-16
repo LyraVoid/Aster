@@ -379,6 +379,8 @@
     <string name="home_appearance">Giao diện Trang chủ</string>
     <string name="home_scene_labels_switch">Nhãn trên thanh bên</string>
     <string name="home_scene_labels_switch_summary">Hiển thị nhãn dưới mỗi biểu tượng trên thanh bên.</string>
+    <string name="home_scene_quote_title">Khẩu hiệu trang chính</string>
+    <string name="home_scene_quote_hint">Mỗi dòng một câu; nhiều câu sẽ luân phiên. Để trống sẽ giữ các câu có sẵn.</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">Hãy chọn hình nền Trang chủ trước.</string>
     <string name="settings_wallpaper_color_theme_failed">Không thể đọc màu từ hình nền này.</string>
     <string name="home_wallpaper_color_deriving">Đang đọc màu từ hình nền…</string>

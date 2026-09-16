@@ -379,6 +379,8 @@
     <string name="home_appearance">مظهر الصفحة الرئيسية</string>
     <string name="home_scene_labels_switch">تسميات الشريط الرأسي</string>
     <string name="home_scene_labels_switch_summary">إظهار تسمية أسفل كل أيقونة في الشريط الرأسي.</string>
+    <string name="home_scene_quote_title">شعار الرئيسية</string>
+    <string name="home_scene_quote_hint">سطر لكل واحدة، وتتناوب عدة أسطر. اتركه فارغًا للإبقاء على السطور المضمّنة.</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">اختر خلفية للصفحة الرئيسية أولًا.</string>
     <string name="settings_wallpaper_color_theme_failed">تعذّر قراءة لون من هذه الخلفية.</string>
     <string name="home_wallpaper_color_deriving">جارٍ قراءة ألوان الخلفية…</string>

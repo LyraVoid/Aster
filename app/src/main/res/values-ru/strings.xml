@@ -377,6 +377,8 @@
     <string name="home_appearance">Внешний вид главного экрана</string>
     <string name="home_scene_labels_switch">Подписи на боковой панели</string>
     <string name="home_scene_labels_switch_summary">Показывать подпись под каждым значком боковой панели.</string>
+    <string name="home_scene_quote_title">Слоган главного экрана</string>
+    <string name="home_scene_quote_hint">По одной в строке; несколько чередуются. Пусто — встроенные строки.</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">Сначала выберите обои главного экрана.</string>
     <string name="settings_wallpaper_color_theme_failed">Не удалось извлечь цвет из этих обоев.</string>
     <string name="home_wallpaper_color_deriving">Извлечение цветов обоев…</string>

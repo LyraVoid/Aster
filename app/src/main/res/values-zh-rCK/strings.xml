@@ -278,6 +278,8 @@
     <string name="home_appearance">操作台门面</string>
     <string name="home_scene_labels_switch">侧边传菜台带字</string>
     <string name="home_scene_labels_switch_summary">每个侧边图标底下都配上字。</string>
+    <string name="home_scene_quote_title">招牌标语</string>
+    <string name="home_scene_quote_hint">一行一道，多道轮流上。留空就用店里自带的。</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">先去操作台挑张桌布。</string>
     <string name="settings_wallpaper_color_theme_failed">这块桌布取不出颜色。</string>
     <string name="home_wallpaper_color_deriving">正在从桌布上配色…</string>

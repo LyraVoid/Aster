@@ -280,6 +280,8 @@
     <string name="home_appearance">首页外观喵</string>
     <string name="home_scene_labels_switch">侧栏文字标签喵</string>
     <string name="home_scene_labels_switch_summary">在每个侧栏图标底下显示文字喵。</string>
+    <string name="home_scene_quote_title">首页标语喵</string>
+    <string name="home_scene_quote_hint">一行一句喵，多句会轮流出现喵。留空就用自带的那几句喵。</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">请先去首页挑一张壁纸喵。</string>
     <string name="settings_wallpaper_color_theme_failed">呜喵…这张壁纸取不出颜色啦。</string>
     <string name="home_wallpaper_color_deriving">正在读壁纸的配色喵…</string>

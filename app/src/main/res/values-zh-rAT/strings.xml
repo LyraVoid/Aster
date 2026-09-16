@@ -278,6 +278,8 @@
     <string name="home_appearance">圣殿圣容</string>
     <string name="home_scene_labels_switch">侧栏圣文标签</string>
     <string name="home_scene_labels_switch_summary">在每一枚侧栏圣纹之下显化圣文。</string>
+    <string name="home_scene_quote_title">圣殿铭言</string>
+    <string name="home_scene_quote_hint">每行一则，多则轮替。留空则沿用内置圣言。</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">请先在圣光之殿择取圣图。</string>
     <string name="settings_wallpaper_color_theme_failed">无法自此圣图中取色。</string>
     <string name="home_wallpaper_color_deriving">正在读取圣图之色…</string>

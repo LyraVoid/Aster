@@ -74,6 +74,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -97,6 +98,7 @@ import me.bmax.apatch.ui.component.WarningCardTone
 import me.bmax.apatch.ui.component.IndicatorSwitch
 import me.bmax.apatch.ui.home.HomeConclusion
 import me.bmax.apatch.ui.home.homeSceneLayout
+import me.bmax.apatch.ui.home.HomeSceneQuote
 import me.bmax.apatch.ui.home.HomeDeviceDensity
 import me.bmax.apatch.ui.home.HomeDeviceEnvironment
 import me.bmax.apatch.ui.home.HomeEvent
@@ -1131,12 +1133,15 @@ private fun sceneGreeting(): String {
 
 @Composable
 private fun sceneQuote(): String {
-    val quotes = stringArrayResource(R.array.home_scene_quotes)
-    if (quotes.isEmpty()) {
-        return ""
+    // The reader's own lines when they have written any, and the set this app ships with when they
+    // have not; see HomeSceneQuote for how the day turns them over.
+    val builtIn = stringArrayResource(R.array.home_scene_quotes)
+    val custom = APApplication.sharedPreferences
+        .getString(APApplication.HOME_SCENE_QUOTE, null)
+    val day = LocalDate.now().dayOfYear
+    return remember(custom, builtIn, day) {
+        HomeSceneQuote.resolve(custom, builtIn.toList(), day)
     }
-    val index = LocalDate.now().dayOfYear % quotes.size
-    return quotes[index]
 }
 
 @Composable
@@ -1648,6 +1653,33 @@ private fun HomeWallpaperSheet(
                             me.bmax.apatch.ui.shell.SceneRailLabelsFlag,
                             it,
                         )
+                    },
+                )
+
+                // The line under the greeting belongs to this scene alone, so it is offered here
+                // rather than in the settings the other families share. The row names the line in
+                // use, which is the reader's own words once they have written any, and one of the
+                // built-in ones until then.
+                var editingSceneQuote by remember { mutableStateOf(false) }
+                SceneChoiceRow(
+                    title = stringResource(R.string.home_scene_quote_title),
+                    value = sceneQuote(),
+                    onClick = { editingSceneQuote = true },
+                )
+                HomeSceneQuoteDialog(
+                    show = editingSceneQuote,
+                    onDismiss = { editingSceneQuote = false },
+                    onApply = { written ->
+                        APApplication.sharedPreferences.edit {
+                            // Clearing the field is how the scene is put back on the built-in
+                            // lines, so it is stored as nothing written rather than as blanks.
+                            val lines = written.trim()
+                            if (lines.isEmpty()) {
+                                remove(APApplication.HOME_SCENE_QUOTE)
+                            } else {
+                                putString(APApplication.HOME_SCENE_QUOTE, lines)
+                            }
+                        }
                     },
                 )
             }

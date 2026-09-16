@@ -331,6 +331,8 @@
     <string name="home_appearance">魔法大厅外观</string>
     <string name="home_scene_labels_switch">星图侧栏文字标签</string>
     <string name="home_scene_labels_switch_summary">在每个星图侧栏图标下显示文字。</string>
+    <string name="home_scene_quote_title">魔法大厅标语</string>
+    <string name="home_scene_quote_hint">每行一句咒语，多句轮流显现。留空则沿用内置的魔法短句。</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">请先在魔法大厅选择壁纸。</string>
     <string name="settings_wallpaper_color_theme_failed">无法从这张魔法壁纸中取色。</string>
     <string name="home_wallpaper_color_deriving">正在读取魔法壁纸的配色…</string>

@@ -278,6 +278,8 @@
     <string name="home_appearance">主世界外观</string>
     <string name="home_scene_labels_switch">侧栏文字牌子</string>
     <string name="home_scene_labels_switch_summary">在每个侧栏图标下面显示文字。</string>
+    <string name="home_scene_quote_title">主世界标语</string>
+    <string name="home_scene_quote_hint">每行一条，多条轮流显示。留空就用内置的。</string>
     <string name="settings_wallpaper_color_theme_no_wallpaper">请先去主世界选一张壁纸。</string>
     <string name="settings_wallpaper_color_theme_failed">没法从这张壁纸取色。</string>
     <string name="home_wallpaper_color_deriving">正在读壁纸配色…</string>
