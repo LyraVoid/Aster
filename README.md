@@ -1,7 +1,5 @@
 <div align="center">
-<!-- TODO: 放上 logo.png（仓库根目录）。现在还没有这张图，先注释掉，避免 README 顶部出现破图。
-<img src='logo.png' width='500px' alt="Aster logo">
--->
+<img src='logo.png' width='180px' alt="Aster logo">
 
 [![Latest Release](https://img.shields.io/github/v/release/LyraVoid/Aster?label=Release&logo=github)](https://github.com/LyraVoid/Aster/releases/latest)
 [![Channel](https://img.shields.io/badge/Follow-Telegram-blue.svg?logo=telegram)](https://t.me/FolkPatch)

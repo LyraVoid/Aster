@@ -1,8 +1,5 @@
 <div align="center">
-<!-- TODO: add logo.png at the repository root. It does not exist yet, so this stays commented
-     out rather than showing a broken image at the top of the README.
-<img src='logo.png' width='500px' alt="Aster logo">
--->
+<img src='logo.png' width='180px' alt="Aster logo">
 
 [![Latest Release](https://img.shields.io/github/v/release/LyraVoid/Aster?label=Release&logo=github)](https://github.com/LyraVoid/Aster/releases/latest)
 [![Channel](https://img.shields.io/badge/Follow-Telegram-blue.svg?logo=telegram)](https://t.me/FolkPatch)
