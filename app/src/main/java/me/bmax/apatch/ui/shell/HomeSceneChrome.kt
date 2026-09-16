@@ -115,12 +115,10 @@ internal const val SceneClockStyleFlag = "scene_clock_style"
 internal const val HomeClassicEmojiFlag = "home_classic_emoji"
 
 /**
- * How tall a window has to be before the scene draws its portrait composition.
+ * How tall a window has to be before the scene rail shows its clock and battery.
  *
- * Below this the window is a phone held sideways, or a squat freeform window: the hero, the clock
- * and five destinations in one column ask for more height than the window has, so the scene is laid
- * out across instead of down. The rail and the page both read this, so they change shape together
- * rather than one of them deciding the window is short on its own.
+ * A short phone or freeform window only has room for destinations. The page chooses its panes
+ * independently from its available aspect ratio; landscape tablets can keep the full rail.
  */
 internal val SceneShortHeight = 560.dp
 

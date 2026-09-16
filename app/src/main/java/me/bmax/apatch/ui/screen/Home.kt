@@ -36,7 +36,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -97,6 +96,7 @@ import me.bmax.apatch.ui.component.WarningCard
 import me.bmax.apatch.ui.component.WarningCardTone
 import me.bmax.apatch.ui.component.IndicatorSwitch
 import me.bmax.apatch.ui.home.HomeConclusion
+import me.bmax.apatch.ui.home.homeSceneLayout
 import me.bmax.apatch.ui.home.HomeDeviceDensity
 import me.bmax.apatch.ui.home.HomeDeviceEnvironment
 import me.bmax.apatch.ui.home.HomeEvent
@@ -129,7 +129,6 @@ import me.bmax.apatch.ui.home.resolveUpdateLayer
 import me.bmax.apatch.ui.home.resolveUpdateVersions
 import me.bmax.apatch.ui.shell.GlobalLayout
 import me.bmax.apatch.ui.shell.GlobalLayoutDialog
-import me.bmax.apatch.ui.shell.SceneShortHeight
 import me.bmax.apatch.ui.shell.HomeLayoutDialog
 import me.bmax.apatch.ui.shell.HomeLayout
 import me.bmax.apatch.ui.shell.LocalHomeSceneHostState
@@ -560,12 +559,10 @@ private fun HomeScenePanel(
         val sceneProgress = me.bmax.apatch.ui.shell.LocalSceneProgress.current
         val sidebarExpanded by me.bmax.apatch.ui.shell.rememberVisualFlag("scene_sidebar_expanded", true)
         val toggleSidebar = { me.bmax.apatch.ui.shell.setVisualFlag("scene_sidebar_expanded", !sidebarExpanded) }
-        // A window wider than it is tall, and shorter than the portrait composition asks for, is a
-        // phone held sideways. There the column would spend the whole fold on the hero and keep
-        // every card below it; the scene spends the width instead, keeping the photo in the left
-        // pane and the page in the right one, so the state and the cards are on screen at once.
-        val sceneAcross = maxWidth > maxHeight && maxHeight < SceneShortHeight
-        val heroHeight = ((maxHeight - topInset) * if (maxHeight < 480.dp) 0.50f else 0.63f).coerceAtLeast(300.dp)
+        val layout = homeSceneLayout(
+            width = maxWidth,
+            height = (maxHeight - topInset - bottomInset).coerceAtLeast(0.dp),
+        )
         val scrollState = rememberScrollState()
 
         Box(
@@ -575,7 +572,7 @@ private fun HomeScenePanel(
                 .clip(RoundedCornerShape(topStart = 26.dp * sceneProgress, bottomStart = 26.dp * sceneProgress))
                 .background(MiuixTheme.colorScheme.background),
         ) {
-            if (sceneAcross) {
+            if (layout.across) {
                 Row(Modifier.fillMaxSize()) {
                     SceneHero(
                         state = state,
@@ -585,6 +582,7 @@ private fun HomeScenePanel(
                         onTools = { onShowMoreChange(true) },
                         onAppearance = onAppearance,
                         scrollState = scrollState,
+                        scrollsWithPage = false,
                         shape = RoundedCornerShape(24.dp),
                         modifier = Modifier
                             .weight(0.46f)
@@ -628,8 +626,6 @@ private fun HomeScenePanel(
                 ) {
                 Column(
                     Modifier
-                        .align(Alignment.TopCenter)
-                        .widthIn(max = 600.dp)
                         .fillMaxSize()
                         .verticalScroll(scrollState),
                 ) {
@@ -647,7 +643,7 @@ private fun HomeScenePanel(
                         modifier = Modifier
                             .padding(horizontal = 14.dp)
                             .fillMaxWidth()
-                            .height(heroHeight),
+                            .height(layout.heroHeight),
                     )
 
                     SceneGreeting(
@@ -714,6 +710,7 @@ private fun SceneHero(
     scrollState: ScrollState,
     shape: Shape,
     modifier: Modifier = Modifier,
+    scrollsWithPage: Boolean = true,
 ) {
     Box(
         Modifier
@@ -774,7 +771,7 @@ private fun SceneHero(
                 .fillMaxWidth()
                 .fillMaxHeight(SceneParallaxOverscan)
                 .graphicsLayer {
-                    translationY = (scrollState.value * SceneParallaxRate)
+                    translationY = (if (scrollsWithPage) scrollState.value * SceneParallaxRate else 0f)
                         .coerceAtMost(size.height * SceneParallaxRate / SceneParallaxOverscan)
                 },
         )
@@ -801,7 +798,11 @@ private fun SceneHero(
             Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    alpha = (scrollState.value / size.height).coerceIn(0f, 1f) * 0.95f
+                    alpha = if (scrollsWithPage) {
+                        (scrollState.value / size.height).coerceIn(0f, 1f) * 0.95f
+                    } else {
+                        0f
+                    }
                 }
                 .background(
                     Brush.verticalGradient(
