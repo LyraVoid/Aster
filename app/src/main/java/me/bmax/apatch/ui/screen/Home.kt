@@ -95,6 +95,7 @@ import me.bmax.apatch.root.RootMode
 import me.bmax.apatch.root.isUsable
 import me.bmax.apatch.ui.component.WarningCard
 import me.bmax.apatch.ui.component.WarningCardTone
+import me.bmax.apatch.ui.component.MarkdownContent
 import me.bmax.apatch.ui.component.IndicatorSwitch
 import me.bmax.apatch.ui.home.HomeConclusion
 import me.bmax.apatch.ui.home.homeSceneLayout
@@ -3178,12 +3179,18 @@ private fun UpdateDialog(
                     .heightIn(max = 320.dp)
                     .verticalScroll(rememberScrollState()),
             ) {
-                Text(
-                    text = update.changelog.ifBlank {
-                        stringResource(R.string.home_update_available_summary)
-                    },
-                    style = MiuixTheme.textStyles.body2,
-                )
+                // The notes are written in Markdown, the way the release page shows them. Handed
+                // to a plain Text they arrived as a wall of asterisks with the headings and the
+                // lists flattened into it; drawn as Markdown they keep their shape. The summary
+                // stands in only for a release published without notes at all.
+                if (update.changelog.isBlank()) {
+                    Text(
+                        text = stringResource(R.string.home_update_available_summary),
+                        style = MiuixTheme.textStyles.body2,
+                    )
+                } else {
+                    MarkdownContent(content = update.changelog)
+                }
             }
             Spacer(Modifier.height(18.dp))
             Row(

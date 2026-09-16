@@ -518,8 +518,15 @@ private fun ConfirmDialog(visuals: ConfirmDialogVisuals, confirm: () -> Unit, di
 
 }
 
+/**
+ * Draws Markdown as Markdown rather than as the text of it.
+ *
+ * Release notes are written on GitHub, where headings, bold and lists are how they carry their
+ * structure. Handed to a plain [androidx.compose.material3.Text] they arrive as a wall of asterisks,
+ * so anything showing a release body goes through here.
+ */
 @Composable
-private fun MarkdownContent(content: String) {
+internal fun MarkdownContent(content: String) {
     val contentColor: Color = LocalContentColor.current
 
     AndroidView(

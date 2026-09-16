@@ -35,6 +35,7 @@ import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
 import me.bmax.apatch.apApp
 import me.bmax.apatch.ui.component.IndicatorSwitchPreference
+import me.bmax.apatch.ui.component.MarkdownContent
 import me.bmax.apatch.ui.home.HomeUpdateState
 import me.bmax.apatch.ui.home.HomeViewModel
 import me.bmax.apatch.ui.shell.LocalFloatingNavigationInset
@@ -115,12 +116,19 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
                             .heightIn(max = 320.dp)
                             .verticalScroll(rememberScrollState()),
                     ) {
-                        Text(
-                            text = update.changelog.ifBlank {
-                                stringResource(R.string.home_update_available_summary)
-                            },
-                            style = MiuixTheme.textStyles.body2,
-                        )
+                        // The notes are written in Markdown, the way the release page shows them.
+                        // Handed to a plain Text they arrived as a wall of asterisks with the
+                        // headings and the lists flattened into it; drawn as Markdown they keep the
+                        // shape they were written in. The summary stands in only for a release
+                        // published without notes at all.
+                        if (update.changelog.isBlank()) {
+                            Text(
+                                text = stringResource(R.string.home_update_available_summary),
+                                style = MiuixTheme.textStyles.body2,
+                            )
+                        } else {
+                            MarkdownContent(content = update.changelog)
+                        }
                     }
                     Spacer(Modifier.height(18.dp))
                 }
