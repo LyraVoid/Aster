@@ -52,11 +52,13 @@ import me.bmax.apatch.ui.theme.refreshTheme
 import me.bmax.apatch.ui.theme.rememberThemeColorSchemeState
 import me.bmax.apatch.ui.theme.rememberWallpaperColorThemeState
 import me.bmax.apatch.ui.theme.themeColorSourceOf
+import me.bmax.apatch.util.LauncherIconUtils
 import me.bmax.apatch.util.ui.LocalSnackbarHost
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SnackbarDuration
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.GridView
 import top.yukonga.miuix.kmp.icon.extended.HorizontalSplit
 import top.yukonga.miuix.kmp.icon.extended.Layers
 import top.yukonga.miuix.kmp.icon.extended.Notes
@@ -115,6 +117,9 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
         mutableStateOf(prefs.getBoolean("night_mode_enabled", false))
     }
     var switchIndicator by rememberSaveable { mutableStateOf(SwitchIndicator.enabled) }
+    var useAltIcon by rememberSaveable {
+        mutableStateOf(prefs.getBoolean(LauncherIconUtils.USE_ALT_ICON, false))
+    }
     var showFontDialog by rememberSaveable { mutableStateOf(false) }
     val font = CustomFont.state
     val snackBarHost = LocalSnackbarHost.current
@@ -232,6 +237,25 @@ fun AppearanceSettingsScreen(navigator: DestinationsNavigator) {
                             startAction = { SettingsIcon(MiuixIcons.Tune) },
                         )
                     }
+                }
+            }
+
+            // How the app is marked on the desktop is a choice between its own letter and the
+            // APatch mark it came from, so it stands on its own rather than inside the card about
+            // Home, which is about what the app draws rather than what the system draws for it.
+            item(key = "launcher_icon") {
+                SettingsCard {
+                    IndicatorSwitchPreference(
+                        checked = useAltIcon,
+                        onCheckedChange = { enabled ->
+                            prefs.edit { putBoolean(LauncherIconUtils.USE_ALT_ICON, enabled) }
+                            LauncherIconUtils.updateLauncherState(context)
+                            useAltIcon = enabled
+                        },
+                        title = stringResource(R.string.settings_launcher_icon),
+                        summary = stringResource(R.string.settings_launcher_icon_summary),
+                        startAction = { SettingsIcon(MiuixIcons.GridView) },
+                    )
                 }
             }
 

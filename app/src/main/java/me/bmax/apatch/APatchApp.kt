@@ -26,6 +26,7 @@ import me.bmax.apatch.util.APatchCli
 import me.bmax.apatch.util.APatchKeyHelper
 import me.bmax.apatch.util.ApdVersionResult
 import me.bmax.apatch.util.InstalledApdState
+import me.bmax.apatch.util.LauncherIconUtils
 import me.bmax.apatch.util.Version
 import me.bmax.apatch.util.getRootShell
 import me.bmax.apatch.util.resolveInstalledApdState
@@ -464,6 +465,9 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
                             .header("Accept-Language", Locale.getDefault().toLanguageTag()).build()
                     )
                 }.build()
+
+        // Whichever mark was chosen last time is the one the desktop should find after a restart.
+        LauncherIconUtils.applySaved(this)
     }
 
     fun getBackupWarningState(): Boolean {

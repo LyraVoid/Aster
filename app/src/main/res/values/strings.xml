@@ -570,6 +570,8 @@
     <string name="theme_spec_2025_unsupported">This style has no 2025 form; the 2021 tones are used.</string>
     <string name="navigation_show_entry">Show %1$s entry</string>
     <string name="navigation_show_entry_summary">Show in navigation and swipe between pages; Home and Settings always remain</string>
+    <string name="settings_launcher_icon">Launcher icon</string>
+    <string name="settings_launcher_icon_summary">Show the APatch icon on the desktop instead of the Aster icon</string>
     <string name="settings_magic_mount">Magic mount</string>
     <string name="settings_magic_mount_summary">Enable built-in module mounting instead of the metamodule. Changes apply after reboot.</string>
     <string name="module_mount_unavailable">Mounting is unavailable. Enable Magic mount or install a mounting metamodule, then reboot.</string>
