@@ -89,11 +89,7 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
     val homeTitleLabel = remember(homeTitleKey, homeTitles) {
         homeTitles.elementAtOrNull(homeTitleValues.indexOf(homeTitleKey)) ?: "Aster"
     }
-    val languageSummary = AppCompatDelegate.getApplicationLocales()[0]?.displayLanguage
-        ?.replaceFirstChar {
-            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-        }
-        ?: stringResource(R.string.system_default)
+    val languageSummary = rememberApplicationLanguageLabel()
 
     if (showVersionCheck) {
         val update = updateState.update

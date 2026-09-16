@@ -80,11 +80,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
         systemDynamicEnabled = prefs.getBoolean(SystemDynamicColorKey, true),
         dynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
     ).label
-    val languageSummary = AppCompatDelegate.getApplicationLocales()[0]?.displayLanguage
-        ?.replaceFirstChar {
-            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-        }
-        ?: stringResource(R.string.system_default)
+    val languageSummary = rememberApplicationLanguageLabel()
 
     val scrollBehavior = MiuixScrollBehavior()
 

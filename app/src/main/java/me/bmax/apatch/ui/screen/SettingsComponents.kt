@@ -192,6 +192,30 @@ internal fun colorsList(): List<APColor> = listOf(
 internal fun colorNameToString(colorName: String): Int =
     colorsList().firstOrNull { it.name == colorName }?.nameId ?: R.string.blue_theme
 
+/**
+ * The name the language row gives the language in force.
+ *
+ * Taken from the same list the dialog offers, not from the locale's own display name: a display
+ * name is resolved *in* the language being displayed, so a themed locale comes back as a bare tag
+ * ("Mgl") or as a plain "中文" that says nothing about which of the six is on.
+ */
+@Composable
+internal fun rememberApplicationLanguageLabel(): String {
+    val languages = stringArrayResource(R.array.languages)
+    val values = stringArrayResource(R.array.languages_values)
+    val tag = AppCompatDelegate.getApplicationLocales()[0]?.toLanguageTag()
+    return remember(tag, languages, values) {
+        if (tag == null) {
+            languages.firstOrNull().orEmpty()
+        } else {
+            values.indexOfFirst { it.equals(tag, ignoreCase = true) }
+                .takeIf { it >= 0 }
+                ?.let { languages.getOrNull(it) }
+                ?: tag
+        }
+    }
+}
+
 @Composable
 internal fun LanguageDialog(
     show: Boolean,
