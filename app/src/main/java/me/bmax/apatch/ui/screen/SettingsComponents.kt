@@ -3,6 +3,8 @@ package me.bmax.apatch.ui.screen
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +47,8 @@ import me.bmax.apatch.Natives
 import me.bmax.apatch.R
 import me.bmax.apatch.apApp
 import me.bmax.apatch.ui.component.IndicatorSwitchPreference
+import me.bmax.apatch.ui.component.MarkdownContent
+import me.bmax.apatch.ui.home.HomeUpdateState
 import me.bmax.apatch.ui.theme.CustomFont
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -367,6 +371,81 @@ internal fun HomeSceneQuoteDialog(
                     colors = ButtonDefaults.buttonColorsPrimary(),
                 ) {
                     Text(stringResource(android.R.string.ok))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * What the app has to say about a version check, as one dialog.
+ *
+ * There used to be two of these — the card on Home and the check in Settings each built their own —
+ * and they drifted far enough apart that a fix to one left the other showing raw release notes. The
+ * states they are opened in differ only in what the title says and whether there is anything to
+ * install, so they are one dialog.
+ */
+@Composable
+internal fun UpdateDialog(
+    show: Boolean,
+    update: HomeUpdateState,
+    onDismiss: () -> Unit,
+    onOpen: (HomeUpdateState.Available) -> Unit = {},
+) {
+    val available = update as? HomeUpdateState.Available
+
+    OverlayDialog(
+        show = show,
+        title = when (update) {
+            HomeUpdateState.UpToDate -> stringResource(R.string.home_update_current)
+            HomeUpdateState.Failed -> stringResource(R.string.home_update_failed)
+            is HomeUpdateState.Available ->
+                stringResource(R.string.home_update_available_title, update.versionCode)
+            // Disabled, Idle and Checking: nothing has come back yet, which is what the dialog says
+            // while a check is in flight.
+            else -> stringResource(R.string.home_update_checking)
+        },
+        onDismissRequest = onDismiss,
+    ) {
+        Column(Modifier.fillMaxWidth()) {
+            if (available != null) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 320.dp)
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    // The notes are written in Markdown, the way the release page shows them.
+                    // Handed to a plain Text they arrived as a wall of asterisks with the headings
+                    // and the lists flattened into it; drawn as Markdown they keep their shape.
+                    // The summary stands in only for a release published without notes at all.
+                    if (available.changelog.isBlank()) {
+                        Text(
+                            text = stringResource(R.string.home_update_available_summary),
+                            style = MiuixTheme.textStyles.body2,
+                        )
+                    } else {
+                        MarkdownContent(content = available.changelog)
+                    }
+                }
+                Spacer(Modifier.height(18.dp))
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                TextButton(
+                    text = stringResource(android.R.string.cancel),
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f),
+                )
+                if (available != null) {
+                    Button(
+                        onClick = { onOpen(available) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(stringResource(R.string.apm_update))
+                    }
                 }
             }
         }

@@ -35,7 +35,6 @@ import me.bmax.apatch.APApplication
 import me.bmax.apatch.R
 import me.bmax.apatch.apApp
 import me.bmax.apatch.ui.component.IndicatorSwitchPreference
-import me.bmax.apatch.ui.component.MarkdownContent
 import me.bmax.apatch.ui.home.HomeUpdateState
 import me.bmax.apatch.ui.home.HomeViewModel
 import me.bmax.apatch.ui.shell.LocalFloatingNavigationInset
@@ -51,7 +50,6 @@ import top.yukonga.miuix.kmp.icon.extended.Pin
 import top.yukonga.miuix.kmp.icon.extended.Timer
 import top.yukonga.miuix.kmp.icon.extended.Translate
 import top.yukonga.miuix.kmp.icon.extended.Update
-import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -92,67 +90,14 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
     }
     val languageSummary = rememberApplicationLanguageLabel()
 
-    if (showVersionCheck) {
-        val update = updateState.update
-        OverlayDialog(
-            show = true,
-            title = stringResource(
-                when (update) {
-                    HomeUpdateState.UpToDate -> R.string.home_update_current
-                    HomeUpdateState.Failed -> R.string.home_update_failed
-                    is HomeUpdateState.Available ->
-                        R.string.home_update_available_title
-
-                    else -> R.string.home_update_checking
-                }
-            ),
-            onDismissRequest = { showVersionCheck = false },
-        ) {
-            Column(Modifier.fillMaxWidth()) {
-                if (update is HomeUpdateState.Available) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 320.dp)
-                            .verticalScroll(rememberScrollState()),
-                    ) {
-                        // The notes are written in Markdown, the way the release page shows them.
-                        // Handed to a plain Text they arrived as a wall of asterisks with the
-                        // headings and the lists flattened into it; drawn as Markdown they keep the
-                        // shape they were written in. The summary stands in only for a release
-                        // published without notes at all.
-                        if (update.changelog.isBlank()) {
-                            Text(
-                                text = stringResource(R.string.home_update_available_summary),
-                                style = MiuixTheme.textStyles.body2,
-                            )
-                        } else {
-                            MarkdownContent(content = update.changelog)
-                        }
-                    }
-                    Spacer(Modifier.height(18.dp))
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    TextButton(
-                        text = stringResource(android.R.string.cancel),
-                        onClick = { showVersionCheck = false },
-                        modifier = Modifier.weight(1f),
-                    )
-                    if (update is HomeUpdateState.Available) {
-                        Button(
-                            onClick = { uriHandler.openUri(update.downloadUrl) },
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(stringResource(R.string.apm_update))
-                        }
-                    }
-                }
-            }
-        }
-    }
+    // The same dialog the card on Home opens. It is one component so the two cannot drift apart
+    // again; this side is the one that also has to say "checking", "up to date" and "failed".
+    UpdateDialog(
+        show = showVersionCheck,
+        update = updateState.update,
+        onDismiss = { showVersionCheck = false },
+        onOpen = { uriHandler.openUri(it.downloadUrl) },
+    )
 
     val scrollBehavior = MiuixScrollBehavior()
 

@@ -95,7 +95,6 @@ import me.bmax.apatch.root.RootMode
 import me.bmax.apatch.root.isUsable
 import me.bmax.apatch.ui.component.WarningCard
 import me.bmax.apatch.ui.component.WarningCardTone
-import me.bmax.apatch.ui.component.MarkdownContent
 import me.bmax.apatch.ui.component.IndicatorSwitch
 import me.bmax.apatch.ui.home.HomeConclusion
 import me.bmax.apatch.ui.home.homeSceneLayout
@@ -500,18 +499,18 @@ fun HomeScreen(navigator: DestinationsNavigator) {
             )
         }
 
-        val update = state.update as? HomeUpdateState.Available
-        if (showUpdateDialog && update != null) {
-            UpdateDialog(
-                show = true,
-                update = update,
-                onDismiss = { showUpdateDialog = false },
-                onOpen = {
-                    showUpdateDialog = false
-                    uriHandler.openUri(update.downloadUrl)
-                },
-            )
-        }
+        // The card is only drawn while there is something to install, so the dialog it opens is
+        // only shown then either; UpdateDialog itself handles every state the check can be in.
+        val availableUpdate = state.update as? HomeUpdateState.Available
+        UpdateDialog(
+            show = showUpdateDialog && availableUpdate != null,
+            update = state.update,
+            onDismiss = { showUpdateDialog = false },
+            onOpen = {
+                showUpdateDialog = false
+                uriHandler.openUri(it.downloadUrl)
+            },
+        )
     }
     }
 }
@@ -3155,59 +3154,6 @@ private fun RebootConfirmationDialog(
                 ),
             ) {
                 Text(stringResource(R.string.reboot))
-            }
-        }
-    }
-}
-
-@Composable
-private fun UpdateDialog(
-    show: Boolean,
-    update: HomeUpdateState.Available,
-    onDismiss: () -> Unit,
-    onOpen: () -> Unit,
-) {
-    OverlayDialog(
-        show = show,
-        title = stringResource(R.string.home_update_available_title, update.versionCode),
-        onDismissRequest = onDismiss,
-    ) {
-        Column(Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 320.dp)
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                // The notes are written in Markdown, the way the release page shows them. Handed
-                // to a plain Text they arrived as a wall of asterisks with the headings and the
-                // lists flattened into it; drawn as Markdown they keep their shape. The summary
-                // stands in only for a release published without notes at all.
-                if (update.changelog.isBlank()) {
-                    Text(
-                        text = stringResource(R.string.home_update_available_summary),
-                        style = MiuixTheme.textStyles.body2,
-                    )
-                } else {
-                    MarkdownContent(content = update.changelog)
-                }
-            }
-            Spacer(Modifier.height(18.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                TextButton(
-                    text = stringResource(android.R.string.cancel),
-                    onClick = onDismiss,
-                    modifier = Modifier.weight(1f),
-                )
-                Button(
-                    onClick = onOpen,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text(stringResource(R.string.apm_update))
-                }
             }
         }
     }
