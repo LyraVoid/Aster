@@ -360,7 +360,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 onInstallApatch = viewModel::installApatch,
                 onDismissBackupWarning = viewModel::dismissBackupWarning,
                 onUpdateClick = { showUpdateDialog = true },
-                onLearnMore = { uriHandler.openUri("https://apatch.dev") },
+                onLearnMore = { uriHandler.openUri("https://aster.mysqil.com") },
                 onAppearance = { showWallpaperSheet = true },
             )
         } else {
@@ -449,7 +449,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
 
                     DeviceInfoCard(state = state)
 
-                    LearnMoreCard(onClick = { uriHandler.openUri("https://apatch.dev") })
+                    LearnMoreCard(onClick = { uriHandler.openUri("https://aster.mysqil.com") })
                     Spacer(Modifier.height(16.dp))
                 }
             }
