@@ -44,7 +44,7 @@ Aster 基于 [KernelPatch](https://github.com/bmax121/KernelPatch) 打造，把 
 ### 📱 前置要求
 
 - **必须：** ARM64 架构的 Android 设备
-- Android 内核 3.18 - 6.12
+- Android 内核 3.18 - 6.18
 - 内核配置 `CONFIG_KALLSYMS=y`，并建议同时开启 `CONFIG_KALLSYMS_ALL=y`
 
 ### 🖥️ 界面与交互

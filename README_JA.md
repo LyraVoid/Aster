@@ -45,7 +45,7 @@ Aster は [KernelPatch](https://github.com/bmax121/KernelPatch) を基盤に、R
 ### 📱 動作要件
 
 - **必須：** ARM64 アーキテクチャの Android デバイス
-- Android カーネル 3.18 - 6.12
+- Android カーネル 3.18 - 6.18
 - カーネル設定 `CONFIG_KALLSYMS=y`（`CONFIG_KALLSYMS_ALL=y` も推奨）
 
 ### 🖥️ インターフェース

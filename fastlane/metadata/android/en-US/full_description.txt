@@ -10,7 +10,7 @@ Aster is a Root control surface for the APatch capability chain, built on Kernel
 Protected runtime operations put changes to system properties into a session that can be rolled back: a pre-check shows the actual changes, every change runs as a 60-second trial, and a failed apply or an expired trial triggers an automatic recovery attempt.
 <ul>
 <li>Only supports the ARM64 architecture.</li>
-<li>Only supports Android kernel versions 3.18 - 6.12</li>
+<li>Only supports Android kernel versions 3.18 - 6.18</li>
 </ul>
 Kernel configs:
 <ul>

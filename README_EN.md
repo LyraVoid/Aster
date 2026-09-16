@@ -45,7 +45,7 @@ Built on [KernelPatch](https://github.com/bmax121/KernelPatch), Aster brings Roo
 ### 📱 Requirements
 
 - **Required:** an ARM64 Android device
-- Android kernel 3.18 - 6.12
+- Android kernel 3.18 - 6.18
 - Kernel config `CONFIG_KALLSYMS=y`, with `CONFIG_KALLSYMS_ALL=y` recommended as well
 
 ### 🖥️ Interface
