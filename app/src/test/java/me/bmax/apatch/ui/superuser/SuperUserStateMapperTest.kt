@@ -19,6 +19,12 @@ class SuperUserStateMapperTest {
         firstInstallTime: Long = 1000L,
         isAllowed: Boolean = false,
         isExcluded: Boolean = false,
+        // Mirrors what the view model records when it loads the list.
+        sortRank: Int = when {
+            isAllowed -> 0
+            isExcluded -> 1
+            else -> 2
+        },
     ): SuperUserItem {
         return SuperUserItem(
             packageName = packageName,
@@ -29,6 +35,7 @@ class SuperUserStateMapperTest {
             firstInstallTime = firstInstallTime,
             isAllowed = isAllowed,
             isExcluded = isExcluded,
+            sortRank = sortRank,
             profileUid = uid,
             profileToUid = 0,
             profileScontext = "",
@@ -151,6 +158,30 @@ class SuperUserStateMapperTest {
 
         val byTime = SuperUserStateMapper.filterAndSort(items, "", true, SuperUserSort.INSTALL_TIME, managerPackage, collator)
         assertEquals(listOf("org.z", "org.m", "org.a"), byTime.map { it.packageName })
+    }
+
+    @Test
+    fun filterAndSort_keepsARowInPlaceWhenItsSwitchMoves() {
+        // The list puts allowed rows first. Sorting on that live state moved a row to another
+        // section the moment its switch moved, and a lazy list follows the row it is anchored to,
+        // so turning the top row off scrolled the reader into the section below — a screen of
+        // switches that are all off, which reads as "the tap turned everything off". The rank is
+        // settled when the list loads, so the order has to survive the switch.
+        val first = createItem("com.first", 1001, "A First", isAllowed = true)
+        val second = createItem("com.second", 1002, "B Second", isAllowed = true)
+
+        val before = SuperUserStateMapper.filterAndSort(
+            listOf(first, second), "", true, SuperUserSort.NAME, managerPackage, collator,
+        )
+        assertEquals(listOf("com.first", "com.second"), before.map { it.packageName })
+
+        // The reader turns the top row off: its state changes, its rank does not.
+        val toggled = listOf(first.copy(isAllowed = false), second)
+        val after = SuperUserStateMapper.filterAndSort(
+            toggled, "", true, SuperUserSort.NAME, managerPackage, collator,
+        )
+        assertEquals(listOf("com.first", "com.second"), after.map { it.packageName })
+        assertEquals(false, after.first().isAllowed)
     }
 
     @Test

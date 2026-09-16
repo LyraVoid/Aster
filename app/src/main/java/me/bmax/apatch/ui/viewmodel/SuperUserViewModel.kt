@@ -59,6 +59,17 @@ class SuperUserViewModel : ViewModel() {
         private val appListLoadGate = AppListLoadGate()
         var apps by mutableStateOf<List<AppInfo>>(emptyList())
 
+        const val RANK_ALLOWED = 0
+        const val RANK_EXCLUDED = 1
+        const val RANK_OTHER = 2
+
+        /** The group a row belongs to, decided from the state at the moment the list was loaded. */
+        fun rankOf(allow: Int, exclude: Int): Int = when {
+            allow != 0 -> RANK_ALLOWED
+            exclude == 1 -> RANK_EXCLUDED
+            else -> RANK_OTHER
+        }
+
         fun getAppIconDrawable(context: Context, packageName: String): Drawable? {
             val appList = synchronized(appsLock) { apps }
             val appDetail = appList.find { it.packageName == packageName }
@@ -71,7 +82,13 @@ class SuperUserViewModel : ViewModel() {
         val label: String,
         val pinyin: String,
         val packageInfo: PackageInfo,
-        val config: PkgConfig.Config
+        val config: PkgConfig.Config,
+        /**
+         * The row's place in the list, settled when the list is loaded rather than read from
+         * [config] as it changes. See SuperUserItem.sortRank for what depending on the live state
+         * did: toggling the top row scrolled the reader into a screen of switches that were off.
+         */
+        val sortRank: Int = RANK_OTHER,
     ) : Parcelable {
         val packageName: String
             get() = packageInfo.packageName
@@ -129,13 +146,9 @@ class SuperUserViewModel : ViewModel() {
     private val collator = Collator.getInstance(Locale.getDefault())
 
     private val sortedList by derivedStateOf {
-        val comparator = compareBy<AppInfo> {
-            when {
-                it.config.allow != 0 -> 0
-                it.config.exclude == 1 -> 1
-                else -> 2
-            }
-        }.then(compareBy(collator, AppInfo::label))
+        // Rank, not the live allow/exclude state: see AppInfo.sortRank.
+        val comparator = compareBy<AppInfo> { it.sortRank }
+            .then(compareBy(collator, AppInfo::label))
         apps.sortedWith(comparator)
     }
 
@@ -322,7 +335,10 @@ class SuperUserViewModel : ViewModel() {
                         // expensive, so do it once here instead of per keystroke.
                         pinyin = HanziToPinyin.getInstance().toPinyinString(label),
                         packageInfo = it,
-                        config = config
+                        config = config,
+                        // Settled here, at the one place the list is built. A later switch may
+                        // change config.allow, and the row must stay where the reader left it.
+                        sortRank = rankOf(config.allow, config.exclude),
                     )
                 }
 

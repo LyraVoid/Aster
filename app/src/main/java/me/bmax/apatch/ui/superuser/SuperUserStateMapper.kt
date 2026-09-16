@@ -22,6 +22,7 @@ object SuperUserStateMapper {
             firstInstallTime = app.packageInfo.firstInstallTime,
             isAllowed = config.allow != 0,
             isExcluded = config.exclude == 1,
+            sortRank = app.sortRank,
             profileUid = config.profile.uid,
             profileToUid = config.profile.toUid,
             profileScontext = config.profile.scontext,
@@ -40,13 +41,9 @@ object SuperUserStateMapper {
     ): List<SuperUserItem> {
         val trimmedQuery = searchQuery.trim().lowercase()
 
-        val priorityComparator = compareBy<SuperUserItem> {
-            when {
-                it.isAllowed -> 0
-                it.isExcluded -> 1
-                else -> 2
-            }
-        }
+        // Rank rather than the live allow/exclude state, so a switch that moves does not also move
+        // its row out from under the reader. The order is settled when the list loads.
+        val priorityComparator = compareBy<SuperUserItem> { it.sortRank }
 
         val secondaryComparator = when (sortBy) {
             SuperUserSort.NAME -> compareBy(collator, SuperUserItem::label)
