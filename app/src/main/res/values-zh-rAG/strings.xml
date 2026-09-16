@@ -33,7 +33,7 @@
     <string name="learn_more">想知道更多喵</string>
     <string name="patch_set_superkey">设置超级密钥喵</string>
     <string name="settings">设置喵</string>
-    <string name="home_working">正在忙喵</string>
+    <string name="home_working">正在干活喵</string>
     <string name="home_patch_next_step">下一步喵</string>
     <string name="home_not_installed">还没装喵</string>
     <string name="reboot_bootloader">重启到 Bootloader 喵</string>

@@ -63,7 +63,7 @@
     <string name="kpm_uninstall_success">已把 %s 撤下灶台</string>
     <string name="kpm_uninstall_failed">%s 撤不下来</string>
     <string name="kpm_kp_not_installed">秘制底汤还没下锅</string>
-    <string name="kpm_version">版本</string>
+    <string name="kpm_version">酱料版本</string>
     <string name="home_selinux_status_unknown">没查清</string>
     <string name="home_selinux_status_permissive">宽松卫生检查</string>
     <string name="kpm_author">掌勺</string>
@@ -73,7 +73,7 @@
     <string name="home_selinux_status_disabled">卫生检查已关</string>
     <string name="kpm_load">上灶</string>
     <string name="home_selinux_status_enforcing">严格卫生检查</string>
-    <string name="kpm_license">许可</string>
+    <string name="kpm_license">酱料授权</string>
     <string name="kpm_apm_empty">后厨还没有特制酱料</string>
     <string name="kpm_no_search_results">没翻到对味的特制酱料</string>
     <string name="kpm_load_failed">读不出特制酱料清单</string>
@@ -125,7 +125,7 @@
     <string name="external_file_unrecognised">掌柜开不了这货：只收招牌菜 zip、字体和特制酱料</string>
     <string name="settings_switch_indicator">开关上带指示灯</string>
     <string name="settings_switch_indicator_summary">掌柜的开关滑块上标出当前火候</string>
-    <string name="settings_font">字体</string>
+    <string name="settings_font">字帖</string>
     <string name="settings_font_custom">自备字帖</string>
     <string name="settings_font_custom_summary">用你自带的字帖写菜牌</string>
     <string name="settings_font_pick">挑一份字帖</string>
@@ -138,7 +138,7 @@
     <string name="apm_undo">反悔收回</string>
     <string name="apm_uninstall_confirm">确定把「%s」这道招牌菜撤下桌？</string>
     <string name="metamodule_uninstall_confirm">要把元招牌菜 %s 撤下桌？这一撤牵连所有招牌菜，元招牌菜提供的挂载等本事也会停摆。</string>
-    <string name="apm_version">版本</string>
+    <string name="apm_version">菜品版本</string>
     <string name="apm_start_downloading">开始去采购 %s</string>
     <string name="apm_overlay_fs_not_available">招牌菜用不了：灶芯把 OverlayFS 关了！</string>
     <string name="apm_changelog">新菜谱单</string>
@@ -193,20 +193,20 @@
     <string name="patch_select_bootimg_btn">挑一份 Boot 镜像</string>
     <string name="patch_start_patch_btn">开火动工</string>
     <string name="patch_item_error">‼厨房出事了‼</string>
-    <string name="patch_item_bootimg">启动镜像</string>
+    <string name="patch_item_bootimg">食材镜像</string>
     <string name="patch_item_bootimg_slot">灶位：</string>
     <string name="patch_item_bootimg_dev">灶台：</string>
     <string name="patch_item_kernel">灶芯版本</string>
     <string name="patch_item_kpimg">秘制底汤</string>
-    <string name="patch_item_kpimg_version">版本：</string>
+    <string name="patch_item_kpimg_version">底汤版本：</string>
     <string name="patch_item_kpimg_comile_time">下锅时间：</string>
     <string name="patch_item_kpimg_config">配方：</string>
     <string name="patch_item_new_extra_kpm">新搭一罐</string>
     <string name="patch_embed_kpm_btn">搭一罐特制酱料</string>
     <string name="patch_item_extra_name">菜名:</string>
-    <string name="patch_item_extra_version">版本：</string>
+    <string name="patch_item_extra_version">酱料版本：</string>
     <string name="patch_item_extra_author">掌勺：</string>
-    <string name="patch_item_extra_kpm_license">许可：</string>
+    <string name="patch_item_extra_kpm_license">酱料授权：</string>
     <string name="patch_item_extra_kpm_desciption">菜品说明：</string>
     <string name="patch_item_extra_args">调料：</string>
     <string name="patch_item_extra_event">火候事件:</string>
@@ -226,7 +226,7 @@
     <string name="kpm_add_kpm">添一罐特制酱料</string>
     <string name="kpm_install">上菜</string>
     <string name="setting_reset_su_path">重设 su 藏身处</string>
-    <string name="setting_reset_su_new_path">新的完整路径</string>
+    <string name="setting_reset_su_new_path">新的完整藏身路径</string>
     <string name="success">搞定了</string>
     <string name="failure">翻车了</string>
     <string name="mode_select_page_title">上菜</string>
@@ -336,7 +336,7 @@
     <string name="indigo_theme">蓝莓</string>
     <string name="light_blue_theme">冰水</string>
     <string name="light_green_theme">薄荷</string>
-    <string name="lime_theme">青柠</string>
+    <string name="lime_theme">青柠汁</string>
     <string name="orange_theme">蜜桔</string>
     <string name="pink_theme">蜜桃</string>
     <string name="purple_theme">葡萄</string>
@@ -344,11 +344,11 @@
     <string name="sakura_theme">樱花</string>
     <string name="teal_theme">青梅</string>
     <string name="yellow_theme">蛋黄</string>
-    <string name="about_app_version">版本 %1$s</string>
+    <string name="about_app_version">店里版本 %1$s</string>
     <string name="about_app_desc">不用重编灶芯就能拿到内核级 Root，还能挂招牌菜、挂钩灶芯函数。</string>
     <string name="about_github" translatable="false">GitHub</string>
-    <string name="about_telegram_channel">Telegram 频道</string>
-    <string name="about_telegram_group">Telegram 群组</string>
+    <string name="about_telegram_channel">Telegram 后厨频道</string>
+    <string name="about_telegram_group">Telegram 后厨群聊</string>
     <string name="about_powered_by">全靠 %1$s 掌勺</string>
     <string name="apm_action">开做</string>
     <string name="apm_shortcut_title">开个快捷档口</string>
@@ -400,7 +400,7 @@
     <string name="scene_restore">亮出侧边条</string>
     <string name="floating_blur">飘台背景发虚</string>
     <string name="floating_blur_summary">把飘着的传菜台背后的页面糊上一层</string>
-    <string name="floating_glass">液态玻璃</string>
+    <string name="floating_glass">液态琉璃</string>
     <string name="floating_glass_summary">带折射和上手高光，得开着背景发虚，系统还得是 Android 13 或更新</string>
     <string name="floating_auto_hide">闲下来就收起飘台</string>
     <string name="floating_auto_hide_summary">3 秒没动静就收起，碰一下页面再亮出来</string>
@@ -452,12 +452,12 @@
     <string name="online_module_source_custom">自定仓库</string>
     <string name="online_module_source_custom_summary">亲手写下你信得过的仓库地址</string>
     <string name="online_module_select_repo">挑仓库</string>
-    <string name="online_module_repo_url_title">仓库地址</string>
+    <string name="online_module_repo_url_title">仓库门牌</string>
     <string name="online_module_repo_url_summary">仓库得在 json/modules.json 里交出菜品索引</string>
     <string name="online_module_kpm_repo_url_summary">这个地址得按掌柜官方索引的格式交出菜品清单</string>
     <string name="online_module_repo_url_hint">https://example.com/repo/</string>
     <string name="online_module_module_count">%1$d 道菜品</string>
-    <string name="online_module_default_repo">默认仓库</string>
+    <string name="online_module_default_repo">掌柜自备仓库</string>
     <string name="online_module_default_repo_summary">掌柜自带的</string>
     <string name="online_module_load_error">读不出菜品清单</string>
     <string name="online_module_download">采购</string>
@@ -544,7 +544,7 @@
     <string name="home_runtime_stack">运行灶架</string>
     <string name="home_kmi">KMI</string>
     <string name="home_abi">ABI</string>
-    <string name="home_root_mode">Root 模式</string>
+    <string name="home_root_mode">Root 做法</string>
     <string name="home_mode_none">没有 Root</string>
     <string name="home_mode_kpatch_only">只有秘制底汤</string>
     <string name="home_mode_full">完整 Aster 大餐</string>
