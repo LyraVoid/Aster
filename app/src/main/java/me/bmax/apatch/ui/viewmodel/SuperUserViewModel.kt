@@ -19,7 +19,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -83,6 +85,28 @@ class SuperUserViewModel : ViewModel() {
     private val _isRefreshing = MutableStateFlow(false)
     private val _isLoading = MutableStateFlow(false)
     private val _errorMessage = MutableStateFlow<String?>(null)
+
+    /**
+     * Things the reader has to be told, as opposed to state the screen renders. A refused
+     * configuration write belongs here: the row keeps showing what is on disk, so without a word
+     * from this flow the tap simply looks like it was never registered.
+     */
+    private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val messages: SharedFlow<String> = _messages
+
+    /**
+     * Turns a refused configuration write into something the reader can act on.
+     *
+     * The reason is appended on purpose. A write is refused for a concrete one — the file cannot be
+     * read in full, root is not available, the lock will not clear — and naming it is the difference
+     * between a report we can fix and a report that says only "tapping does nothing".
+     */
+    private fun reportConfigResult(error: Throwable?) {
+        if (error == null) return
+        val what = apApp.getString(R.string.su_config_write_failed)
+        val why = error.message?.takeIf { it.isNotBlank() } ?: error.javaClass.simpleName
+        _messages.tryEmit("$what\n$why")
+    }
 
     var search: String
         get() = _search.value
@@ -347,15 +371,19 @@ class SuperUserViewModel : ViewModel() {
         } else {
             config.copy(allow = 0, profile = config.profile.copy(uid = app.uid))
         }
-        PkgConfig.changeConfig(newConfig) {
-            if (granted) {
-                Natives.grantSu(app.uid, 0, newConfig.profile.scontext)
-                Natives.setUidExclude(app.uid, 0)
-            } else {
-                Natives.revokeSu(app.uid)
-            }
-            updateAppConfig(app, newConfig)
-        }
+        PkgConfig.changeConfig(
+            newConfig,
+            apply = {
+                if (granted) {
+                    Natives.grantSu(app.uid, 0, newConfig.profile.scontext)
+                    Natives.setUidExclude(app.uid, 0)
+                } else {
+                    Natives.revokeSu(app.uid)
+                }
+                updateAppConfig(app, newConfig)
+            },
+            onResult = ::reportConfigResult,
+        )
     }
 
     fun setRootGranted(item: SuperUserItem, granted: Boolean) {
@@ -376,13 +404,17 @@ class SuperUserViewModel : ViewModel() {
         } else {
             config.copy(exclude = 0, profile = config.profile.copy(uid = app.uid))
         }
-        PkgConfig.changeConfig(newConfig) {
-            if (excluded) {
-                Natives.revokeSu(app.uid)
-            }
-            Natives.setUidExclude(app.uid, newConfig.exclude)
-            updateAppConfig(app, newConfig)
-        }
+        PkgConfig.changeConfig(
+            newConfig,
+            apply = {
+                if (excluded) {
+                    Natives.revokeSu(app.uid)
+                }
+                Natives.setUidExclude(app.uid, newConfig.exclude)
+                updateAppConfig(app, newConfig)
+            },
+            onResult = ::reportConfigResult,
+        )
     }
 
     fun setExcluded(item: SuperUserItem, excluded: Boolean) {

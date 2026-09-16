@@ -261,6 +261,7 @@
     <string name="su_sort_install_time">インストール日時で並べ替え</string>
     <string name="su_summary_granted">許可済み: %1$d</string>
     <string name="su_error_read_uids">許可された UID を読み取れませんでした。一覧が不完全な可能性があります。</string>
+    <string name="su_config_write_failed">認証の変更を保存できませんでした</string>
     <string name="su_more_actions">その他の操作</string>
     <string name="su_no_apps">アプリが見つかりません</string>
     <string name="su_no_search_results">一致するアプリはありません</string>

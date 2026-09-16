@@ -95,6 +95,7 @@
     <string name="su_sort_install_time">按安装时间排喵</string>
     <string name="su_summary_granted">已经授权：%1$d 个喵</string>
     <string name="su_error_read_uids">呜喵…读不到已授权的 UID，现在这份列表可能不全喵。</string>
+    <string name="su_config_write_failed">授权没保存上喵</string>
     <string name="su_more_actions">还有别的操作喵</string>
     <string name="su_no_apps">一个应用都没找到喵</string>
     <string name="su_no_search_results">没有对得上号的应用喵</string>

@@ -95,6 +95,7 @@
     <string name="su_sort_install_time">按安装时间排序</string>
     <string name="su_summary_granted">已授权：%1$d</string>
     <string name="su_error_read_uids">无法读取已授权 UID，当前列表可能不完整。</string>
+    <string name="su_config_write_failed">无法保存授权更改</string>
     <string name="su_more_actions">更多操作</string>
     <string name="su_no_apps">未找到应用程序</string>
     <string name="su_no_search_results">无匹配应用程序</string>

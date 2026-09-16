@@ -259,6 +259,7 @@
     <string name="su_sort_install_time">Ordenar por fecha de instalación</string>
     <string name="su_summary_granted">Autorizadas: %1$d</string>
     <string name="su_error_read_uids">No se pudieron leer los UID autorizados. Puede que la lista esté incompleta.</string>
+    <string name="su_config_write_failed">No se pudo guardar el cambio de autorización</string>
     <string name="su_more_actions">Más acciones</string>
     <string name="su_no_apps">No se encontraron aplicaciones</string>
     <string name="su_no_search_results">No hay aplicaciones coincidentes</string>

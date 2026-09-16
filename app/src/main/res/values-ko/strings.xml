@@ -261,6 +261,7 @@
     <string name="su_sort_install_time">설치 시간순 정렬</string>
     <string name="su_summary_granted">승인됨: %1$d</string>
     <string name="su_error_read_uids">승인된 UID를 읽지 못했습니다. 목록이 불완전할 수 있습니다.</string>
+    <string name="su_config_write_failed">권한 부여 변경을 저장하지 못했습니다</string>
     <string name="su_more_actions">더 많은 작업</string>
     <string name="su_no_apps">앱을 찾을 수 없습니다</string>
     <string name="su_no_search_results">일치하는 앱이 없습니다</string>

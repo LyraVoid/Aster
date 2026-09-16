@@ -259,6 +259,7 @@
     <string name="su_sort_install_time">Сортировать по времени установки</string>
     <string name="su_summary_granted">Авторизовано: %1$d</string>
     <string name="su_error_read_uids">Не удалось прочитать авторизованные UID. Список может быть неполным.</string>
+    <string name="su_config_write_failed">Не удалось сохранить изменение авторизации</string>
     <string name="su_more_actions">Другие действия</string>
     <string name="su_no_apps">Приложения не найдены</string>
     <string name="su_no_search_results">Подходящие приложения не найдены</string>

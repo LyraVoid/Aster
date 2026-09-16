@@ -261,6 +261,7 @@
     <string name="su_sort_install_time">Sắp xếp theo thời gian cài đặt</string>
     <string name="su_summary_granted">Đã cấp quyền: %1$d</string>
     <string name="su_error_read_uids">Không thể đọc các UID được cấp quyền. Danh sách có thể không đầy đủ.</string>
+    <string name="su_config_write_failed">Không thể lưu thay đổi cấp quyền</string>
     <string name="su_more_actions">Thêm thao tác</string>
     <string name="su_no_apps">Không tìm thấy ứng dụng nào</string>
     <string name="su_no_search_results">Không có ứng dụng nào khớp</string>

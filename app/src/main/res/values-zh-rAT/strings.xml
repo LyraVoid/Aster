@@ -95,6 +95,7 @@
     <string name="su_sort_install_time">按降临时间排序</string>
     <string name="su_summary_granted">已授圣权：%1$d</string>
     <string name="su_error_read_uids">无法读取已授圣权的 UID，当前圣录可能残缺。</string>
+    <string name="su_config_write_failed">授权变更未能铭刻</string>
     <string name="su_more_actions">更多神力</string>
     <string name="su_no_apps">未寻得任何应用</string>
     <string name="su_no_search_results">无匹配的应用</string>

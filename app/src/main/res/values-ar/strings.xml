@@ -261,6 +261,7 @@
     <string name="su_sort_install_time">الترتيب حسب وقت التثبيت</string>
     <string name="su_summary_granted">المصرّح لها: %1$d</string>
     <string name="su_error_read_uids">تعذّرت قراءة معرّفات المستخدمين المصرّح لها. قد تكون القائمة غير مكتملة.</string>
+    <string name="su_config_write_failed">تعذّر حفظ تغيير التفويض</string>
     <string name="su_more_actions">إجراءات إضافية</string>
     <string name="su_no_apps">لم يتم العثور على تطبيقات</string>
     <string name="su_no_search_results">لا توجد تطبيقات مطابقة</string>

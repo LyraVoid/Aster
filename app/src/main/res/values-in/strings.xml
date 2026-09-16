@@ -259,6 +259,7 @@
     <string name="su_sort_install_time">Urutkan menurut waktu instal</string>
     <string name="su_summary_granted">Diizinkan: %1$d</string>
     <string name="su_error_read_uids">Tidak dapat membaca UID yang diizinkan. Daftar mungkin tidak lengkap.</string>
+    <string name="su_config_write_failed">Tidak dapat menyimpan perubahan izin</string>
     <string name="su_more_actions">Tindakan lainnya</string>
     <string name="su_no_apps">Tidak ada aplikasi ditemukan</string>
     <string name="su_no_search_results">Tidak ada aplikasi yang cocok</string>

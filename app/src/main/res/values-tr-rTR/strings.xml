@@ -261,6 +261,7 @@
     <string name="su_sort_install_time">Kurulum zamanına göre sırala</string>
     <string name="su_summary_granted">Yetkili: %1$d</string>
     <string name="su_error_read_uids">Yetkili UID\'ler okunamadı. Liste eksik olabilir.</string>
+    <string name="su_config_write_failed">Yetkilendirme değişikliği kaydedilemedi</string>
     <string name="su_more_actions">Diğer işlemler</string>
     <string name="su_no_apps">Uygulama bulunamadı</string>
     <string name="su_no_search_results">Eşleşen uygulama yok</string>

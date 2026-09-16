@@ -176,6 +176,7 @@
     <string name="su_sort_install_time">按契约缔结时间排序</string>
     <string name="su_summary_granted">已授权魔法使：%1$d</string>
     <string name="su_error_read_uids">无法读取已授权的 UID，当前的魔法使名录可能不完整。</string>
+    <string name="su_config_write_failed">授权变更没能写进魔法阵</string>
     <string name="su_more_actions">更多魔法操作</string>
     <string name="su_no_apps">未找到魔法应用</string>
     <string name="su_no_search_results">无匹配的应用程序</string>

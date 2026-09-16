@@ -476,6 +476,7 @@
     <string name="home_install_android_patch">安裝系統補丁</string>
     <string name="home_update_android_patch">更新系統補丁</string>
     <string name="su_error_read_uids">無法讀取已授權 UID，當前列表可能不完整。</string>
+    <string name="su_config_write_failed">無法儲存授權變更</string>
     <string name="apm_install_confirm_title">安裝模組</string>
     <string name="apm_install_confirm_content">確定要安裝 %s 嗎？</string>
     <string name="settings_install_confirm">安裝前確認</string>

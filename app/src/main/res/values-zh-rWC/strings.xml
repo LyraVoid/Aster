@@ -95,6 +95,7 @@
     <string name="su_sort_install_time">按入道辰刻排布</string>
     <string name="su_summary_granted">已授登仙之权：%1$d</string>
     <string name="su_error_read_uids">无法读取已授权 UID，当下名录或有不全。</string>
+    <string name="su_config_write_failed">授权之变未能录入仙册</string>
     <string name="su_more_actions">更多仙术</string>
     <string name="su_no_apps">未寻得凡器</string>
     <string name="su_no_search_results">无相合之凡器</string>

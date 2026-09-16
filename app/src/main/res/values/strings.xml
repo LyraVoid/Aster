@@ -197,6 +197,7 @@
     <string name="su_sort_install_time">Sort by install time</string>
     <string name="su_summary_granted">Authorized: %1$d</string>
     <string name="su_error_read_uids">Could not read authorized UIDs. The list may be incomplete.</string>
+    <string name="su_config_write_failed">Could not save the authorization change</string>
     <string name="su_more_actions">More actions</string>
     <string name="su_no_apps">No applications found</string>
     <string name="su_no_search_results">No matching applications</string>

@@ -259,6 +259,7 @@
     <string name="su_sort_install_time">Sortuj według czasu instalacji</string>
     <string name="su_summary_granted">Autoryzowane: %1$d</string>
     <string name="su_error_read_uids">Nie udało się odczytać autoryzowanych identyfikatorów UID. Lista może być niekompletna.</string>
+    <string name="su_config_write_failed">Nie udało się zapisać zmiany uprawnień</string>
     <string name="su_more_actions">Więcej akcji</string>
     <string name="su_no_apps">Nie znaleziono aplikacji</string>
     <string name="su_no_search_results">Brak pasujących aplikacji</string>

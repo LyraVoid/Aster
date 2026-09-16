@@ -1,5 +1,6 @@
 package me.bmax.apatch.ui.screen
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -94,9 +95,19 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
     val scrollBehavior = MiuixScrollBehavior()
     var searchExpanded by rememberSaveable { mutableStateOf(false) }
     val layoutDirection = LocalLayoutDirection.current
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.ensureAppListLoaded()
+    }
+
+    // A refused write leaves the row showing whatever is on disk, so this is the only thing that
+    // separates "the change was saved" from "the tap did nothing at all". It carries the reason
+    // with it, which is what a report of a tap doing nothing needs to be actionable.
+    LaunchedEffect(viewModel) {
+        viewModel.messages.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
     }
 
     Scaffold(

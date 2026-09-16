@@ -47,15 +47,25 @@ object PkgConfig {
         }
     }
 
-    fun readConfigs(): HashMap<Int, Config> = readConfigs(strict = false)
+    fun readConfigs(): HashMap<Int, Config> =
+        readConfigs(File(APApplication.PACKAGE_CONFIG_FILE), strict = false)
 
-    private fun readConfigs(strict: Boolean): HashMap<Int, Config> {
+    /**
+     * The lines of a configuration file with the differences that do not change what a record means
+     * taken out: a byte-order mark, CRLF endings, blank lines. A file that came from another manager,
+     * or from a copy made elsewhere, carries them, and none of them is a reason to refuse the file —
+     * which matters more than it looks, because a refusal tells the reader that nothing happened at
+     * all. Kept away from the file so the rule can be checked without a device.
+     */
+    internal fun normaliseConfigLines(lines: List<String>): List<String> =
+        lines.map { it.removePrefix("\uFEFF").trimEnd('\r') }.filter { it.isNotBlank() }
+
+    internal fun readConfigs(file: File, strict: Boolean): HashMap<Int, Config> {
         val configs = HashMap<Int, Config>()
-        val file = File(APApplication.PACKAGE_CONFIG_FILE)
         if (file.exists()) {
-            val lines = file.readLines()
+            val lines = normaliseConfigLines(file.readLines())
             if (strict) check(lines.firstOrNull() == CSV_HEADER) { "Invalid package configuration header" }
-            lines.filter { it.isNotBlank() && it != CSV_HEADER }.forEach {
+            lines.filter { it != CSV_HEADER }.forEach {
                 Log.d(TAG, it)
                 val p = Config.fromLine(it)
                 if (p == null) {
@@ -77,13 +87,24 @@ object PkgConfig {
         PackageConfigStorage.writeAtomically(File(APApplication.PACKAGE_CONFIG_FILE), content)
     }
 
-    fun changeConfig(config: Config, apply: () -> Unit = {}) {
+    /**
+     * Applies one configuration change, and says whether it landed.
+     *
+     * The write runs on its own thread, so a caller cannot see the outcome directly: [onResult] is
+     * called on that thread with the throwable when the change did not land, and with null when it
+     * did. Refusing to rewrite a file we cannot read in full stays deliberate — a partial parse
+     * would drop the grants of every record it could not read — but the refusal must not be quiet,
+     * because a quiet refusal looks exactly like a tap that never registered.
+     */
+    fun changeConfig(config: Config, apply: () -> Unit = {}, onResult: (Throwable?) -> Unit = {}) {
         thread {
             synchronized(PkgConfig.javaClass) {
-                Natives.su()
                 try {
+                    // This used to sit outside the try with its result discarded, so a failure to
+                    // escalate escaped the thread unheard and the write below failed for want of it.
+                    check(Natives.su()) { "Root access is not available" }
                     PackageConfigStorage.withLock(File(APApplication.PACKAGE_CONFIG_FILE)) {
-                        val configs = readConfigs(strict = true)
+                        val configs = readConfigs(File(APApplication.PACKAGE_CONFIG_FILE), strict = true)
                         val uid = config.profile.uid
                         // Root App should not be excluded.
                         if (config.allow == 1) config.exclude = 0
@@ -97,8 +118,10 @@ object PkgConfig {
                         // cannot restore an older profile between persistence and apply.
                         apply()
                     }
+                    onResult(null)
                 } catch (error: Exception) {
                     Log.e(TAG, "Cannot complete package configuration update", error)
+                    onResult(error)
                 }
             }
         }

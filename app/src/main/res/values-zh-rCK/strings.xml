@@ -95,6 +95,7 @@
     <string name="su_sort_install_time">按入门先后排</string>
     <string name="su_summary_granted">已发 Root 牌照：%1$d</string>
     <string name="su_error_read_uids">读不到已发牌照的 UID，这份名单可能不全。</string>
+    <string name="su_config_write_failed">授权改动没记进账本</string>
     <string name="su_more_actions">更多手法</string>
     <string name="su_no_apps">没找到上门的档口</string>
     <string name="su_no_search_results">没翻到对得上的档口</string>
