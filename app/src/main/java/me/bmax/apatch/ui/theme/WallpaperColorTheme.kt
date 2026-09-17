@@ -15,6 +15,7 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
 import kotlin.math.sin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.update
 import me.bmax.apatch.APApplication
 import me.bmax.apatch.ui.home.HomeWallpaperFiles
 import me.bmax.apatch.ui.home.HomeWallpaperState
+import me.bmax.apatch.ui.shell.SceneBackdropScrimAlpha
 import me.bmax.apatch.util.LauncherIconUtils
 
 /** What the app knows about the wallpaper derived colours right now. */
@@ -36,6 +38,14 @@ internal data class WallpaperColorThemeState(
     val deriving: Boolean = false,
     /** True when the last attempt read nothing usable out of the wallpaper. */
     val failed: Boolean = false,
+    /**
+     * Whether the wallpaper reads as light once the scene's scrim is over it.
+     *
+     * The status bar icons sit on exactly that, so they are chosen from this rather than from the
+     * fact that the scene is the scene. A bright photo under a 24% scrim is still bright, and white
+     * icons on it cannot be seen. False until a wallpaper has been read.
+     */
+    val backdropIsLight: Boolean = false,
 )
 
 /**
@@ -56,6 +66,9 @@ internal data class WallpaperColorThemeState(
 internal object WallpaperColorTheme {
     const val EnabledKey = "use_wallpaper_color_theme"
     const val SeedKey = "wallpaper_color_seed"
+
+    /** Whether the wallpaper behind the scene's scrim reads as light. See the state for why. */
+    private const val BackdropLightKey = "wallpaper_color_backdrop_light"
 
     /**
      * Which wallpaper the stored seed was read from, as "<slot>:<revision>". Both facts matter:
@@ -100,8 +113,12 @@ internal object WallpaperColorTheme {
             return
         }
         val prefs = APApplication.sharedPreferences
+        // The third condition is what carries this reading to an install that is otherwise up to
+        // date: a seed without it was taken before the backdrop was measured, and the wallpaper has
+        // not moved since, so without it the reading would never be taken at all.
         val upToDate = prefs.getString(SeedSourceKey, null) == source &&
-            prefs.getInt(SeedKey, 0) != 0
+            prefs.getInt(SeedKey, 0) != 0 &&
+            prefs.contains(BackdropLightKey)
         if (upToDate) {
             _state.update { it.copy(failed = false) }
             return
@@ -133,19 +150,19 @@ internal object WallpaperColorTheme {
 
     private suspend fun derive(file: File, source: String): Boolean {
         _state.update { it.copy(deriving = true, failed = false) }
-        var derived: Int? = null
+        var attempted: WallpaperReading? = null
         for (attempt in 0 until DeriveAttempts) {
-            derived = runCatching { extractSeed(file) }
+            attempted = runCatching { extractSeed(file) }
                 .onFailure { Log.w(Tag, "could not read the home wallpaper (attempt ${attempt + 1})", it) }
                 .getOrNull()
-            if (derived != null) break
+            if (attempted != null) break
             if (attempt < DeriveAttempts - 1) {
                 delay(DeriveRetryDelayMillis * (attempt + 1))
             }
         }
 
-        val seed = derived
-        if (seed == null) {
+        val reading = attempted
+        if (reading == null) {
             // The theme falls back to the next priority; the source is deliberately not recorded,
             // so the next launch (or a tap on retry) has another go.
             Log.w(Tag, "no colour usable as a theme in the home wallpaper")
@@ -155,11 +172,19 @@ internal object WallpaperColorTheme {
         }
 
         APApplication.sharedPreferences.edit {
-            putInt(SeedKey, seed)
+            putInt(SeedKey, reading.seed)
             putString(SeedSourceKey, source)
+            putBoolean(BackdropLightKey, reading.backdropIsLight)
             remove(LegacySeedRevisionKey)
         }
-        _state.update { it.copy(seed = seed, deriving = false, failed = false) }
+        _state.update {
+            it.copy(
+                seed = reading.seed,
+                backdropIsLight = reading.backdropIsLight,
+                deriving = false,
+                failed = false,
+            )
+        }
         // The icon follows this colour while the wallpaper is what the app is painted from, and the
         // picture can be read long after the page that chose it was closed.
         LauncherIconUtils.refreshForColorChange()
@@ -170,6 +195,7 @@ internal object WallpaperColorTheme {
         val prefs = APApplication.sharedPreferences
         if (!prefs.contains(SeedKey) &&
             !prefs.contains(SeedSourceKey) &&
+            !prefs.contains(BackdropLightKey) &&
             !prefs.contains(LegacySeedRevisionKey)
         ) {
             return
@@ -177,9 +203,10 @@ internal object WallpaperColorTheme {
         prefs.edit {
             remove(SeedKey)
             remove(SeedSourceKey)
+            remove(BackdropLightKey)
             remove(LegacySeedRevisionKey)
         }
-        _state.update { it.copy(seed = 0) }
+        _state.update { it.copy(seed = 0, backdropIsLight = false) }
         LauncherIconUtils.refreshForColorChange()
     }
 
@@ -188,6 +215,7 @@ internal object WallpaperColorTheme {
         return WallpaperColorThemeState(
             enabled = prefs.getBoolean(EnabledKey, false),
             seed = prefs.getInt(SeedKey, 0),
+            backdropIsLight = prefs.getBoolean(BackdropLightKey, false),
         )
     }
 }
@@ -223,7 +251,10 @@ private const val MinSupportWeight = 12.0
 private const val SeedSaturationFloor = 0.55f
 private const val SeedLightness = 0.5f
 
-private fun extractSeed(file: File): Int? {
+/** What one reading of the wallpaper came up with. */
+private data class WallpaperReading(val seed: Int, val backdropIsLight: Boolean)
+
+private fun extractSeed(file: File): WallpaperReading? {
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     BitmapFactory.decodeFile(file.absolutePath, bounds)
     if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
@@ -239,11 +270,67 @@ private fun extractSeed(file: File): Int? {
     return try {
         val pixels = IntArray(bitmap.width * bitmap.height)
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-        dominantSeedColor(pixels)
+        val seed = dominantSeedColor(pixels) ?: return null
+        WallpaperReading(
+            seed = seed,
+            backdropIsLight = backdropReadsLight(
+                topAverageLuminance(pixels, bitmap.width, bitmap.height),
+            ),
+        )
     } finally {
         bitmap.recycle()
     }
 }
+
+/**
+ * How bright the top of the wallpaper reads, 0 to 1.
+ *
+ * Only the top is measured, because that is the part that ends up behind the status bar. A photo's
+ * brightness is rarely even — a bright sky over a dark subject is the common shape — and the average
+ * of the whole picture would call that one dark and put white icons on the sky.
+ */
+internal fun topAverageLuminance(pixels: IntArray, width: Int, height: Int): Float {
+    if (width <= 0 || height <= 0 || pixels.isEmpty()) return 0f
+    val rows = (height / 3).coerceAtLeast(1)
+    val count = (rows * width).coerceAtMost(pixels.size)
+    if (count <= 0) return 0f
+    var total = 0f
+    for (index in 0 until count) {
+        total += relativeLuminance(pixels[index])
+    }
+    return total / count
+}
+
+/**
+ * Relative luminance of an sRGB colour, 0 to 1 — the same measure the platform's own
+ * `Color.luminance` returns, worked out here so the rule can be read without a device.
+ */
+internal fun relativeLuminance(color: Int): Float {
+    val red = linearChannel(color shr 16 and 0xFF)
+    val green = linearChannel(color shr 8 and 0xFF)
+    val blue = linearChannel(color and 0xFF)
+    return 0.2126f * red + 0.7152f * green + 0.0722f * blue
+}
+
+private fun linearChannel(value: Int): Float {
+    val channel = value / 255f
+    return if (channel <= 0.04045f) {
+        channel / 12.92f
+    } else {
+        ((channel + 0.055f) / 1.055f).pow(2.4f)
+    }
+}
+
+/**
+ * Whether the scene's backdrop reads as light, which is what decides the colour of the status bar
+ * icons. The wallpaper is measured through the scrim the scene lays over it: what matters is what is
+ * behind the icons, not what the file looks like on its own.
+ */
+internal fun backdropReadsLight(topLuminance: Float): Boolean =
+    topLuminance * (1f - SceneBackdropScrimAlpha) > BackdropLightThreshold
+
+/** Above this the icons have to be dark, because white ones cannot be seen on the backdrop. */
+private const val BackdropLightThreshold = 0.5f
 
 private fun sampleSize(width: Int, height: Int): Int {
     var size = 1

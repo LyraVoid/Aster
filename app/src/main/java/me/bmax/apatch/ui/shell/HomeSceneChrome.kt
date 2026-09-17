@@ -218,6 +218,15 @@ private fun rememberSystem24Hour(): State<Boolean> {
     }
 }
 
+/**
+ * How much black the scene lays over the wallpaper.
+ *
+ * Shared with the theme, which reads the wallpaper's brightness through it to decide whether the
+ * status bar icons have to be dark: what matters for them is what ends up behind the icons, not
+ * what the file looks like on its own.
+ */
+internal const val SceneBackdropScrimAlpha = 0.24f
+
 @Composable
 internal fun HomeSceneBackdrop(
     state: HomeWallpaperState?,
@@ -246,7 +255,7 @@ internal fun HomeSceneBackdrop(
                 state = state,
                 modifier = Modifier.fillMaxSize().blur(32.dp, edgeTreatment = BlurredEdgeTreatment.Rectangle),
             )
-            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.24f)))
+            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = SceneBackdropScrimAlpha)))
         }
         // The rail draws white on whatever the wallpaper happens to be. Darken just the strip it
         // sits in and let the shade dissolve towards the page, so a bright photo cannot swallow

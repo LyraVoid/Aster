@@ -153,10 +153,19 @@ fun AsterAppShell(
     val sceneActive = panorama && homeVisibility > 0.5f
     val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
     val darkTheme = me.bmax.apatch.ui.theme.LocalThemeModeState.current.isDark
-    androidx.compose.runtime.DisposableEffect(activity, sceneActive, darkTheme) {
+    // The scene lays a dark scrim over the wallpaper, which is why its icons are white — but only
+    // while the wallpaper under that scrim is dark enough to carry them. A bright photo stays bright
+    // through a 24% scrim, and white icons on it cannot be seen, so the reading taken when the
+    // wallpaper was last derived decides. Without one there is nothing to go on, and the scene keeps
+    // the white icons it has always used.
+    val backdropIsLight =
+        me.bmax.apatch.ui.theme.rememberWallpaperColorThemeState().backdropIsLight
+    val darkIcons = if (sceneActive) backdropIsLight else !darkTheme
+    // isAppearanceLightStatusBars means "the icons are dark", so it takes this directly.
+    androidx.compose.runtime.DisposableEffect(activity, darkIcons) {
         val controller = activity?.let { androidx.core.view.WindowCompat.getInsetsController(it.window, it.window.decorView) }
-        controller?.isAppearanceLightStatusBars = !sceneActive && !darkTheme
-        controller?.isAppearanceLightNavigationBars = !sceneActive && !darkTheme
+        controller?.isAppearanceLightStatusBars = darkIcons
+        controller?.isAppearanceLightNavigationBars = darkIcons
         onDispose {
             controller?.isAppearanceLightStatusBars = !darkTheme
             controller?.isAppearanceLightNavigationBars = !darkTheme
