@@ -97,6 +97,17 @@
     <string name="su_error_read_uids">无法读取已授权 UID，当前列表可能不完整。</string>
     <string name="su_config_write_failed">无法保存授权更改</string>
     <string name="su_more_actions">更多操作</string>
+    <string name="su_multi_select_enter">选择应用</string>
+    <string name="su_multi_select_count">已选 %d 个</string>
+    <string name="su_multi_select_selected">已选中</string>
+    <string name="su_multi_select_grant_root">为所选应用授予 root</string>
+    <string name="su_multi_select_exclude">排除所选应用</string>
+    <string name="su_multi_select_grant_label">授予 Root</string>
+    <string name="su_multi_select_normal_label">恢复正常</string>
+    <string name="su_multi_select_exclude_label">排除模块</string>
+    <string name="su_multi_select_confirm_grant">为 %d 个应用授予 root？</string>
+    <string name="su_multi_select_confirm_normal">将 %d 个应用恢复正常（撤销 Root 并取消排除）？</string>
+    <string name="su_multi_select_confirm_exclude">将 %d 个应用排除在注入之外？</string>
     <string name="su_no_apps">未找到应用程序</string>
     <string name="su_no_search_results">无匹配应用程序</string>
     <string name="su_kernel_patch_required_title">需要 KernelPatch</string>

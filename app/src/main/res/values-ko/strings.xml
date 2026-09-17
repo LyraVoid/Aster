@@ -263,6 +263,17 @@
     <string name="su_error_read_uids">승인된 UID를 읽지 못했습니다. 목록이 불완전할 수 있습니다.</string>
     <string name="su_config_write_failed">권한 부여 변경을 저장하지 못했습니다</string>
     <string name="su_more_actions">더 많은 작업</string>
+    <string name="su_multi_select_enter">앱 선택</string>
+    <string name="su_multi_select_count">%d개 선택됨</string>
+    <string name="su_multi_select_selected">선택됨</string>
+    <string name="su_multi_select_grant_root">선택한 모두에 root 부여</string>
+    <string name="su_multi_select_exclude">선택한 모두 제외</string>
+    <string name="su_multi_select_grant_label">Root 허용</string>
+    <string name="su_multi_select_normal_label">일반 모드</string>
+    <string name="su_multi_select_exclude_label">제외</string>
+    <string name="su_multi_select_confirm_grant">%d개 앱에 root를 부여할까요?</string>
+    <string name="su_multi_select_confirm_normal">%d개 앱을 일반 모드로 복원할까요(Root 권한 및 제외 해제)?</string>
+    <string name="su_multi_select_confirm_exclude">%d개 앱을 주입에서 제외할까요?</string>
     <string name="su_no_apps">앱을 찾을 수 없습니다</string>
     <string name="su_no_search_results">일치하는 앱이 없습니다</string>
     <string name="su_kernel_patch_required_title">KernelPatch 필요</string>

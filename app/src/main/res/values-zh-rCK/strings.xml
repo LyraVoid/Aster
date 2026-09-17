@@ -97,6 +97,17 @@
     <string name="su_error_read_uids">读不到已发牌照的 UID，这份名单可能不全。</string>
     <string name="su_config_write_failed">授权改动没记进账本</string>
     <string name="su_more_actions">更多手法</string>
+    <string name="su_multi_select_enter">挑菜</string>
+    <string name="su_multi_select_count">已点 %d 道</string>
+    <string name="su_multi_select_selected">已点</string>
+    <string name="su_multi_select_grant_root">给点中的都上 root</string>
+    <string name="su_multi_select_exclude">把点中的都赶出后厨</string>
+    <string name="su_multi_select_grant_label">授予 Root</string>
+    <string name="su_multi_select_normal_label">恢复正常</string>
+    <string name="su_multi_select_exclude_label">排除模块</string>
+    <string name="su_multi_select_confirm_grant">给这 %d 道都上 root？</string>
+    <string name="su_multi_select_confirm_normal">把 %d 道恢复正常（撤销 Root 并取消排除）？</string>
+    <string name="su_multi_select_confirm_exclude">把 %d 道赶出后厨？</string>
     <string name="su_no_apps">没找到上门的档口</string>
     <string name="su_no_search_results">没翻到对得上的档口</string>
     <string name="su_kernel_patch_required_title">得先有 KernelPatch</string>

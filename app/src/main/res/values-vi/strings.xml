@@ -263,6 +263,17 @@
     <string name="su_error_read_uids">Không thể đọc các UID được cấp quyền. Danh sách có thể không đầy đủ.</string>
     <string name="su_config_write_failed">Không thể lưu thay đổi cấp quyền</string>
     <string name="su_more_actions">Thêm thao tác</string>
+    <string name="su_multi_select_enter">Chọn ứng dụng</string>
+    <string name="su_multi_select_count">Đã chọn %d</string>
+    <string name="su_multi_select_selected">Đã chọn</string>
+    <string name="su_multi_select_grant_root">Cấp root cho tất cả mục đã chọn</string>
+    <string name="su_multi_select_exclude">Loại trừ tất cả mục đã chọn</string>
+    <string name="su_multi_select_grant_label">Cấp Root</string>
+    <string name="su_multi_select_normal_label">Bình thường</string>
+    <string name="su_multi_select_exclude_label">Loại trừ</string>
+    <string name="su_multi_select_confirm_grant">Cấp root cho %d ứng dụng?</string>
+    <string name="su_multi_select_confirm_normal">Khôi phục %d ứng dụng về chế độ bình thường (thu hồi Root và bỏ loại trừ)?</string>
+    <string name="su_multi_select_confirm_exclude">Loại trừ %d ứng dụng khỏi chèn?</string>
     <string name="su_no_apps">Không tìm thấy ứng dụng nào</string>
     <string name="su_no_search_results">Không có ứng dụng nào khớp</string>
     <string name="su_kernel_patch_required_title">Cần có KernelPatch</string>

@@ -263,6 +263,17 @@
     <string name="su_error_read_uids">Yetkili UID\'ler okunamadı. Liste eksik olabilir.</string>
     <string name="su_config_write_failed">Yetkilendirme değişikliği kaydedilemedi</string>
     <string name="su_more_actions">Diğer işlemler</string>
+    <string name="su_multi_select_enter">Uygulama seç</string>
+    <string name="su_multi_select_count">%d seçildi</string>
+    <string name="su_multi_select_selected">Seçildi</string>
+    <string name="su_multi_select_grant_root">Seçilenlerin tümüne root ver</string>
+    <string name="su_multi_select_exclude">Seçilenlerin tümünü hariç tut</string>
+    <string name="su_multi_select_grant_label">Root ver</string>
+    <string name="su_multi_select_normal_label">Normal</string>
+    <string name="su_multi_select_exclude_label">Hariç tut</string>
+    <string name="su_multi_select_confirm_grant">%d uygulamaya root verilsin mi?</string>
+    <string name="su_multi_select_confirm_normal">%d uygulama normal moda döndürülsün mü (Root ve hariç tutma kaldırılır)?</string>
+    <string name="su_multi_select_confirm_exclude">%d uygulama enjeksiyondan hariç tutulsun mu?</string>
     <string name="su_no_apps">Uygulama bulunamadı</string>
     <string name="su_no_search_results">Eşleşen uygulama yok</string>
     <string name="su_kernel_patch_required_title">KernelPatch gerekli</string>

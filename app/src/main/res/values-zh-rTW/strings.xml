@@ -46,6 +46,17 @@
     <string name="su_sort_install_time">依安裝時間排序</string>
     <string name="su_summary_granted">已授權：%1$d</string>
     <string name="su_more_actions">更多操作</string>
+    <string name="su_multi_select_enter">選擇應用</string>
+    <string name="su_multi_select_count">已選 %d 個</string>
+    <string name="su_multi_select_selected">已選中</string>
+    <string name="su_multi_select_grant_root">為所選應用授予 root</string>
+    <string name="su_multi_select_exclude">排除所選應用</string>
+    <string name="su_multi_select_grant_label">授予 Root</string>
+    <string name="su_multi_select_normal_label">恢復正常</string>
+    <string name="su_multi_select_exclude_label">排除模組</string>
+    <string name="su_multi_select_confirm_grant">為 %d 個應用授予 root？</string>
+    <string name="su_multi_select_confirm_normal">將 %d 個應用恢復正常（撤銷 Root 並取消排除）？</string>
+    <string name="su_multi_select_confirm_exclude">將 %d 個應用排除在注入之外？</string>
     <string name="su_no_apps">未找到應用程式</string>
     <string name="su_no_search_results">無符合的應用程式</string>
     <string name="su_kernel_patch_required_title">需要 KernelPatch</string>

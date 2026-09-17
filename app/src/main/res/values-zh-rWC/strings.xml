@@ -97,6 +97,17 @@
     <string name="su_error_read_uids">无法读取已授权 UID，当下名录或有不全。</string>
     <string name="su_config_write_failed">授权之变未能录入仙册</string>
     <string name="su_more_actions">更多仙术</string>
+    <string name="su_multi_select_enter">遴选仙众</string>
+    <string name="su_multi_select_count">已择 %d 位</string>
+    <string name="su_multi_select_selected">已择</string>
+    <string name="su_multi_select_grant_root">为所择者授 root</string>
+    <string name="su_multi_select_exclude">将所择者逐出仙门</string>
+    <string name="su_multi_select_grant_label">授予 Root</string>
+    <string name="su_multi_select_normal_label">恢复常态</string>
+    <string name="su_multi_select_exclude_label">排除仙符</string>
+    <string name="su_multi_select_confirm_grant">为 %d 位授 root？</string>
+    <string name="su_multi_select_confirm_normal">将 %d 位恢复常态（收回 Root 并取消仙符排除）？</string>
+    <string name="su_multi_select_confirm_exclude">将 %d 位逐出仙门？</string>
     <string name="su_no_apps">未寻得凡器</string>
     <string name="su_no_search_results">无相合之凡器</string>
     <string name="su_kernel_patch_required_title">需 KernelPatch 仙法</string>

@@ -261,6 +261,17 @@
     <string name="su_error_read_uids">Не удалось прочитать авторизованные UID. Список может быть неполным.</string>
     <string name="su_config_write_failed">Не удалось сохранить изменение авторизации</string>
     <string name="su_more_actions">Другие действия</string>
+    <string name="su_multi_select_enter">Выбрать приложения</string>
+    <string name="su_multi_select_count">Выбрано: %d</string>
+    <string name="su_multi_select_selected">Выбрано</string>
+    <string name="su_multi_select_grant_root">Дать root всем выбранным</string>
+    <string name="su_multi_select_exclude">Исключить всех выбранных</string>
+    <string name="su_multi_select_grant_label">Выдать Root</string>
+    <string name="su_multi_select_normal_label">Обычный режим</string>
+    <string name="su_multi_select_exclude_label">Исключить</string>
+    <string name="su_multi_select_confirm_grant">Дать root %d приложениям?</string>
+    <string name="su_multi_select_confirm_normal">Вернуть %d приложений в обычный режим (отозвать Root и убрать исключения)?</string>
+    <string name="su_multi_select_confirm_exclude">Исключить %d приложений из внедрения?</string>
     <string name="su_no_apps">Приложения не найдены</string>
     <string name="su_no_search_results">Подходящие приложения не найдены</string>
     <string name="su_kernel_patch_required_title">Требуется KernelPatch</string>

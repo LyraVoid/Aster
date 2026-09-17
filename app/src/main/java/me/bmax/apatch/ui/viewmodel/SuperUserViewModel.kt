@@ -12,6 +12,7 @@ import android.os.Parcelable
 import android.util.Log
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -46,6 +47,7 @@ import me.bmax.apatch.util.HanziToPinyin
 import me.bmax.apatch.util.PkgConfig
 import java.text.Collator
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -123,6 +125,120 @@ class SuperUserViewModel : ViewModel() {
         val what = apApp.getString(R.string.su_config_write_failed)
         val why = error.message?.takeIf { it.isNotBlank() } ?: error.javaClass.simpleName
         _messages.tryEmit("$what\n$why")
+    }
+
+    // -- Picking apps to act on together --------------------------------------
+
+    /**
+     * Whether the page is picking apps rather than switching them.
+     *
+     * The switches are per app, and a reader who wants the same thing for five of them otherwise
+     * reaches for five switches — which is exactly when they would rather pick the five first and
+     * change them once. Selection mode is that second shape: the rows pick, and the bar above them
+     * acts on the lot.
+     */
+    var isSelectionMode by mutableStateOf(false)
+        private set
+
+    private val selection = mutableStateMapOf<Int, Boolean>()
+
+    val selectedCount: Int by derivedStateOf { selection.values.count { it } }
+
+    fun enterSelectionMode() {
+        isSelectionMode = true
+        selection.clear()
+    }
+
+    fun exitSelectionMode() {
+        isSelectionMode = false
+        selection.clear()
+    }
+
+    fun toggleSelection(uid: Int) {
+        selection[uid] = selection[uid] != true
+    }
+
+    fun isUidSelected(uid: Int): Boolean = selection[uid] == true
+
+    /** The UIDs to act on, in the order the list shows them. */
+    fun selectedUids(): List<Int> =
+        synchronized(appsLock) { apps }.map { it.uid }.filter { isUidSelected(it) }.distinct()
+
+    enum class BatchAction {
+        GRANT_ROOT, NORMAL, EXCLUDE;
+
+        internal fun configFor(config: PkgConfig.Config, uid: Int): PkgConfig.Config =
+            config.copy(
+                allow = if (this == GRANT_ROOT) 1 else 0,
+                exclude = if (this == EXCLUDE) 1 else 0,
+                profile = config.profile.copy(
+                    uid = uid,
+                    scontext = if (this == GRANT_ROOT) {
+                        APApplication.MAGISK_SCONTEXT
+                    } else {
+                        APApplication.DEFAULT_SCONTEXT
+                    },
+                ),
+            )
+    }
+
+    /** One batch at a time: two of them would interleave their reads and their writes. */
+    private val batchInFlight = AtomicBoolean(false)
+
+    /**
+     * Applies one action to every picked app at once.
+     *
+     * The whole set goes through [PkgConfig.changeConfigs] as a single transaction, so the file and
+     * the kernel end up agreeing about all of it or about none of it. A batch taken one entry at a
+     * time could stop halfway and leave the reader with no way to tell which half had taken.
+     *
+     * Rows are collected by UID, because that is what the file holds: several packages sharing one
+     * take the change together, which is the same rule a single switch follows.
+     */
+    fun applyBatch(action: BatchAction, uids: List<Int>) {
+        val wanted = uids.toSet()
+        val targets = synchronized(appsLock) { apps }
+            .filter { it.uid in wanted }
+            .distinctBy { it.uid }
+        if (targets.isEmpty()) return
+        if (!batchInFlight.compareAndSet(false, true)) return
+
+        val newConfigs = targets.map { app -> action.configFor(app.config, app.uid) }
+
+        PkgConfig.changeConfigs(
+            configs = newConfigs,
+            apply = {
+                newConfigs.forEach { config ->
+                    val uid = config.profile.uid
+                    if (config.allow == 1) {
+                        Natives.grantSu(uid, 0, config.profile.scontext)
+                    } else {
+                        Natives.revokeSu(uid)
+                    }
+                    // Normal mode also removes any previous kernel exclusion.
+                    Natives.setUidExclude(uid, config.exclude)
+                }
+                updateAppConfigs(newConfigs)
+            },
+            onResult = { error ->
+                reportConfigResult(error)
+                batchInFlight.set(false)
+            },
+        )
+    }
+
+    /**
+     * The bulk form of [updateAppConfig]: every package sharing a UID takes the new state, or a
+     * stale row of a sibling package could put back what was just written.
+     */
+    private fun updateAppConfigs(newConfigs: List<PkgConfig.Config>) {
+        val byUid = newConfigs.associateBy { it.profile.uid }
+        synchronized(appsLock) {
+            apps = apps.map { app ->
+                val config = byUid[app.uid] ?: return@map app
+                app.copy(config = config.copy(pkg = app.packageName))
+            }
+        }
     }
 
     var search: String

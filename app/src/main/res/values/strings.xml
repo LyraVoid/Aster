@@ -199,6 +199,17 @@
     <string name="su_error_read_uids">Could not read authorized UIDs. The list may be incomplete.</string>
     <string name="su_config_write_failed">Could not save the authorization change</string>
     <string name="su_more_actions">More actions</string>
+    <string name="su_multi_select_enter">Pick apps</string>
+    <string name="su_multi_select_count">%d picked</string>
+    <string name="su_multi_select_selected">Picked</string>
+    <string name="su_multi_select_grant_root">Grant root to all picked</string>
+    <string name="su_multi_select_exclude">Exclude all picked</string>
+    <string name="su_multi_select_grant_label">Grant Root</string>
+    <string name="su_multi_select_normal_label">Normal</string>
+    <string name="su_multi_select_exclude_label">Exclude</string>
+    <string name="su_multi_select_confirm_grant">Grant root to %d apps?</string>
+    <string name="su_multi_select_confirm_normal">Restore %d apps to normal mode (revoke Root and remove exclusions)?</string>
+    <string name="su_multi_select_confirm_exclude">Exclude %d apps from injection?</string>
     <string name="su_no_apps">No applications found</string>
     <string name="su_no_search_results">No matching applications</string>
     <string name="su_kernel_patch_required_title">KernelPatch required</string>

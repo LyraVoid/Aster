@@ -263,6 +263,17 @@
     <string name="su_error_read_uids">Não foi possível ler os UIDs autorizados. A lista pode estar incompleta.</string>
     <string name="su_config_write_failed">Não foi possível salvar a alteração de autorização</string>
     <string name="su_more_actions">Mais ações</string>
+    <string name="su_multi_select_enter">Escolher aplicativos</string>
+    <string name="su_multi_select_count">%d selecionados</string>
+    <string name="su_multi_select_selected">Selecionado</string>
+    <string name="su_multi_select_grant_root">Conceder root a todos os selecionados</string>
+    <string name="su_multi_select_exclude">Excluir todos os selecionados</string>
+    <string name="su_multi_select_grant_label">Conceder Root</string>
+    <string name="su_multi_select_normal_label">Normal</string>
+    <string name="su_multi_select_exclude_label">Excluir</string>
+    <string name="su_multi_select_confirm_grant">Conceder root a %d aplicativos?</string>
+    <string name="su_multi_select_confirm_normal">Restaurar %d aplicativos ao modo normal (remover Root e exclusões)?</string>
+    <string name="su_multi_select_confirm_exclude">Excluir %d aplicativos da injeção?</string>
     <string name="su_no_apps">Nenhum aplicativo encontrado</string>
     <string name="su_no_search_results">Nenhum aplicativo correspondente</string>
     <string name="su_kernel_patch_required_title">KernelPatch necessário</string>

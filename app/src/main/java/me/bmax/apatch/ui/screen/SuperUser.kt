@@ -1,6 +1,7 @@
 package me.bmax.apatch.ui.screen
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -37,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,6 +61,8 @@ import me.bmax.apatch.ui.superuser.SuperUserItem
 import me.bmax.apatch.ui.superuser.SuperUserSort
 import me.bmax.apatch.ui.superuser.SuperUserUiState
 import me.bmax.apatch.ui.viewmodel.SuperUserViewModel
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
@@ -75,12 +80,17 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.All
+import top.yukonga.miuix.kmp.icon.extended.Close
 import top.yukonga.miuix.kmp.icon.extended.GridView
+import top.yukonga.miuix.kmp.icon.extended.Blocklist
 import top.yukonga.miuix.kmp.icon.extended.Lock
+import top.yukonga.miuix.kmp.icon.extended.Reset
 import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.icon.extended.Sort
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
@@ -110,23 +120,44 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
         }
     }
 
+    // The batch the reader has asked for and not yet run. It is a dialog rather than an immediate
+    // act for the reason a single switch is not: granting root to a pageful of apps at once is not
+    // something to do on a mis-tap.
+    var pendingBatch by remember { mutableStateOf<SuperUserViewModel.BatchAction?>(null) }
+
+    // Back leaves the picking before it leaves the page, which is what a mode is for: the way out
+    // of it is the first thing the gesture everyone tries does.
+    BackHandler(enabled = viewModel.isSelectionMode) {
+        viewModel.exitSelectionMode()
+    }
+
     Scaffold(
         topBar = {
-            SuperUserTopBar(
-                uiState = uiState,
-                searchExpanded = searchExpanded,
-                onSearchExpandedChange = { expanded ->
-                    searchExpanded = expanded
-                    if (!expanded) {
-                        viewModel.updateSearch("")
-                    }
-                },
-                onSearchChange = viewModel::updateSearch,
-                onRefresh = viewModel::refresh,
-                onToggleSystemApps = viewModel::toggleSystemApps,
-                onSortChange = viewModel::updateSort,
-                scrollBehavior = scrollBehavior,
-            )
+            if (viewModel.isSelectionMode) {
+                SuperUserSelectionTopBar(
+                    selectedCount = viewModel.selectedCount,
+                    onClose = viewModel::exitSelectionMode,
+                    onAction = { pendingBatch = it },
+                    scrollBehavior = scrollBehavior,
+                )
+            } else {
+                SuperUserTopBar(
+                    uiState = uiState,
+                    searchExpanded = searchExpanded,
+                    onSearchExpandedChange = { expanded ->
+                        searchExpanded = expanded
+                        if (!expanded) {
+                            viewModel.updateSearch("")
+                        }
+                    },
+                    onSearchChange = viewModel::updateSearch,
+                    onRefresh = viewModel::refresh,
+                    onToggleSystemApps = viewModel::toggleSystemApps,
+                    onSortChange = viewModel::updateSort,
+                    onEnterSelection = viewModel::enterSelectionMode,
+                    scrollBehavior = scrollBehavior,
+                )
+            }
         },
     ) { innerPadding ->
         PullToRefresh(
@@ -203,6 +234,13 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                 onToggleExcluded = { excluded ->
                                     viewModel.setExcluded(item, excluded)
                                 },
+                                selectionMode = viewModel.isSelectionMode,
+                                isSelected = viewModel.isUidSelected(item.uid),
+                                onToggleSelection = { viewModel.toggleSelection(item.uid) },
+                                onLongPress = {
+                                    viewModel.enterSelectionMode()
+                                    viewModel.toggleSelection(item.uid)
+                                },
                             )
                         }
                     }
@@ -210,6 +248,50 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
             }
         }
     }
+
+    // The last thing the reader sees before the lot changes at once, and the only place the count
+    // of what is about to change is said out loud.
+    pendingBatch?.let { batch ->
+        OverlayDialog(
+            show = true,
+            title = stringResource(batch.confirmTitleRes(), viewModel.selectedCount),
+            onDismissRequest = { pendingBatch = null },
+        ) {
+            Column(Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    TextButton(
+                        text = stringResource(android.R.string.cancel),
+                        onClick = { pendingBatch = null },
+                        modifier = Modifier.weight(1f),
+                    )
+                    Button(
+                        onClick = {
+                            val uids = viewModel.selectedUids()
+                            pendingBatch = null
+                            // Leaving the mode first puts the page back as the reader found it; the
+                            // write reports itself through the message flow either way.
+                            viewModel.exitSelectionMode()
+                            viewModel.applyBatch(batch, uids)
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColorsPrimary(),
+                    ) {
+                        Text(stringResource(android.R.string.ok))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** What each batch asks before it runs, with the count filled in by the caller. */
+private fun SuperUserViewModel.BatchAction.confirmTitleRes(): Int = when (this) {
+    SuperUserViewModel.BatchAction.GRANT_ROOT -> R.string.su_multi_select_confirm_grant
+    SuperUserViewModel.BatchAction.NORMAL -> R.string.su_multi_select_confirm_normal
+    SuperUserViewModel.BatchAction.EXCLUDE -> R.string.su_multi_select_confirm_exclude
 }
 
 @Composable
@@ -221,6 +303,7 @@ private fun SuperUserTopBar(
     onRefresh: () -> Unit,
     onToggleSystemApps: () -> Unit,
     onSortChange: (SuperUserSort) -> Unit,
+    onEnterSelection: () -> Unit,
     scrollBehavior: ScrollBehavior,
 ) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
@@ -238,6 +321,14 @@ private fun SuperUserTopBar(
         subtitle = subtitle,
         scrollBehavior = scrollBehavior,
         actions = {
+            // Picking apps sits beside the menu rather than inside it: it is a way of using the
+            // page, not one of the things the page can do.
+            IconButton(onClick = onEnterSelection) {
+                Icon(
+                    imageVector = MiuixIcons.All,
+                    contentDescription = stringResource(R.string.su_multi_select_enter),
+                )
+            }
             Box {
                 IconButton(onClick = { showMenu = true }) {
                     Icon(
@@ -309,6 +400,81 @@ private fun SuperUserTopBar(
     )
 }
 
+/** Batch actions have visible labels so their meaning does not depend on recognizing an icon. */
+@Composable
+private fun SuperUserSelectionTopBar(
+    selectedCount: Int,
+    onClose: () -> Unit,
+    onAction: (SuperUserViewModel.BatchAction) -> Unit,
+    scrollBehavior: ScrollBehavior,
+) {
+    TopAppBar(
+        title = stringResource(R.string.su_multi_select_count, selectedCount),
+        scrollBehavior = scrollBehavior,
+        navigationIcon = {
+            IconButton(onClick = onClose) {
+                Icon(
+                    imageVector = MiuixIcons.Close,
+                    contentDescription = stringResource(android.R.string.cancel),
+                )
+            }
+        },
+        bottomContent = {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                SuperUserBatchButton(
+                    icon = MiuixIcons.Ok,
+                    label = stringResource(R.string.su_multi_select_grant_label),
+                    enabled = selectedCount > 0,
+                    onClick = { onAction(SuperUserViewModel.BatchAction.GRANT_ROOT) },
+                    modifier = Modifier.weight(1f),
+                )
+                SuperUserBatchButton(
+                    icon = MiuixIcons.Reset,
+                    label = stringResource(R.string.su_multi_select_normal_label),
+                    enabled = selectedCount > 0,
+                    onClick = { onAction(SuperUserViewModel.BatchAction.NORMAL) },
+                    modifier = Modifier.weight(1f),
+                )
+                SuperUserBatchButton(
+                    icon = MiuixIcons.Blocklist,
+                    label = stringResource(R.string.su_multi_select_exclude_label),
+                    enabled = selectedCount > 0,
+                    onClick = { onAction(SuperUserViewModel.BatchAction.EXCLUDE) },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        },
+    )
+}
+
+@Composable
+private fun SuperUserBatchButton(
+    icon: ImageVector,
+    label: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.heightIn(min = 72.dp),
+        insideMargin = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            val color = MiuixTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.38f)
+            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(24.dp), tint = color)
+            Text(text = label, fontSize = 13.sp, textAlign = TextAlign.Center, color = color)
+        }
+    }
+}
+
 @Composable
 private fun SuperUserMenuItem(
     icon: ImageVector,
@@ -362,6 +528,10 @@ private fun SuperUserAppItem(
     item: SuperUserItem,
     onToggleRoot: (Boolean) -> Unit,
     onToggleExcluded: (Boolean) -> Unit,
+    selectionMode: Boolean = false,
+    isSelected: Boolean = false,
+    onToggleSelection: () -> Unit = {},
+    onLongPress: () -> Unit = {},
 ) {
     var showExcludeSetting by rememberSaveable(item.packageName, item.uid) {
         mutableStateOf(false)
@@ -376,7 +546,20 @@ private fun SuperUserAppItem(
         // The card is the target of a tap, not the label inside it: every app opens wherever it is
         // touched, and the press is answered by the card itself rather than by a highlight across
         // its middle. Granting root stays on the switch alone.
-        onClick = { showExcludeSetting = !showExcludeSetting },
+        onClick = {
+            // While the page is picking apps, the row picks instead of opening: the switch is gone
+            // and a tap anywhere on the row is a tap on the whole row.
+            if (selectionMode) {
+                onToggleSelection()
+            } else {
+                showExcludeSetting = !showExcludeSetting
+            }
+        },
+        // A long press is the way into picking: it starts the mode and picks the row that was held,
+        // so the reader does not have to find the button first and then find the row again.
+        onLongPress = {
+            if (selectionMode) onToggleSelection() else onLongPress()
+        },
     ) {
         Column(
             modifier = Modifier
@@ -436,15 +619,42 @@ private fun SuperUserAppItem(
                     }
                 }
 
-                IndicatorSwitch(
-                    checked = item.isAllowed,
-                    onCheckedChange = onToggleRoot,
-                )
+                if (selectionMode) {
+                    // A check where the switch was, saying "picked" instead of "granted", so a row
+                    // does not have to move for the page to change what it means. The unselected
+                    // side holds the same space, or the rows would jump as they were picked.
+                    Box(
+                        modifier = Modifier.size(48.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (isSelected) {
+                            Icon(
+                                imageVector = MiuixIcons.Ok,
+                                contentDescription = stringResource(R.string.su_multi_select_selected),
+                                modifier = Modifier.size(24.dp),
+                                tint = MiuixTheme.colorScheme.primary,
+                            )
+                        } else {
+                            Icon(
+                                imageVector = MiuixIcons.Ok,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.25f),
+                            )
+                        }
+                    }
+                } else {
+                    IndicatorSwitch(
+                        checked = item.isAllowed,
+                        onCheckedChange = onToggleRoot,
+                    )
+                }
             }
 
             // Exclusion reaches an app that holds root too: turning it on takes the root away and
-            // leaves the app excluded, and the row says so straight away.
-            AnimatedVisibility(visible = showExcludeSetting) {
+            // leaves the app excluded, and the row says so straight away. While the page is picking
+            // apps the row is a checkbox and nothing else, so this stays out of the way.
+            AnimatedVisibility(visible = showExcludeSetting && !selectionMode) {
                 IndicatorSwitchPreference(
                     modifier = Modifier
                         .fillMaxWidth()

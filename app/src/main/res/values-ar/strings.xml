@@ -263,6 +263,17 @@
     <string name="su_error_read_uids">تعذّرت قراءة معرّفات المستخدمين المصرّح لها. قد تكون القائمة غير مكتملة.</string>
     <string name="su_config_write_failed">تعذّر حفظ تغيير التفويض</string>
     <string name="su_more_actions">إجراءات إضافية</string>
+    <string name="su_multi_select_enter">اختيار التطبيقات</string>
+    <string name="su_multi_select_count">تم اختيار %d</string>
+    <string name="su_multi_select_selected">مختار</string>
+    <string name="su_multi_select_grant_root">منح صلاحية root لكل المختارة</string>
+    <string name="su_multi_select_exclude">استبعاد كل المختارة</string>
+    <string name="su_multi_select_grant_label">منح Root</string>
+    <string name="su_multi_select_normal_label">الوضع العادي</string>
+    <string name="su_multi_select_exclude_label">استبعاد</string>
+    <string name="su_multi_select_confirm_grant">منح صلاحية root لـ %d تطبيقات؟</string>
+    <string name="su_multi_select_confirm_normal">استعادة %d تطبيقات إلى الوضع العادي (سحب Root وإلغاء الاستبعاد)؟</string>
+    <string name="su_multi_select_confirm_exclude">استبعاد %d تطبيقات من الحقن؟</string>
     <string name="su_no_apps">لم يتم العثور على تطبيقات</string>
     <string name="su_no_search_results">لا توجد تطبيقات مطابقة</string>
     <string name="su_kernel_patch_required_title">KernelPatch مطلوب</string>

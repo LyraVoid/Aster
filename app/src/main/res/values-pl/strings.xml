@@ -261,6 +261,17 @@
     <string name="su_error_read_uids">Nie udało się odczytać autoryzowanych identyfikatorów UID. Lista może być niekompletna.</string>
     <string name="su_config_write_failed">Nie udało się zapisać zmiany uprawnień</string>
     <string name="su_more_actions">Więcej akcji</string>
+    <string name="su_multi_select_enter">Wybierz aplikacje</string>
+    <string name="su_multi_select_count">Wybrano %d</string>
+    <string name="su_multi_select_selected">Wybrano</string>
+    <string name="su_multi_select_grant_root">Przyznaj root wszystkim wybranym</string>
+    <string name="su_multi_select_exclude">Wyklucz wszystkie wybrane</string>
+    <string name="su_multi_select_grant_label">Przyznaj Root</string>
+    <string name="su_multi_select_normal_label">Tryb normalny</string>
+    <string name="su_multi_select_exclude_label">Wyklucz</string>
+    <string name="su_multi_select_confirm_grant">Przyznać root %d aplikacjom?</string>
+    <string name="su_multi_select_confirm_normal">Przywrócić %d aplikacji do trybu normalnego (odebrać Root i usunąć wykluczenia)?</string>
+    <string name="su_multi_select_confirm_exclude">Wykluczyć %d aplikacji z wstrzykiwania?</string>
     <string name="su_no_apps">Nie znaleziono aplikacji</string>
     <string name="su_no_search_results">Brak pasujących aplikacji</string>
     <string name="su_kernel_patch_required_title">Wymagany KernelPatch</string>

@@ -97,6 +97,17 @@
     <string name="su_error_read_uids">无法读取已授圣权的 UID，当前圣录可能残缺。</string>
     <string name="su_config_write_failed">授权变更未能铭刻</string>
     <string name="su_more_actions">更多神力</string>
+    <string name="su_multi_select_enter">拣选圣徒</string>
+    <string name="su_multi_select_count">已择 %d 者</string>
+    <string name="su_multi_select_selected">已择</string>
+    <string name="su_multi_select_grant_root">赐 root 于所选</string>
+    <string name="su_multi_select_exclude">逐所选者于圣域之外</string>
+    <string name="su_multi_select_grant_label">授予 Root</string>
+    <string name="su_multi_select_normal_label">恢复常态</string>
+    <string name="su_multi_select_exclude_label">排除神力</string>
+    <string name="su_multi_select_confirm_grant">赐 root 于 %d 者？</string>
+    <string name="su_multi_select_confirm_normal">将 %d 者恢复常态（褫夺 Root 并取消神力排除）？</string>
+    <string name="su_multi_select_confirm_exclude">逐 %d 者于圣域之外？</string>
     <string name="su_no_apps">未寻得任何应用</string>
     <string name="su_no_search_results">无匹配的应用</string>
     <string name="su_kernel_patch_required_title">需 KernelPatch 之力</string>

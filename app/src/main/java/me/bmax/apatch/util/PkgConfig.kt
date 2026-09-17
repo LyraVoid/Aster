@@ -111,6 +111,31 @@ object PkgConfig {
      * because a quiet refusal looks exactly like a tap that never registered.
      */
     fun changeConfig(config: Config, apply: () -> Unit = {}, onResult: (Throwable?) -> Unit = {}) {
+        changeConfigs(listOf(config), apply = apply, onResult = onResult)
+    }
+
+    /**
+     * Applies several configuration changes as one, and says whether they landed.
+     *
+     * The same shape and the same guarantees as a single change — one lock, one read, one atomic
+     * write, and the native changes applied inside the same transaction so APD cannot restore an
+     * older profile between persistence and apply — because a batch taken one entry at a time could
+     * be interrupted halfway through, leaving the file and the kernel disagreeing about the rest.
+     * That is the whole point of a batch here: the reader asked for all of it or none of it.
+     *
+     * One entry per UID is what the file holds, so several entries for one UID are not a mistake to
+     * be rejected, merely a last one that wins. Root is never also excluded, the same rule the
+     * single change applies.
+     */
+    fun changeConfigs(
+        configs: List<Config>,
+        apply: () -> Unit = {},
+        onResult: (Throwable?) -> Unit = {},
+    ) {
+        if (configs.isEmpty()) {
+            onResult(null)
+            return
+        }
         thread {
             synchronized(PkgConfig.javaClass) {
                 try {
@@ -118,17 +143,19 @@ object PkgConfig {
                     // escalate escaped the thread unheard and the write below failed for want of it.
                     check(Natives.su()) { "Root access is not available" }
                     PackageConfigStorage.withLock(File(APApplication.PACKAGE_CONFIG_FILE)) {
-                        val configs = readConfigs(File(APApplication.PACKAGE_CONFIG_FILE), strict = true)
-                        val uid = config.profile.uid
-                        // Root App should not be excluded.
-                        if (config.allow == 1) config.exclude = 0
-                        if (config.isDefault()) {
-                            configs.remove(uid)
-                        } else {
-                            configs[uid] = config
+                        val current = readConfigs(File(APApplication.PACKAGE_CONFIG_FILE), strict = true)
+                        configs.forEach { config ->
+                            val uid = config.profile.uid
+                            // Root App should not be excluded.
+                            if (config.allow == 1) config.exclude = 0
+                            if (config.isDefault()) {
+                                current.remove(uid)
+                            } else {
+                                current[uid] = config
+                            }
                         }
-                        writeConfigs(configs)
-                        // Keep the native change inside the same transaction so APD
+                        writeConfigs(current)
+                        // Keep the native changes inside the same transaction so APD
                         // cannot restore an older profile between persistence and apply.
                         apply()
                     }

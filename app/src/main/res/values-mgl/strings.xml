@@ -178,6 +178,17 @@
     <string name="su_error_read_uids">无法读取已授权的 UID，当前的魔法使名录可能不完整。</string>
     <string name="su_config_write_failed">授权变更没能写进魔法阵</string>
     <string name="su_more_actions">更多魔法操作</string>
+    <string name="su_multi_select_enter">挑选魔法使</string>
+    <string name="su_multi_select_count">已选中 %d 位</string>
+    <string name="su_multi_select_selected">已选中</string>
+    <string name="su_multi_select_grant_root">为所选者开启 root 权能</string>
+    <string name="su_multi_select_exclude">将所选者移出结界</string>
+    <string name="su_multi_select_grant_label">授予 Root</string>
+    <string name="su_multi_select_normal_label">恢复常态</string>
+    <string name="su_multi_select_exclude_label">排除魔法</string>
+    <string name="su_multi_select_confirm_grant">为 %d 位开启 root 权能？</string>
+    <string name="su_multi_select_confirm_normal">将 %d 位恢复常态（收回 Root 权能并取消魔法免疫）？</string>
+    <string name="su_multi_select_confirm_exclude">将 %d 位移出结界？</string>
     <string name="su_no_apps">未找到魔法应用</string>
     <string name="su_no_search_results">无匹配的应用程序</string>
     <string name="su_kernel_patch_required_title">需要 KernelPatch 心之契约</string>
