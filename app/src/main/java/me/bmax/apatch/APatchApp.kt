@@ -29,6 +29,7 @@ import me.bmax.apatch.util.InstalledApdState
 import me.bmax.apatch.util.LauncherIconUtils
 import me.bmax.apatch.util.Version
 import me.bmax.apatch.util.getRootShell
+import me.bmax.apatch.util.prepareRootServiceJar
 import me.bmax.apatch.util.resolveInstalledApdState
 import me.bmax.apatch.util.rootShellForResult
 import okhttp3.Cache
@@ -463,6 +464,12 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
         // TODO: 1. make me root by kernel
         // TODO: 2. remove all usage of superkey
         sharedPreferences = getSharedPreferences(SP_NAME, Context.MODE_PRIVATE)
+
+        // Before anything asks for a root service: a jar the platform will not load takes that
+        // service down with it, and the reader is left with a manager that has lost root and no
+        // explanation for it. See prepareRootServiceJar.
+        prepareRootServiceJar(this)
+
         RootCapabilityRepository.start()
         superKey = resolveSuperKey()
         // Reads the font the reader chose last time and loads it off the main thread, so the first
