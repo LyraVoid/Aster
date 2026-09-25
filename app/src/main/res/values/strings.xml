@@ -46,6 +46,15 @@
     <string name="settings_selinux_hide_warning_title">Warning</string>
     <string name="settings_selinux_hide_warning_below_5_10">"This feature is only tested on kernel 5.10 and above and may be unstable on lower kernel versions."</string>
     <string name="settings_selinux_hide_warning_non_gki">"Non-GKI kernels carry a higher risk and may cause boot failure. Make sure your data is backed up."</string>
+    <string name="settings_selinux_mode">SELinux mode</string>
+    <string name="settings_selinux_mode_summary">Choose how SELinux enforces access rules</string>
+    <string name="settings_selinux_mode_enforcing">Enforcing (strict)</string>
+    <string name="settings_selinux_mode_permissive">Permissive (lenient)</string>
+    <string name="settings_selinux_current_mode">Current: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">SELinux fully enforces access rules</string>
+    <string name="settings_selinux_mode_permissive_summary">SELinux logs violations but does not deny them</string>
+    <string name="msg_selinux_permissive_warning">Switching to Permissive mode disables SELinux enforcement. Access violations will only be logged, not denied. Continue?</string>
+    <string name="msg_selinux_enforcing_confirm">Switch to Enforcing mode? SELinux will fully enforce access rules and deny unauthorized access attempts.</string>
     <string name="settings_jailbreak_mode">Jailbreak mode</string>
     <string name="settings_jailbreak_mode_summary">"Load the KernelPatch module on a stock kernel. Patching is not allowed in this mode."</string>
     <string name="settings_jailbreak_soft_reboot">Soft reboot</string>
@@ -60,6 +69,10 @@
 
     <string name="settings_check_update">Check for updates</string>
     <string name="settings_check_update_summary">Automatically check for updates when opening the app</string>
+    <string name="settings_block_kernelpatch_update">Hide KernelPatch update prompt</string>
+    <string name="settings_block_kernelpatch_update_summary">Do not show KernelPatch update prompts on Home</string>
+    <string name="settings_block_androidpatch_update">Hide system patch update prompt</string>
+    <string name="settings_block_androidpatch_update_summary">Do not show system patch (APD) update prompts on Home</string>
 
     <string name="home_learn_apatch">Learn Aster</string>
     <string name="home_click_to_learn_apatch">Learn about the features of Aster and how to use</string>

@@ -587,4 +587,15 @@
     <string name="runtime_safety_auto_interrupted">Lần khởi động trước không hoàn tất sạch sẽ nên tuỳ chọn tự động đã bị tắt. Hãy kiểm tra nhật ký, rồi bật lại khi kết quả có vẻ đúng.</string>
     <string name="runtime_safety_active_auto">Đã được áp dụng tự động khi khởi động. Dùng Khôi phục và tắt để hoàn tác; sau đó tự động kích hoạt sẽ vẫn tắt.</string>
     <string name="runtime_safety_auto_hint">Bật một tuỳ chọn tự động sẽ lưu các đường dẫn đang hiển thị và có hiệu lực từ lần khởi động tiếp theo. Nó không bao giờ bỏ gắn kết bất cứ thứ gì ngay lúc này.</string>
+    <string name="settings_block_kernelpatch_update">Chặn cập nhật KernelPatch</string>
+    <string name="settings_block_kernelpatch_update_summary">Không hiển thị thông báo cập nhật KernelPatch</string>
+    <string name="settings_block_androidpatch_update">Chặn cập nhật bản vá hệ thống</string>
+    <string name="settings_block_androidpatch_update_summary">Không hiển thị thông báo cập nhật bản vá hệ thống (APD)</string>
+    <string name="settings_selinux_mode">Chế độ SELinux</string>
+    <string name="settings_selinux_mode_summary">Chọn chế độ thực thi SELinux</string>
+    <string name="settings_selinux_mode_enforcing">Thực thi (Nghiêm ngặt)</string>
+    <string name="settings_selinux_mode_permissive">Khoan dung (Nới lỏng)</string>
+    <string name="settings_selinux_current_mode">Hiện tại: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">SELinux thực thi đầy đủ các quy tắc truy cập</string>
+    <string name="settings_selinux_mode_permissive_summary">SELinux chỉ ghi lại vi phạm, không từ chối</string>
 </resources>

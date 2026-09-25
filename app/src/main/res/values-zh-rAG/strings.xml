@@ -587,4 +587,17 @@
     <string name="runtime_safety_auto_interrupted">上一次开机没有正常结束，所以自动选项已经被关掉啦喵。请先看看日志，确认结果没问题之后再重新启用喵。</string>
     <string name="runtime_safety_active_auto">已经在开机的时候自动应用啦喵。用「恢复并关闭」就能撤销；之后自动启用会保持关闭喵。</string>
     <string name="runtime_safety_auto_hint">打开自动选项会把现在显示的路径保存下来喵，从下次开机开始生效。它不会立刻卸载任何东西哦。</string>
+    <string name="settings_block_kernelpatch_update">不要提示内核补丁更新啦喵</string>
+    <string name="settings_block_kernelpatch_update_summary">烦死啦，人家才不要看更新提示呢喵！</string>
+    <string name="settings_block_androidpatch_update">不要提示系统补丁更新啦喵</string>
+    <string name="settings_block_androidpatch_update_summary">才不要看系统补丁的更新提示呢，烦死了喵！</string>
+    <string name="settings_selinux_mode">SELinux模式喵</string>
+    <string name="settings_selinux_mode_summary">选一下SELinux怎么执行嘛，不要乱选哦喵！</string>
+    <string name="settings_selinux_mode_enforcing">强制（很严的）喵</string>
+    <string name="settings_selinux_mode_permissive">宽松（睁只眼闭只眼）喵</string>
+    <string name="settings_selinux_current_mode">现在是喵：%s</string>
+    <string name="settings_selinux_mode_enforcing_summary">SELinux会严格按规则来哒，不要违规哦喵！</string>
+    <string name="settings_selinux_mode_permissive_summary">SELinux只会记违规，不会拦着你的喵</string>
+    <string name="msg_selinux_permissive_warning">切到宽松模式会把SELinux的强制检查关掉喵，违规只会被记录、不会被拦下来，安全性会下降喵。还要继续吗喵？</string>
+    <string name="msg_selinux_enforcing_confirm">要切到强制模式吗喵？SELinux会严格按规则执行，没授权的访问全都会拦下来哦喵。</string>
 </resources>

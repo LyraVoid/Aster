@@ -587,4 +587,15 @@
     <string name="runtime_safety_auto_interrupted">لم يكتمل الإقلاع السابق بشكل سليم، لذا تم إيقاف الخيار التلقائي. راجع السجل ثم فعّله مجددًا عندما تبدو النتيجة صحيحة.</string>
     <string name="runtime_safety_active_auto">تم تطبيقه تلقائيًا عند الإقلاع. استخدم الاستعادة والإيقاف للتراجع عنه؛ وسيبقى التفعيل التلقائي معطّلًا بعد ذلك.</string>
     <string name="runtime_safety_auto_hint">يؤدي تفعيل خيار تلقائي إلى حفظ المسارات المعروضة حاليًا ويسري من الإقلاع التالي. ولا يلغي تركيب أي شيء الآن.</string>
+    <string name="settings_block_kernelpatch_update">حظر تحديث KernelPatch</string>
+    <string name="settings_block_kernelpatch_update_summary">عدم إظهار إشعارات تحديث KernelPatch</string>
+    <string name="settings_block_androidpatch_update">حظر تحديث تصحيح النظام</string>
+    <string name="settings_block_androidpatch_update_summary">عدم إظهار إشعارات تحديث تصحيح النظام (APD)</string>
+    <string name="settings_selinux_mode">وضع SELinux</string>
+    <string name="settings_selinux_mode_summary">اختر وضع إنفاذ SELinux</string>
+    <string name="settings_selinux_mode_enforcing">مفروض (صارم)</string>
+    <string name="settings_selinux_mode_permissive">متساهل (مرن)</string>
+    <string name="settings_selinux_current_mode">الحالي: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">SELinux يفرض قواعد الوصول بالكامل</string>
+    <string name="settings_selinux_mode_permissive_summary">SELinux يسجل الانتهاكات فقط، لا يرفض</string>
 </resources>

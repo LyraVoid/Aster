@@ -585,4 +585,15 @@
     <string name="runtime_safety_auto_interrupted">Poprzedni rozruch nie zakończył się czysto, więc opcja automatyczna została wyłączona. Sprawdź dziennik, a następnie włącz ją ponownie, gdy wynik będzie wyglądał poprawnie.</string>
     <string name="runtime_safety_active_auto">Zastosowano automatycznie przy rozruchu. Użyj opcji Przywróć i wyłącz, aby to cofnąć; automatyczna aktywacja pozostanie potem wyłączona.</string>
     <string name="runtime_safety_auto_hint">Włączenie opcji automatycznej zapisuje aktualnie wyświetlane ścieżki i zaczyna działać od następnego rozruchu. Nigdy nie odmontowuje niczego od razu.</string>
+    <string name="settings_block_kernelpatch_update">Zablokuj aktualizację KernelPatch</string>
+    <string name="settings_block_kernelpatch_update_summary">Nie pokazuj powiadomień o aktualizacji KernelPatch</string>
+    <string name="settings_block_androidpatch_update">Zablokuj aktualizację łatki systemowej</string>
+    <string name="settings_block_androidpatch_update_summary">Nie pokazuj powiadomień o aktualizacji łatki systemowej (APD)</string>
+    <string name="settings_selinux_mode">Tryb SELinux</string>
+    <string name="settings_selinux_mode_summary">Wybierz tryb wymuszania SELinux</string>
+    <string name="settings_selinux_mode_enforcing">Egzekwowany (Ścisły)</string>
+    <string name="settings_selinux_mode_permissive">Pobłażliwy (Łagodny)</string>
+    <string name="settings_selinux_current_mode">Obecny: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">SELinux całkowicie egzekwuje zasady dostępu</string>
+    <string name="settings_selinux_mode_permissive_summary">SELinux tylko rejestruje naruszenia, nie blokuje</string>
 </resources>

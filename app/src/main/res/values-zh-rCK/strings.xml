@@ -585,4 +585,15 @@
     <string name="runtime_safety_auto_interrupted">上一回点火没正常收场，自动选项已经关掉了。翻一遍日志，确认结果没岔子再重新开。</string>
     <string name="runtime_safety_active_auto">已经在点火时自动上手了。点「还原并关掉」能撤回来；之后自动开启会一直关着。</string>
     <string name="runtime_safety_auto_hint">开自动选项会把眼下显示的路径存下来，从下次点火起算。它不会立马撤掉任何东西。</string>
+    <string name="settings_block_kernelpatch_update">别嚷嚷秘酱料更新</string>
+    <string name="settings_block_kernelpatch_update_summary">专心做菜，别老提示秘酱料换口味</string>
+    <string name="settings_block_androidpatch_update">别嚷嚷招牌菜更新</string>
+    <string name="settings_block_androidpatch_update_summary">专心做菜，别老提示招牌菜换配方</string>
+    <string name="settings_selinux_mode">厨房卫生模式</string>
+    <string name="settings_selinux_mode_summary">选择厨房卫生检查模式</string>
+    <string name="settings_selinux_mode_enforcing">严格检查 (高标准)</string>
+    <string name="settings_selinux_mode_permissive">宽松模式 (低标准)</string>
+    <string name="settings_selinux_current_mode">当前: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">完全严格执行厨房卫生规则</string>
+    <string name="settings_selinux_mode_permissive_summary">仅记录卫生违规，不会拒绝</string>
 </resources>

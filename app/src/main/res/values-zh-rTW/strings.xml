@@ -590,4 +590,15 @@
     <string name="runtime_safety_auto_interrupted">上一次開機未正常結束，因此自動選項已被關閉。請檢查日誌，確認結果無誤後再重新啟用。</string>
     <string name="runtime_safety_active_auto">已在開機時自動應用。使用「恢復並關閉」可以撤銷；之後自動啟用會保持關閉。</string>
     <string name="runtime_safety_auto_hint">開啟自動選項會儲存當前顯示的路徑，並從下次開機起生效。它不會立即解除安裝任何東西。</string>
+    <string name="settings_block_kernelpatch_update">屏蔽核心修補更新提示</string>
+    <string name="settings_block_kernelpatch_update_summary">不顯示核心修補的更新通知</string>
+    <string name="settings_block_androidpatch_update">屏蔽系統修補更新提示</string>
+    <string name="settings_block_androidpatch_update_summary">不顯示系統修補（APD）的更新通知</string>
+    <string name="settings_selinux_mode">SELinux 模式</string>
+    <string name="settings_selinux_mode_summary">選擇 SELinux 強制執行模式</string>
+    <string name="settings_selinux_mode_enforcing">強制模式</string>
+    <string name="settings_selinux_mode_permissive">寬鬆模式</string>
+    <string name="settings_selinux_current_mode">目前: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">SELinux 會強制執行所有存取規則</string>
+    <string name="settings_selinux_mode_permissive_summary">SELinux 僅記錄違規行為，不會阻擋存取</string>
 </resources>

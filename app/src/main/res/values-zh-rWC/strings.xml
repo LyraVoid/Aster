@@ -585,4 +585,15 @@
     <string name="runtime_safety_auto_interrupted">上次启仙未善终，故自动之选已闭。请阅日志，确认其果无讹后再行启用。</string>
     <string name="runtime_safety_active_auto">已于启仙时自动施为。用「复原并关闭」可撤之；此后自动启用将恒闭。</string>
     <string name="runtime_safety_auto_hint">开启自动之选将封存当下所示之径，自下次启仙起生效。其不会即刻祛除任何之物。</string>
+    <string name="settings_block_kernelpatch_update">屏蔽道核符箓更新神识</string>
+    <string name="settings_block_kernelpatch_update_summary">不再以此俗事扰乱道心</string>
+    <string name="settings_block_androidpatch_update">屏蔽护法灵符更新神识</string>
+    <string name="settings_block_androidpatch_update_summary">不再以此等杂务扰乱道心</string>
+    <string name="settings_selinux_mode">禁守令式</string>
+    <string name="settings_selinux_mode_summary">择选禁守令之模式</string>
+    <string name="settings_selinux_mode_enforcing">闭关 (森严)</string>
+    <string name="settings_selinux_mode_permissive">宽宥 (宽松)</string>
+    <string name="settings_selinux_current_mode">当下: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">禁守令严苛执行，绝无通融</string>
+    <string name="settings_selinux_mode_permissive_summary">禁守令仅记录违规，不予惩戒</string>
 </resources>

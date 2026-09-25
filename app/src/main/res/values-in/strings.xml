@@ -585,4 +585,15 @@
     <string name="runtime_safety_auto_interrupted">Boot sebelumnya tidak selesai dengan bersih, sehingga opsi otomatis dinonaktifkan. Periksa log, lalu aktifkan lagi saat hasilnya sudah benar.</string>
     <string name="runtime_safety_active_auto">Diterapkan otomatis saat boot. Gunakan Pulihkan dan nonaktifkan untuk membatalkannya; aktivasi otomatis tetap nonaktif setelahnya.</string>
     <string name="runtime_safety_auto_hint">Mengaktifkan opsi otomatis akan menyimpan jalur yang sedang ditampilkan dan berlaku mulai boot berikutnya. Fitur ini tidak melepas apa pun saat ini.</string>
+    <string name="settings_block_kernelpatch_update">Blokir Pembaruan KernelPatch</string>
+    <string name="settings_block_kernelpatch_update_summary">Jangan tampilkan notifikasi pembaruan KernelPatch</string>
+    <string name="settings_block_androidpatch_update">Blokir Pembaruan Patch Sistem</string>
+    <string name="settings_block_androidpatch_update_summary">Jangan tampilkan notifikasi pembaruan patch sistem (APD)</string>
+    <string name="settings_selinux_mode">Mode SELinux</string>
+    <string name="settings_selinux_mode_summary">Pilih mode penegakan SELinux</string>
+    <string name="settings_selinux_mode_enforcing">Diterapkan (Ketat)</string>
+    <string name="settings_selinux_mode_permissive">Diizinkan (Longgar)</string>
+    <string name="settings_selinux_current_mode">Saat ini: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">SELinux sepenuhnya menerapkan aturan akses</string>
+    <string name="settings_selinux_mode_permissive_summary">SELinux hanya mencatat pelanggaran, tidak menolak</string>
 </resources>

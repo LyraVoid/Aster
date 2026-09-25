@@ -585,4 +585,15 @@
     <string name="runtime_safety_auto_interrupted">El arranque anterior no terminó correctamente, así que la opción automática se desactivó. Revisa el registro y vuelve a activarla cuando el resultado parezca correcto.</string>
     <string name="runtime_safety_active_auto">Se aplicó automáticamente al arrancar. Usa «Restaurar y desactivar» para deshacerlo; la activación automática permanecerá desactivada después.</string>
     <string name="runtime_safety_auto_hint">Activar una opción automática guarda las rutas mostradas en ese momento y surte efecto a partir del siguiente arranque. Nunca desmonta nada al instante.</string>
+    <string name="settings_block_kernelpatch_update">Bloquear actualización de KernelPatch</string>
+    <string name="settings_block_kernelpatch_update_summary">No mostrar notificaciones de actualización de KernelPatch</string>
+    <string name="settings_block_androidpatch_update">Bloquear actualización del parche del sistema</string>
+    <string name="settings_block_androidpatch_update_summary">No mostrar notificaciones de actualización del parche del sistema (APD)</string>
+    <string name="settings_selinux_mode">Modo SELinux</string>
+    <string name="settings_selinux_mode_summary">Seleccionar modo de cumplimiento de SELinux</string>
+    <string name="settings_selinux_mode_enforcing">Enforcing (Estricto)</string>
+    <string name="settings_selinux_mode_permissive">Permissive (Permisivo)</string>
+    <string name="settings_selinux_current_mode">Actual: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">SELinux aplica completamente las reglas de acceso</string>
+    <string name="settings_selinux_mode_permissive_summary">SELinux solo registra violaciones, no deniega</string>
 </resources>

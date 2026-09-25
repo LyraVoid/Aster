@@ -587,4 +587,15 @@
     <string name="runtime_safety_auto_interrupted">Önceki önyükleme temiz tamamlanmadı, bu yüzden otomatik seçenek kapatıldı. Günlüğü kontrol edin, sonuç doğru göründüğünde yeniden etkinleştirin.</string>
     <string name="runtime_safety_active_auto">Önyüklemede otomatik uygulandı. Geri almak için Geri yükle ve kapat\'ı kullanın; sonrasında otomatik etkinleştirme kapalı kalır.</string>
     <string name="runtime_safety_auto_hint">Otomatik bir seçeneği açmak, o anda gösterilen yolları kaydeder ve bir sonraki önyüklemeden itibaren geçerli olur. Şu anda hiçbir şeyin bağlamasını kaldırmaz.</string>
+    <string name="settings_block_kernelpatch_update">KernelPatch Güncellemesini Engelle</string>
+    <string name="settings_block_kernelpatch_update_summary">KernelPatch güncelleme bildirimlerini gösterme</string>
+    <string name="settings_block_androidpatch_update">Sistem Yaması Güncellemesini Engelle</string>
+    <string name="settings_block_androidpatch_update_summary">Sistem yaması (APD) güncelleme bildirimlerini gösterme</string>
+    <string name="settings_selinux_mode">SELinux Modu</string>
+    <string name="settings_selinux_mode_summary">SELinux zorunluluk modunu seçin</string>
+    <string name="settings_selinux_mode_enforcing">Zorlayıcı (Sıkı)</string>
+    <string name="settings_selinux_mode_permissive">İzin verici (Esnek)</string>
+    <string name="settings_selinux_current_mode">Geçerli: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">SELinux erişim kurallarını tamamen uygular</string>
+    <string name="settings_selinux_mode_permissive_summary">SELinux yalnızca ihlalleri kaydeder, engellemez</string>
 </resources>

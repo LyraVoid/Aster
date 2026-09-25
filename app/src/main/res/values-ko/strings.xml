@@ -587,4 +587,15 @@
     <string name="runtime_safety_auto_interrupted">이전 부팅이 정상적으로 끝나지 않아 자동 옵션이 꺼졌습니다. 로그를 확인하고 결과가 정상으로 보이면 다시 켜세요.</string>
     <string name="runtime_safety_active_auto">부팅 시 자동으로 적용되었습니다. 복구하고 끄기로 되돌릴 수 있으며, 이후 자동 활성화는 꺼진 상태로 유지됩니다.</string>
     <string name="runtime_safety_auto_hint">자동 옵션을 켜면 현재 표시된 경로가 저장되고 다음 부팅부터 적용됩니다. 지금 바로 언마운트하지는 않습니다.</string>
+    <string name="settings_block_kernelpatch_update">KernelPatch 업데이트 알림 차단</string>
+    <string name="settings_block_kernelpatch_update_summary">KernelPatch 업데이트 알림을 표시하지 않습니다.</string>
+    <string name="settings_block_androidpatch_update">시스템 패치 업데이트 알림 차단</string>
+    <string name="settings_block_androidpatch_update_summary">시스템 패치(APD) 업데이트 알림을 표시하지 않습니다.</string>
+    <string name="settings_selinux_mode">SELinux 모드</string>
+    <string name="settings_selinux_mode_summary">SELinux 강제 모드를 선택하세요.</string>
+    <string name="settings_selinux_mode_enforcing">강제 (엄격)</string>
+    <string name="settings_selinux_mode_permissive">허용 (관대)</string>
+    <string name="settings_selinux_current_mode">현재: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">SELinux가 액세스 규칙을 완전히 강제합니다.</string>
+    <string name="settings_selinux_mode_permissive_summary">SELinux가 위반 사항만 기록하며 거부하지 않습니다.</string>
 </resources>

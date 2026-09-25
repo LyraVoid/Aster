@@ -585,4 +585,15 @@
     <string name="runtime_safety_auto_interrupted">Предыдущая загрузка завершилась некорректно, поэтому автоматическая опция была выключена. Проверьте журнал и включите её снова, когда результат будет верным.</string>
     <string name="runtime_safety_active_auto">Применено автоматически при загрузке. Чтобы отменить, используйте \"Восстановить и выключить\"; после этого автоматическая активация останется выключенной.</string>
     <string name="runtime_safety_auto_hint">Включение автоматической опции сохраняет текущие показанные пути и вступает в силу со следующей загрузки. Сейчас она ничего не размонтирует.</string>
+    <string name="settings_block_kernelpatch_update">Блокировать обновление KernelPatch</string>
+    <string name="settings_block_kernelpatch_update_summary">Не показывать уведомления об обновлении KernelPatch</string>
+    <string name="settings_block_androidpatch_update">Блокировать обновление системного патча</string>
+    <string name="settings_block_androidpatch_update_summary">Не показывать уведомления об обновлении системного патча (APD)</string>
+    <string name="settings_selinux_mode">Режим SELinux</string>
+    <string name="settings_selinux_mode_summary">Выбрать режим принудительного применения SELinux</string>
+    <string name="settings_selinux_mode_enforcing">Принудительный (Строгий)</string>
+    <string name="settings_selinux_mode_permissive">Разрешающий (Мягкий)</string>
+    <string name="settings_selinux_current_mode">Текущий: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">SELinux полностью применяет правила доступа</string>
+    <string name="settings_selinux_mode_permissive_summary">SELinux только регистрирует нарушения, не блокирует</string>
 </resources>

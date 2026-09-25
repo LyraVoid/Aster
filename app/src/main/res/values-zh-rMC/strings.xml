@@ -585,4 +585,15 @@
     <string name="runtime_safety_auto_interrupted">上一次开机没有正常结束，所以自动选项已经被关掉。请先看日志，确认结果没问题再重新启用。</string>
     <string name="runtime_safety_active_auto">已经在开机时自动应用。用「恢复原样并关掉」可以撤销；之后自动启用会保持关闭。</string>
     <string name="runtime_safety_auto_hint">打开自动选项会保存当前显示的路径，并从下次开机起生效。它不会立刻卸载任何东西。</string>
+    <string name="settings_block_kernelpatch_update">屏蔽基岩补丁更新</string>
+    <string name="settings_block_kernelpatch_update_summary">别再弹基岩补丁的更新提示了，烦得像苦力怕一样</string>
+    <string name="settings_block_androidpatch_update">屏蔽红石系统更新</string>
+    <string name="settings_block_androidpatch_update_summary">别再弹红石系统的更新提示了，关掉它</string>
+    <string name="settings_selinux_mode">游戏规则</string>
+    <string name="settings_selinux_mode_summary">选一个游戏规则的执行模式</string>
+    <string name="settings_selinux_mode_enforcing">允许作弊：关</string>
+    <string name="settings_selinux_mode_permissive">允许作弊：开</string>
+    <string name="settings_selinux_current_mode">当前: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">游戏规则严格执行，作弊？没门！</string>
+    <string name="settings_selinux_mode_permissive_summary">游戏规则只记违规不惩罚，等于作弊不管</string>
 </resources>

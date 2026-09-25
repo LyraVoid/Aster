@@ -585,4 +585,15 @@
     <string name="runtime_safety_auto_interrupted">上一次开机未正常结束，自动魔法选项已被关闭。请检查日志，确认结果无误后再重新启用。</string>
     <string name="runtime_safety_active_auto">已在开机时自动施展。使用「恢复魔法并关闭」可以撤销；之后自动启用会保持关闭。</string>
     <string name="runtime_safety_auto_hint">开启自动魔法选项会保存当前显示的路径，并从下次开机起生效。它不会立即卸载任何东西。</string>
+    <string name="settings_block_kernelpatch_update">封印心之契约更新感应</string>
+    <string name="settings_block_kernelpatch_update_summary">不再接收来自心之契约的更新讯号</string>
+    <string name="settings_block_androidpatch_update">封印魔法阵法更新感应</string>
+    <string name="settings_block_androidpatch_update_summary">不再接收来自魔法阵法的更新讯号</string>
+    <string name="settings_selinux_mode">魔法结界模式</string>
+    <string name="settings_selinux_mode_summary">选择魔法结界的执行模式</string>
+    <string name="settings_selinux_mode_enforcing">强制执行 (严格)</string>
+    <string name="settings_selinux_mode_permissive">宽容模式 (宽松)</string>
+    <string name="settings_selinux_current_mode">当前: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">魔法结界将严格执行所有魔法规则</string>
+    <string name="settings_selinux_mode_permissive_summary">魔法结界仅记录违规行为，不会阻止</string>
 </resources>

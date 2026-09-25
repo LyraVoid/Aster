@@ -587,4 +587,15 @@
     <string name="runtime_safety_auto_interrupted">前回の起動が正常に終了しなかったため、自動オプションはオフになりました。ログを確認し、結果に問題がなければ再度有効にしてください。</string>
     <string name="runtime_safety_active_auto">起動時に自動で適用されました。取り消すには「復元してオフにする」を使用してください。その後は自動有効化はオフのままです。</string>
     <string name="runtime_safety_auto_hint">自動オプションをオンにすると、現在表示されているパスが保存され、次回の起動から有効になります。今すぐ何かをアンマウントすることはありません。</string>
+    <string name="settings_block_kernelpatch_update">KernelPatch の更新をブロック</string>
+    <string name="settings_block_kernelpatch_update_summary">KernelPatch の更新通知を表示しないようにします。</string>
+    <string name="settings_block_androidpatch_update">システムパッチの更新をブロック</string>
+    <string name="settings_block_androidpatch_update_summary">システムパッチ(APD)の更新通知を表示しないようにします。</string>
+    <string name="settings_selinux_mode">SELinux モード</string>
+    <string name="settings_selinux_mode_summary">SELinux の Enforcing モードを選択します。</string>
+    <string name="settings_selinux_mode_enforcing">Enforcing (厳格)</string>
+    <string name="settings_selinux_mode_permissive">Permissive (寛大)</string>
+    <string name="settings_selinux_current_mode">現在: %s</string>
+    <string name="settings_selinux_mode_enforcing_summary">SELinux はアクセスルールを完全に施行します。</string>
+    <string name="settings_selinux_mode_permissive_summary">SELinux は違反をログに記録しますが、拒否しません。</string>
 </resources>
