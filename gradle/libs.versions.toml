@@ -1,15 +1,15 @@
 [versions]
-agp = "9.3.1"
-kotlin = "2.4.10"
-ksp = "2.3.11"
-compose-bom = "2026.08.00"
+agp = "9.4.1"
+kotlin = "2.4.20"
+ksp = "2.3.12"
+compose-bom = "2026.09.00"
 lifecycle = "2.11.0"
 compose-destination = "2.3.0"
 libsu = "6.0.0"
-coil3 = "3.5.0"
+coil3 = "3.6.3"
 junit = "4.13.2"
-miuix = "0.9.3"
-backdrop = "1.0.6"
+miuix = "0.9.4"
+backdrop = "2.0.1"
 
 [plugins]
 agp-app = { id = "com.android.application", version.ref = "agp" }
@@ -60,7 +60,7 @@ markdown = { group = "io.noties.markwon", name = "core", version = "4.6.2" }
 
 ini4j = { group = "org.ini4j", name = "ini4j", version = "0.5.4" }
 
-json = { module = "org.json:json", version = "20231013" }
+json = { module = "org.json:json", version = "20260814" }
 
 miuix-ui = { group = "top.yukonga.miuix.kmp", name = "miuix-ui-android", version.ref = "miuix" }
 miuix-icons = { group = "top.yukonga.miuix.kmp", name = "miuix-icons-android", version.ref = "miuix" }
