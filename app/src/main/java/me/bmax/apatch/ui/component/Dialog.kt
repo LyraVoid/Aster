@@ -10,15 +10,19 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -455,64 +459,75 @@ private fun ConfirmDialog(visuals: ConfirmDialogVisuals, confirm: () -> Unit, di
             securePolicy = SecureFlagPolicy.SecureOff
         )
     ) {
-        Card(
+        BoxWithConstraints(
             modifier = Modifier
-                .width(320.dp)
-                .wrapContentHeight(),
-            cornerRadius = 28.dp,
+                .fillMaxSize()
+                .padding(vertical = 24.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+            val maxContentHeight = (maxHeight - 160.dp).coerceAtLeast(96.dp)
+
+            Card(
+                modifier = Modifier
+                    .width(320.dp)
+                    .wrapContentHeight(),
+                cornerRadius = 28.dp,
             ) {
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp),
-                    text = visuals.title,
-                    style = MiuixTheme.textStyles.title4,
-                    textAlign = TextAlign.Center,
-                )
-                if (visuals.content.isNotBlank()) {
-                    Box(
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 20.dp),
-                    ) {
-                        if (visuals.isMarkdown) {
-                            MarkdownContent(content = visuals.content)
-                        } else {
-                            Text(
-                                modifier = Modifier.fillMaxWidth(),
-                                text = visuals.content,
-                                style = MiuixTheme.textStyles.body1,
-                                color = MiuixTheme.colorScheme.onSurfaceSecondary,
-                                textAlign = TextAlign.Center,
-                            )
+                            .padding(bottom = 12.dp),
+                        text = visuals.title,
+                        style = MiuixTheme.textStyles.title4,
+                        textAlign = TextAlign.Center,
+                    )
+                    if (visuals.content.isNotBlank()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = maxContentHeight)
+                                .padding(bottom = 20.dp)
+                                .verticalScroll(rememberScrollState()),
+                        ) {
+                            if (visuals.isMarkdown) {
+                                MarkdownContent(content = visuals.content)
+                            } else {
+                                Text(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    text = visuals.content,
+                                    style = MiuixTheme.textStyles.body1,
+                                    color = MiuixTheme.colorScheme.onSurfaceSecondary,
+                                    textAlign = TextAlign.Center,
+                                )
+                            }
                         }
+                    } else {
+                        Spacer(Modifier.padding(bottom = 8.dp))
                     }
-                } else {
-                    Spacer(Modifier.padding(bottom = 8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        TextButton(
+                            text = visuals.dismiss ?: stringResource(id = android.R.string.cancel),
+                            onClick = dismiss,
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(
+                            text = visuals.confirm ?: stringResource(id = android.R.string.ok),
+                            onClick = confirm,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.textButtonColorsPrimary(),
+                        )
+                    }
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    TextButton(
-                        text = visuals.dismiss ?: stringResource(id = android.R.string.cancel),
-                        onClick = dismiss,
-                        modifier = Modifier.weight(1f),
-                    )
-                    TextButton(
-                        text = visuals.confirm ?: stringResource(id = android.R.string.ok),
-                        onClick = confirm,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.textButtonColorsPrimary(),
-                    )
-                }
+                val dialogWindowProvider = LocalView.current.parent as DialogWindowProvider
+                setupWindowBlurListener(dialogWindowProvider.window)
             }
-            val dialogWindowProvider = LocalView.current.parent as DialogWindowProvider
-            setupWindowBlurListener(dialogWindowProvider.window)
         }
     }
 
