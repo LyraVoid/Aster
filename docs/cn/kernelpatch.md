@@ -19,7 +19,7 @@
   拿到的办法：`git clone https://github.com/lyravoid/KernelPatch-Aster.git KernelPatch`。
 - 改内核侧：在 `KernelPatch/` 里改 → 提交并推到该仓库 → 其 CI（`build.yml`）自动构建并
   把 `kpimg-android`、`kptools-android` 与 7 个 `<kmi>_kernelpatch.ko` 发到以 `version`
-  文件命名的 release（当前 `0.13.8`）。
+  文件命名的 release（当前 `0.13.9`）。
 - 跟随上游：`git -C KernelPatch remote add up https://github.com/bmax121/KernelPatch.git`（只配
   一次），然后 `git -C KernelPatch fetch up && git -C KernelPatch rebase up/main` 把那一个提交
   挪到新的上游之上。**改完必须更新 `version`**，否则新产物会覆盖旧 tag 的同名 release 资产，

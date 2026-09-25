@@ -16,7 +16,7 @@ Usage:
             (by default the KernelPatch/ directory next to this repository is used when it is
             there, and its own version file has to agree with the one this manager reports)
     --ref   the revision to compare against (default: the version the manager reports, as read
-            from app/src/main/cpp/version, e.g. 0.13.8 - which is also the release tag the
+            from app/src/main/cpp/version, e.g. 0.13.9 - which is also the release tag the
             artifacts come from, and what the local KernelPatch/ checkout has to say as well)
     --repo  the KernelPatch repository the headers are fetched from
 """

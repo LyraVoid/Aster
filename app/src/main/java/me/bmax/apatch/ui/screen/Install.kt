@@ -73,10 +73,22 @@ fun InstallScreen(navigator: DestinationsNavigator, uri: Uri, type: MODULE_TYPE)
     val logContent = remember { StringBuilder() }
     var showRebootAction by rememberSaveable { mutableStateOf(false) }
 
-    fun appendLog(line: String) {
+    val clearScreenSequence = "\u001B[H\u001B[J"
+
+    fun appendOutput(line: String) {
         logContent.append(line).append("\n")
-        val newText = text + line + "\n"
-        text = if (newText.length > 100_000) newText.takeLast(100_000) else newText
+        text = (text + line + "\n").takeLast(100_000)
+    }
+
+    fun appendLog(line: String) {
+        if (line.startsWith(clearScreenSequence)) { // clear command
+            text = ""
+            line.removePrefix(clearScreenSequence)
+                .takeIf { it.isNotEmpty() }
+                ?.let(::appendOutput)
+        } else {
+            appendOutput(line)
+        }
     }
 
     val context = LocalContext.current
@@ -102,17 +114,9 @@ fun InstallScreen(navigator: DestinationsNavigator, uri: Uri, type: MODULE_TYPE)
                 }
 
             }, onStdout = {
-                if (it.startsWith("\u001B[H\u001B[J")) { // clear command
-                    text = it.substring(6)
-                } else {
-                    appendLog(it)
-                }
+                appendLog(it)
             }, onStderr = {
-                if (it.startsWith("\u001B[H\u001B[J")) { // clear command
-                    text = it.substring(6)
-                } else {
-                    appendLog(it)
-                }
+                appendLog(it)
             })
         }
     }
