@@ -35,26 +35,37 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val backupWarning = MutableStateFlow(apApp.getBackupWarningState())
     private val update = MutableStateFlow<HomeUpdateState>(HomeUpdateState.Idle)
     private val updateCheckEnabled = MutableStateFlow(true)
+    private val updateBlock = MutableStateFlow(readUpdateBlockState(APApplication.sharedPreferences))
     private val moduleCounts = MutableStateFlow(Pair(0, 0))
     private val mutableEvents = MutableSharedFlow<HomeEvent>(extraBufferCapacity = 1)
     private var updateJob: Job? = null
 
     val events = mutableEvents.asSharedFlow()
 
+    private val updatePresentation = combine(update, updateBlock) { updateState, blocked ->
+        HomeUpdatePresentation(
+            update = updateState,
+            blockKernelPatchUpdate = blocked.kernelPatch,
+            blockAndroidPatchUpdate = blocked.androidPatch,
+        )
+    }
+
     val uiState = combine(
         RootCapabilityRepository.snapshot,
         environment,
         backupWarning,
-        update,
+        updatePresentation,
         moduleCounts,
-    ) { capability, deviceEnvironment, showBackupWarning, updateState, counts ->
+    ) { capability, deviceEnvironment, showBackupWarning, presentation, counts ->
         HomeStateMapper.map(
             capability = capability,
             environment = deviceEnvironment,
             showBackupWarning = showBackupWarning,
-            update = updateState,
+            update = presentation.update,
             apmCount = counts.first,
             kpmCount = counts.second,
+            blockKernelPatchUpdate = presentation.blockKernelPatchUpdate,
+            blockAndroidPatchUpdate = presentation.blockAndroidPatchUpdate,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -69,15 +80,21 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val preferenceListener =
         SharedPreferences.OnSharedPreferenceChangeListener { preferences, key ->
-            if (key == CHECK_UPDATE_KEY) {
-                val enabled = preferences.getBoolean(CHECK_UPDATE_KEY, true)
-                updateCheckEnabled.value = enabled
-                if (enabled) {
-                    checkForUpdates(force = true)
-                } else {
-                    updateJob?.cancel()
-                    update.value = HomeUpdateState.Disabled
+            when (key) {
+                CHECK_UPDATE_KEY -> {
+                    val enabled = preferences.getBoolean(CHECK_UPDATE_KEY, true)
+                    updateCheckEnabled.value = enabled
+                    if (enabled) {
+                        checkForUpdates(force = true)
+                    } else {
+                        updateJob?.cancel()
+                        update.value = HomeUpdateState.Disabled
+                    }
                 }
+
+                APApplication.PREF_BLOCK_KERNELPATCH_UPDATE,
+                APApplication.PREF_BLOCK_ANDROIDPATCH_UPDATE,
+                -> updateBlock.value = readUpdateBlockState(preferences)
             }
         }
 
@@ -91,9 +108,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             migrateStockBootBackup()
         }
         viewModelScope.launch {
-            environment.value = runCatching {
-                AndroidHomeEnvironmentSource.load()
-            }.getOrNull()
+            loadEnvironment()
         }
         checkForUpdates()
         refreshCounts()
@@ -102,6 +117,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshCapabilities() {
         RootCapabilityRepository.refresh(force = true)
         refreshCounts()
+        refreshEnvironment()
     }
 
     fun refreshCounts() {
@@ -112,6 +128,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 JSONArray(list).length()
             }.getOrDefault(0).coerceAtLeast(0)
             moduleCounts.value = Pair(apm, kpm)
+        }
+    }
+
+    fun refreshEnvironment() {
+        viewModelScope.launch {
+            loadEnvironment()
         }
     }
 
@@ -181,10 +203,39 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         super.onCleared()
     }
 
+    private suspend fun loadEnvironment() {
+        environment.value = withContext(Dispatchers.IO) {
+            runCatching { AndroidHomeEnvironmentSource.load() }.getOrNull()
+        }
+    }
+
     private companion object {
         const val CHECK_UPDATE_KEY = "check_update"
     }
 }
+
+private data class HomeUpdateBlockState(
+    val kernelPatch: Boolean,
+    val androidPatch: Boolean,
+)
+
+private data class HomeUpdatePresentation(
+    val update: HomeUpdateState,
+    val blockKernelPatchUpdate: Boolean,
+    val blockAndroidPatchUpdate: Boolean,
+)
+
+private fun readUpdateBlockState(preferences: SharedPreferences): HomeUpdateBlockState =
+    HomeUpdateBlockState(
+        kernelPatch = preferences.getBoolean(
+            APApplication.PREF_BLOCK_KERNELPATCH_UPDATE,
+            false,
+        ),
+        androidPatch = preferences.getBoolean(
+            APApplication.PREF_BLOCK_ANDROIDPATCH_UPDATE,
+            false,
+        ),
+    )
 
 internal fun canMigrateStockBootBackup(capability: RootCapabilitySnapshot): Boolean =
     capability.phase == RootCheckPhase.READY &&

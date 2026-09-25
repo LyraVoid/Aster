@@ -107,6 +107,8 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
         private const val SHOW_SWITCH_INDICATOR = "show_switch_indicator"
         private const val STAY_ON_ACTION_PAGE = "stay_on_action_page"
         const val HOME_TITLE = "home_title"
+        const val PREF_BLOCK_KERNELPATCH_UPDATE = "block_kernelpatch_update"
+        const val PREF_BLOCK_ANDROIDPATCH_UPDATE = "block_androidpatch_update"
 
         /**
          * The lines the reader wrote for the panorama Home, one per line. Empty means the set the
@@ -540,6 +542,14 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler {
 
     fun getBackupWarningState(): Boolean {
         return sharedPreferences.getBoolean(SHOW_BACKUP_WARN, true)
+    }
+
+    fun isKernelPatchUpdateBlocked(): Boolean {
+        return sharedPreferences.getBoolean(PREF_BLOCK_KERNELPATCH_UPDATE, false)
+    }
+
+    fun isAndroidPatchUpdateBlocked(): Boolean {
+        return sharedPreferences.getBoolean(PREF_BLOCK_ANDROIDPATCH_UPDATE, false)
     }
 
     fun updateBackupWarningState(state: Boolean) {

@@ -344,6 +344,68 @@ class HomeStateMapperTest {
     }
 
     @Test
+    fun `blocked kernel patch update keeps the layer usable without an update prompt`() {
+        val state = HomeStateMapper.map(
+            capability = readyCapability(
+                kernelPatch = RootLayerState.NEED_UPDATE,
+                androidPatch = RootLayerState.AVAILABLE,
+                mode = RootMode.FULL_APATCH,
+            ).copy(attention = setOf(RootAttention.NEED_UPDATE)),
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+            blockKernelPatchUpdate = true,
+        )
+
+        assertEquals(RootLayerState.AVAILABLE, state.capability.kernelPatch)
+        assertFalse(state.capability.attention.contains(RootAttention.NEED_UPDATE))
+        assertEquals(HomeConclusion.FULL_APATCH, state.conclusion)
+        assertEquals(HomePrimaryAction.NONE, state.primaryAction)
+    }
+
+    @Test
+    fun `blocking one update layer leaves the other layer visible`() {
+        val state = HomeStateMapper.map(
+            capability = readyCapability(
+                kernelPatch = RootLayerState.NEED_UPDATE,
+                androidPatch = RootLayerState.NEED_UPDATE,
+                mode = RootMode.FULL_APATCH,
+            ).copy(attention = setOf(RootAttention.NEED_UPDATE)),
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+            blockKernelPatchUpdate = true,
+        )
+
+        assertEquals(RootLayerState.AVAILABLE, state.capability.kernelPatch)
+        assertEquals(RootLayerState.NEED_UPDATE, state.capability.androidPatch)
+        assertTrue(state.capability.attention.contains(RootAttention.NEED_UPDATE))
+        assertEquals(HomeConclusion.NEED_UPDATE, state.conclusion)
+        assertEquals(HomePrimaryAction.UPDATE_APATCH, state.primaryAction)
+    }
+
+    @Test
+    fun `blocked system patch update keeps full root quiet`() {
+        val state = HomeStateMapper.map(
+            capability = readyCapability(
+                kernelPatch = RootLayerState.AVAILABLE,
+                androidPatch = RootLayerState.NEED_UPDATE,
+                mode = RootMode.FULL_APATCH,
+            ).copy(attention = setOf(RootAttention.NEED_UPDATE)),
+            environment = environment(),
+            showBackupWarning = false,
+            update = HomeUpdateState.Idle,
+            blockAndroidPatchUpdate = true,
+        )
+
+        assertEquals(RootLayerState.AVAILABLE, state.capability.androidPatch)
+        assertFalse(state.capability.attention.contains(RootAttention.NEED_UPDATE))
+        assertEquals(HomeConclusion.FULL_APATCH, state.conclusion)
+        assertEquals(HomePrimaryAction.NONE, state.primaryAction)
+        assertTrue(state.canUninstallAnything())
+    }
+
+    @Test
     fun `each layer reports its own versions`() {
         // The kernel patch is measured in KernelPatch versions, the system patch in the patch build
         // the manager was compiled against. Both sides of the arrow have to come from one layer.

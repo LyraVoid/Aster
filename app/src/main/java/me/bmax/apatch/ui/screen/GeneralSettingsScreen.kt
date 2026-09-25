@@ -43,8 +43,9 @@ import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.icon.extended.Edit
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Blocklist
+import top.yukonga.miuix.kmp.icon.extended.Edit
 import top.yukonga.miuix.kmp.icon.extended.Info
 import top.yukonga.miuix.kmp.icon.extended.Pin
 import top.yukonga.miuix.kmp.icon.extended.Timer
@@ -73,6 +74,16 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
     var showHomeTitleDialog by rememberSaveable { mutableStateOf(false) }
     var checkUpdate by rememberSaveable {
         mutableStateOf(prefs.getBoolean("check_update", true))
+    }
+    var blockKernelPatchUpdate by rememberSaveable {
+        mutableStateOf(
+            prefs.getBoolean(APApplication.PREF_BLOCK_KERNELPATCH_UPDATE, false),
+        )
+    }
+    var blockAndroidPatchUpdate by rememberSaveable {
+        mutableStateOf(
+            prefs.getBoolean(APApplication.PREF_BLOCK_ANDROIDPATCH_UPDATE, false),
+        )
     }
     var confirmInstall by rememberSaveable {
         mutableStateOf(apApp.getModuleInstallConfirmState())
@@ -141,6 +152,44 @@ fun GeneralSettingsScreen(navigator: DestinationsNavigator) {
                         summary = stringResource(R.string.settings_check_update_summary),
                         startAction = {
                             SettingsIcon(MiuixIcons.Timer)
+                        },
+                    )
+                    IndicatorSwitchPreference(
+                        checked = blockKernelPatchUpdate,
+                        onCheckedChange = { enabled ->
+                            prefs.edit {
+                                putBoolean(
+                                    APApplication.PREF_BLOCK_KERNELPATCH_UPDATE,
+                                    enabled,
+                                )
+                            }
+                            blockKernelPatchUpdate = enabled
+                        },
+                        title = stringResource(R.string.settings_block_kernelpatch_update),
+                        summary = stringResource(
+                            R.string.settings_block_kernelpatch_update_summary,
+                        ),
+                        startAction = {
+                            SettingsIcon(MiuixIcons.Blocklist)
+                        },
+                    )
+                    IndicatorSwitchPreference(
+                        checked = blockAndroidPatchUpdate,
+                        onCheckedChange = { enabled ->
+                            prefs.edit {
+                                putBoolean(
+                                    APApplication.PREF_BLOCK_ANDROIDPATCH_UPDATE,
+                                    enabled,
+                                )
+                            }
+                            blockAndroidPatchUpdate = enabled
+                        },
+                        title = stringResource(R.string.settings_block_androidpatch_update),
+                        summary = stringResource(
+                            R.string.settings_block_androidpatch_update_summary,
+                        ),
+                        startAction = {
+                            SettingsIcon(MiuixIcons.Blocklist)
                         },
                     )
                 }

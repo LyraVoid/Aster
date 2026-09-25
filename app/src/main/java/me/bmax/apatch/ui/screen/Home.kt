@@ -243,6 +243,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
     // another page. Home is recomposed on the way back, which is the moment to read them again.
     LaunchedEffect(viewModel) {
         viewModel.refreshCounts()
+        viewModel.refreshEnvironment()
     }
 
     LaunchedEffect(viewModel) {

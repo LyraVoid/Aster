@@ -17,14 +17,20 @@ internal object HomeStateMapper {
         update: HomeUpdateState,
         apmCount: Int = 0,
         kpmCount: Int = 0,
+        blockKernelPatchUpdate: Boolean = false,
+        blockAndroidPatchUpdate: Boolean = false,
     ): HomeUiState {
-        val conclusion = resolveConclusion(capability, environment)
+        val visibleCapability = capability.withBlockedUpdatesHidden(
+            blockKernelPatchUpdate = blockKernelPatchUpdate,
+            blockAndroidPatchUpdate = blockAndroidPatchUpdate,
+        )
+        val conclusion = resolveConclusion(visibleCapability, environment)
         return HomeUiState(
-            capability = capability,
+            capability = visibleCapability,
             environment = environment,
             conclusion = conclusion,
-            primaryAction = resolvePrimaryAction(capability, environment),
-            deviceDensity = resolveDeviceDensity(capability, conclusion),
+            primaryAction = resolvePrimaryAction(visibleCapability, environment),
+            deviceDensity = resolveDeviceDensity(visibleCapability, conclusion),
             showBackupWarning = showBackupWarning,
             update = update,
             apmCount = apmCount,
@@ -124,6 +130,43 @@ internal object HomeStateMapper {
             conclusion == HomeConclusion.FULL_APATCH
         return if (quiet) HomeDeviceDensity.COMPACT else HomeDeviceDensity.DIAGNOSTIC
     }
+}
+
+/**
+ * Hide only the update prompt a reader opted out of. The layer stays usable so module access,
+ * security actions and uninstall do not disappear with the notification.
+ */
+internal fun RootCapabilitySnapshot.withBlockedUpdatesHidden(
+    blockKernelPatchUpdate: Boolean,
+    blockAndroidPatchUpdate: Boolean,
+): RootCapabilitySnapshot {
+    val visibleKernelPatch = if (
+        blockKernelPatchUpdate && kernelPatch == RootLayerState.NEED_UPDATE
+    ) {
+        RootLayerState.AVAILABLE
+    } else {
+        kernelPatch
+    }
+    val visibleAndroidPatch = if (
+        blockAndroidPatchUpdate && androidPatch == RootLayerState.NEED_UPDATE
+    ) {
+        RootLayerState.AVAILABLE
+    } else {
+        androidPatch
+    }
+    val visibleAttention = attention.toMutableSet().apply {
+        if (
+            visibleKernelPatch != RootLayerState.NEED_UPDATE &&
+            visibleAndroidPatch != RootLayerState.NEED_UPDATE
+        ) {
+            remove(RootAttention.NEED_UPDATE)
+        }
+    }
+    return copy(
+        kernelPatch = visibleKernelPatch,
+        androidPatch = visibleAndroidPatch,
+        attention = visibleAttention,
+    )
 }
 
 /**
