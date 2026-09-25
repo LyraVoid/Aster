@@ -464,6 +464,27 @@ fun isSELinuxPermissive(): Boolean {
     }
 }
 
+/** The current SELinux mode as the root shell sees it. */
+fun getSELinuxMode(): String {
+    val result = rootShellForResult("getenforce")
+    if (!result.isSuccess) {
+        return "Unknown"
+    }
+    return when (result.out.firstOrNull()?.trim()?.uppercase()) {
+        "ENFORCING" -> "Enforcing"
+        "PERMISSIVE" -> "Permissive"
+        else -> "Unknown"
+    }
+}
+
+/** Switch SELinux enforcement through the root shell. */
+fun setSELinuxMode(enforcing: Boolean): Boolean {
+    val command = "setenforce ${if (enforcing) "1" else "0"}"
+    val success = rootShellForResult(command).isSuccess
+    Log.i(TAG, "$command succeeded: $success")
+    return success
+}
+
 /** Whether jailbreak mode is active (the ko has been loaded and a marker written). */
 fun isJailbreakMode(): Boolean {
     return runCatching { SuFile(APApplication.JAILBREAK_FILE).exists() }.getOrDefault(false)

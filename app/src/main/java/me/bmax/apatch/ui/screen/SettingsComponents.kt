@@ -564,6 +564,97 @@ internal fun ResetSUPathDialog(
 }
 
 @Composable
+internal fun SelinuxModeDialog(
+    show: Boolean,
+    currentMode: String,
+    onDismiss: () -> Unit,
+    onApply: (enforcing: Boolean) -> Unit,
+) {
+    var selectedMode by remember(show, currentMode) { mutableStateOf(currentMode) }
+    var showConfirmation by remember(show) { mutableStateOf(false) }
+
+    OverlayDialog(
+        show = show && !showConfirmation,
+        title = stringResource(R.string.settings_selinux_mode),
+        onDismissRequest = onDismiss,
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            RadioButtonPreference(
+                title = stringResource(R.string.settings_selinux_mode_enforcing),
+                summary = stringResource(R.string.settings_selinux_mode_enforcing_summary),
+                selected = selectedMode == "Enforcing",
+                onClick = { selectedMode = "Enforcing" },
+            )
+            RadioButtonPreference(
+                title = stringResource(R.string.settings_selinux_mode_permissive),
+                summary = stringResource(R.string.settings_selinux_mode_permissive_summary),
+                selected = selectedMode == "Permissive",
+                onClick = { selectedMode = "Permissive" },
+            )
+            Spacer(Modifier.height(18.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                TextButton(
+                    text = stringResource(android.R.string.cancel),
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f),
+                )
+                Button(
+                    onClick = { showConfirmation = true },
+                    enabled = selectedMode != currentMode && selectedMode != "Unknown",
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColorsPrimary(),
+                ) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            }
+        }
+    }
+
+    OverlayDialog(
+        show = show && showConfirmation,
+        title = stringResource(R.string.settings_selinux_mode),
+        onDismissRequest = { showConfirmation = false },
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = stringResource(
+                    if (selectedMode == "Permissive") {
+                        R.string.msg_selinux_permissive_warning
+                    } else {
+                        R.string.msg_selinux_enforcing_confirm
+                    },
+                ),
+                style = MiuixTheme.textStyles.body2,
+            )
+            Spacer(Modifier.height(18.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                TextButton(
+                    text = stringResource(android.R.string.cancel),
+                    onClick = { showConfirmation = false },
+                    modifier = Modifier.weight(1f),
+                )
+                Button(
+                    onClick = {
+                        onDismiss()
+                        onApply(selectedMode == "Enforcing")
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColorsPrimary(),
+                ) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            }
+        }
+    }
+}
+
+@Composable
 internal fun SelinuxHideWarningDialog(
     show: Boolean,
     kernelVersion: Int?,

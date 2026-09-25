@@ -34,11 +34,13 @@ import me.bmax.apatch.ui.settings.resolveSettingsFeatureAvailability
 import me.bmax.apatch.ui.shell.LocalAsterCapabilities
 import me.bmax.apatch.ui.shell.LocalFloatingNavigationInset
 import me.bmax.apatch.util.getKernelVersionCode
-import me.bmax.apatch.util.isMagicMountEnabled
-import me.bmax.apatch.util.setMagicMountEnabled
+import me.bmax.apatch.util.getSELinuxMode
 import me.bmax.apatch.util.isGkiKernel
+import me.bmax.apatch.util.isMagicMountEnabled
 import me.bmax.apatch.util.isGlobalNamespaceEnabled
 import me.bmax.apatch.util.rootShellForResult
+import me.bmax.apatch.util.setMagicMountEnabled
+import me.bmax.apatch.util.setSELinuxMode
 import me.bmax.apatch.util.setGlobalNamespaceEnabled
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
@@ -82,6 +84,8 @@ fun KernelSettingsScreen(navigator: DestinationsNavigator) {
     var selinuxHideEnabled by rememberSaveable {
         mutableStateOf(prefs.getBoolean("selinux_hide_enabled", false))
     }
+    var selinuxMode by rememberSaveable { mutableStateOf("Unknown") }
+    var showSelinuxModeDialog by rememberSaveable { mutableStateOf(false) }
     var showResetSuPathDialog by rememberSaveable { mutableStateOf(false) }
     var showSelinuxHideWarning by rememberSaveable { mutableStateOf(false) }
 
@@ -124,6 +128,14 @@ fun KernelSettingsScreen(navigator: DestinationsNavigator) {
             }
         } else {
             null
+        }
+    }
+
+    LaunchedEffect(kPatchReady, aPatchReady) {
+        selinuxMode = if (kPatchReady && aPatchReady) {
+            withContext(Dispatchers.IO) { getSELinuxMode() }
+        } else {
+            "Unknown"
         }
     }
 
@@ -289,6 +301,25 @@ fun KernelSettingsScreen(navigator: DestinationsNavigator) {
                         )
                     }
 
+                    if (availability.selinuxMode) {
+                        ArrowPreference(
+                            title = stringResource(R.string.settings_selinux_mode),
+                            summary = stringResource(
+                                R.string.settings_selinux_current_mode,
+                                when (selinuxMode) {
+                                    "Enforcing" ->
+                                        stringResource(R.string.settings_selinux_mode_enforcing)
+                                    "Permissive" ->
+                                        stringResource(R.string.settings_selinux_mode_permissive)
+                                    else ->
+                                        stringResource(R.string.home_selinux_status_unknown)
+                                },
+                            ),
+                            startAction = { SettingsIcon(MiuixIcons.Lock) },
+                            onClick = { showSelinuxModeDialog = true },
+                        )
+                    }
+
                     if (availability.resetSuPath) {
                         ArrowPreference(
                             title = stringResource(R.string.setting_reset_su_path),
@@ -331,6 +362,27 @@ fun KernelSettingsScreen(navigator: DestinationsNavigator) {
             onConfirm = {
                 showSelinuxHideWarning = false
                 applySelinuxHide(true)
+            },
+        )
+
+        SelinuxModeDialog(
+            show = showSelinuxModeDialog,
+            currentMode = selinuxMode,
+            onDismiss = { showSelinuxModeDialog = false },
+            onApply = { enforcing ->
+                scope.launch {
+                    val success = withContext(Dispatchers.IO) {
+                        setSELinuxMode(enforcing)
+                    }
+                    if (success) {
+                        selinuxMode = if (enforcing) "Enforcing" else "Permissive"
+                    }
+                    Toast.makeText(
+                        context,
+                        if (success) R.string.success else R.string.failure,
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
             },
         )
     }

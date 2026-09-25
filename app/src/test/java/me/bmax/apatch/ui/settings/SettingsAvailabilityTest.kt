@@ -12,6 +12,7 @@ class SettingsAvailabilityTest {
                 globalNamespace = false,
                 sucompat = false,
                 selinuxHide = false,
+                selinuxMode = false,
                 webViewDebugging = false,
                 resetSuPath = false,
                 nightTheme = false,
@@ -35,6 +36,7 @@ class SettingsAvailabilityTest {
         assertEquals(false, result.globalNamespace)
         assertEquals(false, result.sucompat)
         assertEquals(false, result.selinuxHide)
+        assertEquals(false, result.selinuxMode)
         assertEquals(false, result.webViewDebugging)
         assertEquals(true, result.resetSuPath)
     }
@@ -62,6 +64,7 @@ class SettingsAvailabilityTest {
         assertEquals(true, result.globalNamespace)
         assertEquals(true, result.sucompat)
         assertEquals(true, result.selinuxHide)
+        assertEquals(true, result.selinuxMode)
         assertEquals(true, result.webViewDebugging)
         assertEquals(true, result.resetSuPath)
     }
