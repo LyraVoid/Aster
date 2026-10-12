@@ -33,10 +33,31 @@
         android:zygotePreloadName="me.bmax.apatch.magica.AppZygotePreload"
         tools:targetApi="34">
 
+        <!--
+            oneTask: the launcher, a module shortcut and a file opened from outside all have to land
+            on the same instance. Without this a file handed over from a file manager starts its own
+            copy of the activity, and the app shows up twice with the file handled by whichever copy
+            got there first.
+        -->
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Splash">
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.Splash" />
+
+        <!--
+            Files opened or shared with the app, on an alias of its own.
+
+            Kept apart from the launcher alias so a file association never wears whichever icon the
+            launcher entry currently does, and so the intent this receives is only ever a file.
+        -->
+        <activity-alias
+            android:name=".ui.MainActivityFileHandler"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:targetActivity=".ui.MainActivity">
             <!--
                 Files opened from a file manager. A module is a zip, a font is a font, and a kernel
                 module is usually reported as a plain binary, so all three are asked for here; what
@@ -45,6 +66,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="content" />
                 <data android:scheme="file" />
                 <data android:mimeType="application/zip" />
@@ -73,7 +95,7 @@
                 <data android:mimeType="application/x-font-ttf" />
                 <data android:mimeType="application/x-font-opentype" />
             </intent-filter>
-        </activity>
+        </activity-alias>
 
         <activity-alias
             android:name=".ui.MainActivityDefault"

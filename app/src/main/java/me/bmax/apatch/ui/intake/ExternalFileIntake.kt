@@ -6,8 +6,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavController
 import com.ramcosta.composedestinations.generated.destinations.InstallScreenDestination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import me.bmax.apatch.R
 import me.bmax.apatch.ui.component.LoadingDialogHandle
 import me.bmax.apatch.ui.component.rememberLoadingDialog
@@ -23,6 +25,12 @@ import top.yukonga.miuix.kmp.basic.SnackbarHostState
 private const val TAG = "ExternalFileIntake"
 
 /**
+ * How long landing on the install page waits for the shell to have a graph. The host sets one during
+ * its own composition, so in practice this is only a formality on a cold start.
+ */
+private const val NAVIGATION_READY_TIMEOUT_MS = 5_000L
+
+/**
  * Acts on the file an outside app handed the manager.
  *
  * A font is imported and put to use, which is what sharing one is for. A module goes to the install
@@ -30,11 +38,13 @@ private const val TAG = "ExternalFileIntake"
  * unpacked on the strength of where it came from. A kernel module is handed to kptools, which is
  * the only thing that can read one; whatever is left is answered with what the manager does take.
  *
- * Rendered by the start destination: it is inside the shell, so the dialogs and the snackbar are
- * the shell's, and the navigation host has a graph by the time a destination composes.
+ * Rendered above the navigation host, not inside a screen: a screen is only watching while it is
+ * the one on show, so a file handed over at any other moment would sit there until the user
+ * happened to come back to it. From here the dialog and the snackbar are the shell's, and they can
+ * speak whatever page is showing.
  */
 @Composable
-internal fun ExternalFileIntake(navigator: DestinationsNavigator) {
+internal fun ExternalFileIntake(navController: NavController) {
     val context = LocalContext.current
     val snackBarHost = LocalSnackbarHost.current
     val loadingDialog = rememberLoadingDialog()
@@ -46,16 +56,21 @@ internal fun ExternalFileIntake(navigator: DestinationsNavigator) {
         kernelModuleInstalled = stringResource(R.string.kpm_install_toast_succ),
     )
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(navController) {
         ExternalFileRequests.pending.collect { file ->
-            if (file == null) return@collect
-            // Taken before it is acted on: what follows can navigate or show a dialog, and the file
-            // is this app's either way.
-            ExternalFileRequests.consume()
             // One file that cannot be handled must not take the intake with it: an exception here
             // would end this collection, and every file after it would be dropped in silence.
-            runCatching { act(context, navigator, file, installConfirm, loadingDialog, snackBarHost, messages) }
-                .onFailure { Log.w(TAG, "handling ${file.name} failed", it) }
+            runCatching {
+                act(
+                    context = context,
+                    navController = navController,
+                    file = file,
+                    installConfirm = installConfirm,
+                    loadingDialog = loadingDialog,
+                    snackBarHost = snackBarHost,
+                    messages = messages,
+                )
+            }.onFailure { Log.w(TAG, "handling ${file.name} failed", it) }
         }
     }
 }
@@ -69,7 +84,7 @@ private class ExternalFileMessages(
 
 private suspend fun act(
     context: Context,
-    navigator: DestinationsNavigator,
+    navController: NavController,
     file: ExternalFile,
     installConfirm: ModuleInstallConfirm,
     loadingDialog: LoadingDialogHandle,
@@ -88,7 +103,16 @@ private suspend fun act(
 
         ExternalFileKind.Module -> {
             if (installConfirm.ask(file.uri)) {
-                navigator.navigate(InstallScreenDestination(file.uri, MODULE_TYPE.APM))
+                // Confirming takes a person, so the host is nearly always there by now; the wait
+                // is for the cold start where the file arrived with the very first composition.
+                val ready = withTimeoutOrNull(NAVIGATION_READY_TIMEOUT_MS) {
+                    navController.currentBackStackEntryFlow.first()
+                } != null
+                if (ready) {
+                    navController.navigate(InstallScreenDestination(file.uri, MODULE_TYPE.APM).route)
+                } else {
+                    Log.w(TAG, "no navigation graph for ${file.name}; dropping the request")
+                }
             }
         }
 

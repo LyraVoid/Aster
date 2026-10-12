@@ -35,6 +35,7 @@ import me.bmax.apatch.root.RootCheckPhase
 import me.bmax.apatch.root.isUsable
 import me.bmax.apatch.ui.home.HomeWallpaperViewModel
 import me.bmax.apatch.ui.home.LocalHomeWallpaperViewModel
+import me.bmax.apatch.ui.intake.ExternalFileIntake
 import me.bmax.apatch.ui.intake.ExternalFileReader
 import me.bmax.apatch.ui.intake.ExternalFileRequests
 import me.bmax.apatch.ui.module.MODULE_SHORTCUT_ID_PARAM
@@ -52,6 +53,7 @@ import me.bmax.apatch.ui.theme.APatchTheme
 import me.bmax.apatch.ui.theme.LocalThemeModeState
 import me.bmax.apatch.ui.viewmodel.SuperUserViewModel
 import me.bmax.apatch.util.ModuleShortcut
+import me.bmax.apatch.util.ui.LocalSnackbarHost
 import top.yukonga.miuix.kmp.basic.SnackbarHostState
 
 class MainActivity : AppCompatActivity() {
@@ -124,6 +126,7 @@ class MainActivity : AppCompatActivity() {
 
                 CompositionLocalProvider(
                     LocalHomeWallpaperViewModel provides homeWallpaperViewModel,
+                    LocalSnackbarHost provides snackBarHostState,
                 ) {
                     AsterAppShell(
                         navController = navController,
@@ -140,6 +143,13 @@ class MainActivity : AppCompatActivity() {
                             defaultTransitions = defaultTransitions,
                         )
                     }
+
+                    // Files come in on the activity, but where one lands is a destination, so the
+                    // intake sits here rather than inside a screen. A screen would only be watching
+                    // while it is the one on show, and a file shared at any other moment would wait
+                    // for the user to come back to it. Here it stays in composition, whichever page
+                    // the shell is showing.
+                    ExternalFileIntake(navController)
 
                     // A launcher shortcut arrives as an intent, but where it lands is a
                     // destination, so the two are kept apart: the intent publishes a request and
