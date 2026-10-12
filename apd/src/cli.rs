@@ -243,7 +243,7 @@ pub fn run() -> Result<()> {
 
         Commands::BootCompleted => event::on_boot_completed(cli.superkey),
 
-        Commands::UidListener => event::start_uid_listener(),
+        Commands::UidListener => event::start_uid_listener(cli.superkey),
 
         Commands::Insmod { module, params } => insmod::insmod(&module, &params),
 

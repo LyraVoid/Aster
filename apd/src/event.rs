@@ -8,7 +8,9 @@ use notify::{
 };
 use signal_hook::{consts::signal::*, iterator::Signals};
 use std::{
-    env, fs,
+    env,
+    ffi::CString,
+    fs,
     os::unix::{fs::PermissionsExt, process::CommandExt},
     path::{Path, PathBuf},
     process::Command,
@@ -268,11 +270,24 @@ pub fn on_services(superkey: Option<String>) -> Result<()> {
     Ok(())
 }
 
-fn run_uid_monitor() {
+/// Key the uid listener authenticates its refresh supercalls with. A custom
+/// superkey has to be forwarded: with a stale key the kernel answers -EPERM to
+/// grant/revoke/kstorage, so allowlist changes would silently not apply.
+fn refresh_superkey(superkey: &Option<String>) -> CString {
+    superkey
+        .as_deref()
+        .and_then(|key| CString::new(key).ok())
+        .unwrap_or_else(|| c"su".to_owned())
+}
+
+fn run_uid_monitor(superkey: Option<String>) {
     info!("Trigger run_uid_monitor!");
 
     let mut command = Command::new("/data/adb/apd");
     utils::background_command(&mut command);
+    if let Some(key) = superkey {
+        command.arg("-s").arg(key);
+    }
     match command.arg("uid-listener").spawn() {
         Ok(mut child) => {
             thread::spawn(move || {
@@ -287,13 +302,13 @@ pub fn on_boot_completed(superkey: Option<String>) -> Result<()> {
     info!("on_boot_completed triggered!");
     crate::runtime_safety::boot_check("boot-completed");
 
-    run_stage("boot-completed", superkey, false);
+    run_stage("boot-completed", superkey.clone(), false);
 
-    run_uid_monitor();
+    run_uid_monitor(superkey);
     Ok(())
 }
 
-pub fn start_uid_listener() -> Result<()> {
+pub fn start_uid_listener(superkey: Option<String>) -> Result<()> {
     use std::os::{fd::AsRawFd, unix::fs::OpenOptionsExt};
     let listener_lock = fs::OpenOptions::new()
         .write(true)
@@ -322,9 +337,11 @@ pub fn start_uid_listener() -> Result<()> {
     let (tx, rx) = std::sync::mpsc::channel();
     let tx_clone = tx.clone();
     let mutex = Arc::new(Mutex::new(()));
+    let refresh_key = refresh_superkey(&superkey);
 
     {
         let mutex_clone = mutex.clone();
+        let refresh_key = refresh_key.clone();
         thread::spawn(move || {
             let Ok(mut signals) = Signals::new([SIGTERM, SIGINT, SIGPWR]) else {
                 warn!("Cannot register UID listener shutdown signals");
@@ -332,8 +349,7 @@ pub fn start_uid_listener() -> Result<()> {
             };
             for sig in signals.forever() {
                 log::warn!("[shutdown] Caught signal {sig}, refreshing package list...");
-                let skey = c"su";
-                refresh_ap_package_list(skey, &mutex_clone);
+                refresh_ap_package_list(&refresh_key, &mutex_clone);
                 if sig == SIGTERM || sig == SIGINT {
                     std::process::exit(0);
                 }
@@ -362,15 +378,14 @@ pub fn start_uid_listener() -> Result<()> {
     watcher.watch(dir.as_ref(), RecursiveMode::NonRecursive)?;
 
     // Register first, so changes during the initial refresh remain queued.
-    refresh_ap_package_list(c"su", &mutex);
+    refresh_ap_package_list(&refresh_key, &mutex);
 
     let mut debounce = false;
     while let Ok(delayed) = rx.recv() {
         if delayed {
             debounce = false;
-            let skey = c"su";
-            refresh_ap_package_list(skey, &mutex);
-            report_kernel(None, "uid_listener", "package-list-updated");
+            refresh_ap_package_list(&refresh_key, &mutex);
+            report_kernel(superkey.clone(), "uid_listener", "package-list-updated");
         } else if !debounce {
             thread::sleep(Duration::from_secs(1));
             debounce = true;
