@@ -21,50 +21,24 @@ class ExternalFileTest {
 
     @Test fun aFontIsAFontWhateverItIsCalled() {
         for (header in listOf(TTF, OTTO)) {
-            assertEquals(
-                ExternalFileKind.Font,
-                classifyExternalFile(header, zipHasModule = false, sizeBytes = 20 * 1024 * 1024),
-            )
+            assertEquals(ExternalFileKind.Font, classifyExternalFile(header, 20 * 1024 * 1024))
         }
     }
 
-    @Test fun aZipIsAModuleOnlyWhenItCarriesOne() {
-        assertEquals(
-            ExternalFileKind.Module,
-            classifyExternalFile(ZIP, zipHasModule = true, sizeBytes = 2 * 1024 * 1024),
-        )
-        // A zip that carries no module.prop is refused rather than passed on: a zip is never a
-        // kernel module, so there is nothing else it could be here.
-        assertEquals(
-            ExternalFileKind.Unknown,
-            classifyExternalFile(ZIP, zipHasModule = false, sizeBytes = 1024),
-        )
+    @Test fun everyZipGoesToTheApdModuleInstaller() {
+        assertEquals(ExternalFileKind.Module, classifyExternalFile(ZIP, 2 * 1024 * 1024))
+        // Do not inspect entries with Android ZipInputStream: ZIP-XZ (method 95) must reach APD.
+        assertEquals(ExternalFileKind.Module, classifyExternalFile(ZIP, 1024))
     }
 
     @Test fun aSmallUnknownFileIsLeftToKptools() {
-        assertEquals(
-            ExternalFileKind.KernelModule,
-            classifyExternalFile(PNG, zipHasModule = false, sizeBytes = 64 * 1024),
-        )
-        assertEquals(
-            ExternalFileKind.KernelModule,
-            classifyExternalFile(PNG, zipHasModule = false, sizeBytes = MAX_KERNEL_MODULE_BYTES),
-        )
+        assertEquals(ExternalFileKind.KernelModule, classifyExternalFile(PNG, 64 * 1024))
+        assertEquals(ExternalFileKind.KernelModule, classifyExternalFile(PNG, MAX_KERNEL_MODULE_BYTES))
     }
 
     @Test fun aFileTooBigToBeAKernelModuleIsRefused() {
-        assertEquals(
-            ExternalFileKind.Unknown,
-            classifyExternalFile(PNG, zipHasModule = false, sizeBytes = MAX_KERNEL_MODULE_BYTES + 1),
-        )
-        // A provider that cannot say how big the file is must not be read as "small".
-        assertEquals(
-            ExternalFileKind.Unknown,
-            classifyExternalFile(PNG, zipHasModule = false, sizeBytes = -1),
-        )
-        assertEquals(
-            ExternalFileKind.Unknown,
-            classifyExternalFile(EMPTY, zipHasModule = false, sizeBytes = 0),
-        )
+        assertEquals(ExternalFileKind.Unknown, classifyExternalFile(PNG, MAX_KERNEL_MODULE_BYTES + 1))
+        assertEquals(ExternalFileKind.Unknown, classifyExternalFile(PNG, -1))
+        assertEquals(ExternalFileKind.Unknown, classifyExternalFile(EMPTY, 0))
     }
 }
