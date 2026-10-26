@@ -1,20 +1,20 @@
 [versions]
-agp = "9.3.1"
-kotlin = "2.4.10"
-ksp = "2.3.11"
-compose-bom = "2026.08.00"
+agp = "9.4.1"
+kotlin = "2.4.21"
+ksp = "2.3.12"
+compose-bom = "2026.09.00"
 lifecycle = "2.11.0"
 compose-destination = "2.3.0"
 libsu = "6.0.0"
-coil3 = "3.5.0"
+coil3 = "3.6.3"
 junit = "4.13.2"
-miuix = "0.9.3"
-backdrop = "1.0.6"
+miuix = "0.9.4"
+backdrop = "2.0.1"
 
 [plugins]
 agp-app = { id = "com.android.application", version.ref = "agp" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-lsplugin-apksign = { id = "org.lsposed.lsplugin.apksign", version = "1.4" }
+lsplugin-apksign = { id = "org.lsposed.lsplugin.apksign", version = "1.5" }
 lsplugin-resopt = { id = "org.lsposed.lsplugin.resopt", version = "1.6" }
 kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
@@ -25,7 +25,7 @@ backdrop = { module = "io.github.kyant0:backdrop", version.ref = "backdrop" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version = "1.8.0" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version = "1.13.0" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version = "1.2.0" }
-androidx-webkit = { group = "androidx.webkit", name = "webkit", version = "1.17.0" }
+androidx-webkit = { group = "androidx.webkit", name = "webkit", version = "1.18.0" }
 
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
@@ -51,7 +51,7 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 
 junit = { module = "junit:junit", version.ref = "junit" }
 
-okhttp = { module = "com.squareup.okhttp3:okhttp", version = "5.5.0" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version = "5.5.1" }
 
 compose-destinations-core = { group = "io.github.raamcosta.compose-destinations", name = "core", version.ref = "compose-destination" }
 compose-destinations-ksp = { group = "io.github.raamcosta.compose-destinations", name = "ksp", version.ref = "compose-destination" }
@@ -60,10 +60,10 @@ markdown = { group = "io.noties.markwon", name = "core", version = "4.6.2" }
 
 ini4j = { group = "org.ini4j", name = "ini4j", version = "0.5.4" }
 
-json = { module = "org.json:json", version = "20231013" }
+json = { module = "org.json:json", version = "20260814" }
 
 miuix-ui = { group = "top.yukonga.miuix.kmp", name = "miuix-ui-android", version.ref = "miuix" }
 miuix-icons = { group = "top.yukonga.miuix.kmp", name = "miuix-icons-android", version.ref = "miuix" }
 miuix-preference = { group = "top.yukonga.miuix.kmp", name = "miuix-preference-android", version.ref = "miuix" }
 
-cxx = { module = "org.lsposed.libcxx:libcxx", version = "29.0.14206865" }
+cxx = { module = "org.lsposed.libcxx:libcxx", version = "30.0.16248370" }
